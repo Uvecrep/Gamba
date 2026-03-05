@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cfwt05gklojus"]
 
-[ext_resource type="Script" uid="uid://bhd606emms7pi" path="res://assets/lootbox/lootbox_testing/loot_box_testing.gd" id="1_7is02"]
+[ext_resource type="Script" uid="uid://bhd606emms7pi" path="res://assets/lootbox/lootbox_testing/lootbox_testing.gd" id="1_lvy4r"]
 
 [node name="Control" type="Control" unique_id=1423338499]
 layout_mode = 3
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="LootBoxDebugUi" type="Node" parent="." unique_id=546445388 node_paths=PackedStringArray("LoadResourceLineEdit", "LootBoxPathLabel", "LootBoxNameLabel", "LootBoxColorLabel", "LootBoxDescriptionLabel")]
-script = ExtResource("1_7is02")
+script = ExtResource("1_lvy4r")
 LoadResourceLineEdit = NodePath("../PanelContainer/HBoxContainer/PanelContainer2/LoadResourceLineEdit")
 LootBoxPathLabel = NodePath("../VBoxContainer/PanelContainer4/HBoxContainer/PanelContainer2/MarginContainer/LootBoxPathLabel")
 LootBoxNameLabel = NodePath("../VBoxContainer/PanelContainer/HBoxContainer/PanelContainer2/MarginContainer/LootBoxNameLabel")
