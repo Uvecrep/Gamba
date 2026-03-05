@@ -2,39 +2,46 @@ extends Node
 
 @export var LoadResourceLineEdit : LineEdit
 
-@export var LootBoxPathLabel : Label
-@export var LootBoxNameLabel : Label
-@export var LootBoxColorLabel : Label
-@export var LootBoxDescriptionLabel : Label
+@export var LootboxPathLabel : Label
+@export var LootboxNameLabel : Label
+@export var LootboxColorLabel : Label
+@export var LootboxDescriptionLabel : Label
 
-@export var LoadedLootBox : LootBox
+@export var RollButton : Button
+
+@export var LoadedLootbox : Lootbox
 
 func _ready() -> void:
-	LoadResourceLineEdit.text = "res://assets/lootbox/lootbox_testing/example_lootbox.tres"
+	LoadResourceLineEdit.text = "res://assets/Lootbox/Lootbox_testing/example_Lootbox.tres"
+	reload_Lootbox_ui()
 
 func load_loot_box_resource(path: String):
 	var loaded_resource = ResourceLoader.load(path)
-	
 	
 	if not loaded_resource:
 		print("Failed to load resource at path: " + path)
 		return
 	
-	if loaded_resource is not LootBox:
-		print("Resource at path is valid, but is not a LootBox: " + path)
+	if loaded_resource is not Lootbox:
+		print("Resource at path is valid, but is not a Lootbox: " + path)
 		return
 	
-	LoadedLootBox = loaded_resource
-	reload_lookbox_ui()
+	LoadedLootbox = loaded_resource
 
-func reload_lookbox_ui():
-	LootBoxPathLabel.text = LoadedLootBox.resource_path
-	LootBoxNameLabel.text = LoadedLootBox.name
-	LootBoxColorLabel.text = LoadedLootBox.color
-	LootBoxDescriptionLabel.text = LoadedLootBox.description
+func reload_Lootbox_ui():
+	LootboxPathLabel.text = LoadedLootbox.resource_path if LoadedLootbox != null else "none"
+	LootboxNameLabel.text = LoadedLootbox.name if LoadedLootbox != null else "none"
+	LootboxColorLabel.text = LoadedLootbox.color if LoadedLootbox != null else "none"
+	LootboxDescriptionLabel.text = LoadedLootbox.description if LoadedLootbox != null else "none"
+	RollButton.disabled = LoadedLootbox == null
 
 func _on_load_button_pressed() -> void:
 	load_loot_box_resource(LoadResourceLineEdit.text)
+	reload_Lootbox_ui()
 
 func _on_line_edit_text_submitted(new_text: String) -> void:
 	load_loot_box_resource(new_text)
+	reload_Lootbox_ui()
+
+func _on_roll_button_pressed() -> void:
+	LoadedLootbox.roll().outcome.execute()

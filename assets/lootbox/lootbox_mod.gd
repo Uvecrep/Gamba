@@ -1,4 +1,4 @@
 extends Resource
-class_name LootBoxMod
+class_name LootboxMod
 
 # ???
