@@ -1,0 +1,207 @@
+[gd_scene format=3 uid="uid://cfwt05gklojus"]
+
+[ext_resource type="Script" uid="uid://bhd606emms7pi" path="res://assets/lootbox/lootbox_testing/loot_box_testing.gd" id="1_7is02"]
+
+[node name="Control" type="Control" unique_id=1423338499]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LootBoxDebugUi" type="Node" parent="." unique_id=546445388 node_paths=PackedStringArray("LoadResourceLineEdit", "LootBoxPathLabel", "LootBoxNameLabel", "LootBoxColorLabel", "LootBoxDescriptionLabel")]
+script = ExtResource("1_7is02")
+LoadResourceLineEdit = NodePath("../PanelContainer/HBoxContainer/PanelContainer2/LoadResourceLineEdit")
+LootBoxPathLabel = NodePath("../VBoxContainer/PanelContainer4/HBoxContainer/PanelContainer2/MarginContainer/LootBoxPathLabel")
+LootBoxNameLabel = NodePath("../VBoxContainer/PanelContainer/HBoxContainer/PanelContainer2/MarginContainer/LootBoxNameLabel")
+LootBoxColorLabel = NodePath("../VBoxContainer/PanelContainer2/HBoxContainer/PanelContainer2/MarginContainer/LootBoxColorLabel")
+LootBoxDescriptionLabel = NodePath("../VBoxContainer/PanelContainer3/HBoxContainer/PanelContainer2/MarginContainer/LootBoxDescriptionLabel")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1823137383]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 100.0
+offset_right = 933.0
+offset_bottom = 233.0
+
+[node name="PanelContainer4" type="PanelContainer" parent="VBoxContainer" unique_id=781898279]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer4" unique_id=1464008825]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="VBoxContainer/PanelContainer4/HBoxContainer" unique_id=1057552787]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer/PanelContainer4/HBoxContainer/PanelContainer" unique_id=1289866647]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Path"
+
+[node name="Control" type="Control" parent="VBoxContainer/PanelContainer4/HBoxContainer" unique_id=1322288995]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="VBoxContainer/PanelContainer4/HBoxContainer" unique_id=1074349123]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer4/HBoxContainer/PanelContainer2" unique_id=893743036]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxPathLabel" type="Label" parent="VBoxContainer/PanelContainer4/HBoxContainer/PanelContainer2/MarginContainer" unique_id=1736511726]
+layout_mode = 2
+text = "res://asdf"
+
+[node name="PanelContainer" type="PanelContainer" parent="VBoxContainer" unique_id=2043356747]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer" unique_id=2042986436]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="VBoxContainer/PanelContainer/HBoxContainer" unique_id=1295444660]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer/PanelContainer/HBoxContainer/PanelContainer" unique_id=884409884]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Name"
+
+[node name="Control" type="Control" parent="VBoxContainer/PanelContainer/HBoxContainer" unique_id=746314551]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="VBoxContainer/PanelContainer/HBoxContainer" unique_id=405203127]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer/HBoxContainer/PanelContainer2" unique_id=1391731221]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxNameLabel" type="Label" parent="VBoxContainer/PanelContainer/HBoxContainer/PanelContainer2/MarginContainer" unique_id=220099735]
+layout_mode = 2
+text = "Gobbo Box"
+
+[node name="PanelContainer2" type="PanelContainer" parent="VBoxContainer" unique_id=1805285549]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer2" unique_id=1385531736]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="VBoxContainer/PanelContainer2/HBoxContainer" unique_id=1615466311]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer/PanelContainer2/HBoxContainer/PanelContainer" unique_id=1231790476]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Color"
+
+[node name="Control" type="Control" parent="VBoxContainer/PanelContainer2/HBoxContainer" unique_id=1404706318]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="VBoxContainer/PanelContainer2/HBoxContainer" unique_id=519241825]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer2/HBoxContainer/PanelContainer2" unique_id=396021004]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxColorLabel" type="Label" parent="VBoxContainer/PanelContainer2/HBoxContainer/PanelContainer2/MarginContainer" unique_id=1153254390]
+layout_mode = 2
+text = "Green"
+
+[node name="PanelContainer3" type="PanelContainer" parent="VBoxContainer" unique_id=352080730]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/PanelContainer3" unique_id=849515627]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="VBoxContainer/PanelContainer3/HBoxContainer" unique_id=2091466586]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer/PanelContainer3/HBoxContainer/PanelContainer" unique_id=232242576]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Description"
+
+[node name="Control" type="Control" parent="VBoxContainer/PanelContainer3/HBoxContainer" unique_id=262855969]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="VBoxContainer/PanelContainer3/HBoxContainer" unique_id=1177571885]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/PanelContainer3/HBoxContainer/PanelContainer2" unique_id=1328310344]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxDescriptionLabel" type="Label" parent="VBoxContainer/PanelContainer3/HBoxContainer/PanelContainer2/MarginContainer" unique_id=1504728125]
+layout_mode = 2
+text = "It make the gobbos. Nerd."
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1344455486]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 20.0
+offset_right = 930.0
+offset_bottom = 51.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer" unique_id=1806170322]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="PanelContainer/HBoxContainer" unique_id=1579629185]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer/HBoxContainer/PanelContainer" unique_id=1429016770]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="Label2" type="Label" parent="PanelContainer/HBoxContainer/PanelContainer/MarginContainer" unique_id=267836651]
+layout_mode = 2
+text = "Load LootBox Resource from Path"
+
+[node name="Control" type="Control" parent="PanelContainer/HBoxContainer" unique_id=785467167]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="PanelContainer/HBoxContainer" unique_id=1117434288]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LoadResourceLineEdit" type="LineEdit" parent="PanelContainer/HBoxContainer/PanelContainer2" unique_id=1475092570]
+custom_minimum_size = Vector2(174.73, 0)
+layout_mode = 2
+
+[node name="Control2" type="Control" parent="PanelContainer/HBoxContainer" unique_id=1583519337]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="LoadResourceButton" type="Button" parent="PanelContainer/HBoxContainer" unique_id=221816009]
+layout_mode = 2
+text = "Load"
+
+[connection signal="text_submitted" from="PanelContainer/HBoxContainer/PanelContainer2/LoadResourceLineEdit" to="LootBoxDebugUi" method="_on_line_edit_text_submitted"]
+[connection signal="pressed" from="PanelContainer/HBoxContainer/LoadResourceButton" to="LootBoxDebugUi" method="_on_load_button_pressed"]
