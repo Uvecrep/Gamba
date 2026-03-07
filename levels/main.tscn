@@ -2,7 +2,9 @@
 
 [ext_resource type="PackedScene" uid="uid://bhxxgyq6e3ond" path="res://entities/player/player.tscn" id="1_2262g"]
 [ext_resource type="PackedScene" uid="uid://d34vqfagsgpkm" path="res://levels/world.tscn" id="2_wdj6m"]
-[ext_resource type="PackedScene" uid="uid://b00jrxmgdmyu5" path="res://entities/enemy/enemy.tscn" id="3_l8qe7"]
+[ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="4_wrc4g"]
+[ext_resource type="PackedScene" uid="uid://domyo1x6j4x7w" path="res://entities/enemy/enemy_spawner.tscn" id="5_u7xt2"]
+[ext_resource type="PackedScene" path="res://entities/house/house.tscn" id="6_7hmax"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 
@@ -11,5 +13,12 @@
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
 position = Vector2(438, 292)
 
-[node name="enemy" parent="." unique_id=1720674554 instance=ExtResource("3_l8qe7")]
-position = Vector2(1082, 80)
+[node name="summon" parent="." unique_id=1038151326 instance=ExtResource("4_wrc4g")]
+position = Vector2(530, 304)
+
+[node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
+position = Vector2(547, 284)
+spawn_interval = 5.0
+
+[node name="house" parent="." instance=ExtResource("6_7hmax")]
+position = Vector2(744, 292)
