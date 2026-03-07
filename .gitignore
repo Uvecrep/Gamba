@@ -4,3 +4,9 @@
 
 # Local design document (kept out of git)
 /GDD.md
+
+# Aseprite source files
+*.aseprite
+
+# Local editor settings
+.vscode/

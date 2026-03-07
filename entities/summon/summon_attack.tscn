@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://eaa1qk46hjny"]
+
+[ext_resource type="Script" uid="uid://hcdlqrpjqm45" path="res://entities/summon/summon_attack.gd" id="1_mxxf5"]
+[ext_resource type="Texture2D" uid="uid://13ok7lamwvqa" path="res://assets/characters/projectile.png" id="2_u1pq3"]
+
+[node name="SummonAttack" type="Node2D" unique_id=1555805309]
+script = ExtResource("1_mxxf5")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1305536583]
+texture_filter = 1
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_u1pq3")
