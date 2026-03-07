@@ -23,5 +23,8 @@ You are a summoner using your summon farm to generate loot boxes. These boxes su
 ## Tooling
 - Godot 4.6
 
+## Addons
+- [Script-IDE](https://godotengine.org/asset-library/asset/2206) (AssetLib)
+
 ## TODO
 - Define core game mechanics

@@ -10,3 +10,6 @@
 
 # Local editor settings
 .vscode/
+
+# Asset library addons (local)
+/addons/
