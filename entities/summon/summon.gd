@@ -9,8 +9,8 @@ extends CharacterBody2D
 @export var attack_cooldown: float = 0.8
 @export var attack_projectile_scene: PackedScene = preload("res://entities/summon/summon_attack.tscn")
 
-const PHYSICS_LAYER_WORLD := 1 << 0
-const PHYSICS_LAYER_SUMMON := 1 << 3
+const PHYSICS_LAYER_WORLD: int = 1 << 0
+const PHYSICS_LAYER_SUMMON: int = 1 << 3
 
 var _enemy_target: Node2D
 var _player_target: Node2D
@@ -37,7 +37,9 @@ func _physics_process(delta: float) -> void:
 		var distance_to_enemy := global_position.distance_to(_enemy_target.global_position)
 		if distance_to_enemy <= attack_range:
 			velocity = Vector2.ZERO
-			_try_attack(_enemy_target)
+			if _time_to_next_attack <= 0.0:
+				_time_to_next_attack = attack_cooldown
+				_launch_attack(_enemy_target)
 		else:
 			_move_towards(_enemy_target.global_position)
 	elif is_instance_valid(_player_target):
@@ -50,24 +52,16 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-func _try_attack(target: Node2D) -> void:
-	if _time_to_next_attack > 0.0:
-		return
-
-	_time_to_next_attack = attack_cooldown
-	_launch_attack(target)
-
 func _launch_attack(target: Node2D) -> void:
 	if attack_projectile_scene == null:
 		if target.has_method("take_damage"):
 			target.call("take_damage", attack_damage)
 		return
 
-	var attack_instance := attack_projectile_scene.instantiate()
-	if not attack_instance is Node2D:
+	var projectile := attack_projectile_scene.instantiate() as Node2D
+	if projectile == null:
 		return
 
-	var projectile := attack_instance as Node2D
 	projectile.global_position = global_position
 	if projectile.has_method("setup"):
 		projectile.call("setup", target, attack_damage)
@@ -94,7 +88,7 @@ func _find_player() -> Node2D:
 
 func _find_closest_enemy() -> Node2D:
 	var closest_enemy: Node2D
-	var closest_distance_sq := INF
+	var closest_distance_sq: float = INF
 
 	for candidate in get_tree().get_nodes_in_group("enemies"):
 		if not candidate is Node2D:

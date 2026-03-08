@@ -15,8 +15,8 @@ func _ready() -> void:
 	LoadResourceLineEdit.text = "res://assets/Lootbox/Lootbox_testing/example_Lootbox.tres"
 	reload_Lootbox_ui()
 
-func load_loot_box_resource(path: String):
-	var loaded_resource = ResourceLoader.load(path)
+func load_loot_box_resource(path: String) -> void:
+	var loaded_resource: Resource = ResourceLoader.load(path)
 	
 	if not loaded_resource:
 		print("Failed to load resource at path: " + path)
@@ -28,7 +28,7 @@ func load_loot_box_resource(path: String):
 	
 	LoadedLootbox = loaded_resource
 
-func reload_Lootbox_ui():
+func reload_Lootbox_ui() -> void:
 	LootboxPathLabel.text = LoadedLootbox.resource_path if LoadedLootbox != null else "none"
 	LootboxNameLabel.text = LoadedLootbox.name if LoadedLootbox != null else "none"
 	LootboxColorLabel.text = LoadedLootbox.color if LoadedLootbox != null else "none"

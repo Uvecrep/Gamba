@@ -9,8 +9,8 @@ extends CharacterBody2D
 @export var nearby_target_radius: float = 180.0
 @export var max_health: float = 100.0
 
-const PHYSICS_LAYER_WORLD := 1 << 0
-const PHYSICS_LAYER_ENEMY := 1 << 2
+const PHYSICS_LAYER_WORLD: int = 1 << 0
+const PHYSICS_LAYER_ENEMY: int = 1 << 2
 
 var _current_target: Node2D
 var _time_to_repath: float = 0.0
@@ -29,7 +29,11 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_time_to_repath -= delta
 	if _time_to_repath <= 0.0:
-		_current_target = _find_priority_target()
+		var nearby_target := _find_closest_target_in_groups(nearby_target_groups, nearby_target_radius)
+		if is_instance_valid(nearby_target):
+			_current_target = nearby_target
+		else:
+			_current_target = _find_closest_target_in_group(fallback_target_group)
 		_time_to_repath = repath_interval
 
 	if is_instance_valid(_current_target):
@@ -66,18 +70,11 @@ func _update_health_bar() -> void:
 	_health_bar.value = _current_health
 	_health_bar.visible = true
 
-func _find_priority_target() -> Node2D:
-	var nearby_target := _find_closest_target_in_groups(nearby_target_groups, nearby_target_radius)
-	if is_instance_valid(nearby_target):
-		return nearby_target
-
-	return _find_closest_target_in_group(fallback_target_group)
-
 func _find_closest_target_in_groups(group_names: PackedStringArray, radius: float) -> Node2D:
 	var closest_target: Node2D
-	var closest_distance_sq := INF
-	var has_radius_limit := radius > 0.0
-	var radius_sq := radius * radius
+	var closest_distance_sq: float = INF
+	var has_radius_limit: bool = radius > 0.0
+	var radius_sq: float = radius * radius
 
 	for group_name in group_names:
 		for candidate in get_tree().get_nodes_in_group(group_name):
@@ -102,7 +99,7 @@ func _find_closest_target_in_group(group_name: StringName) -> Node2D:
 		return null
 
 	var closest_target: Node2D
-	var closest_distance_sq := INF
+	var closest_distance_sq: float = INF
 
 	for candidate in get_tree().get_nodes_in_group(group_name):
 		if candidate == self:
@@ -132,15 +129,15 @@ func _estimate_collision_radius(body: Node2D) -> float:
 	var max_scale := maxf(absf(collision_shape.global_scale.x), absf(collision_shape.global_scale.y))
 
 	if collision_shape.shape is RectangleShape2D:
-		var rect_shape := collision_shape.shape as RectangleShape2D
+		var rect_shape: RectangleShape2D = collision_shape.shape as RectangleShape2D
 		return rect_shape.size.length() * 0.5 * max_scale
 
 	if collision_shape.shape is CircleShape2D:
-		var circle_shape := collision_shape.shape as CircleShape2D
+		var circle_shape: CircleShape2D = collision_shape.shape as CircleShape2D
 		return circle_shape.radius * max_scale
 
 	if collision_shape.shape is CapsuleShape2D:
-		var capsule_shape := collision_shape.shape as CapsuleShape2D
+		var capsule_shape: CapsuleShape2D = collision_shape.shape as CapsuleShape2D
 		return (capsule_shape.height * 0.5 + capsule_shape.radius) * max_scale
 
 	return 0.0
