@@ -4,7 +4,9 @@
 [ext_resource type="PackedScene" uid="uid://d34vqfagsgpkm" path="res://levels/world.tscn" id="2_wdj6m"]
 [ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="4_wrc4g"]
 [ext_resource type="PackedScene" uid="uid://domyo1x6j4x7w" path="res://entities/enemy/enemy_spawner.tscn" id="5_u7xt2"]
-[ext_resource type="PackedScene" path="res://entities/house/house.tscn" id="6_7hmax"]
+[ext_resource type="PackedScene" uid="uid://b6u051drnvexw" path="res://entities/house/house.tscn" id="6_7hmax"]
+[ext_resource type="PackedScene" uid="uid://bnb85qll64ayq" path="res://entities/tree/tree.tscn" id="7_b7kfm"]
+[ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/lootbox_counter_hud.gd" id="8_hud"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 
@@ -20,5 +22,18 @@ position = Vector2(530, 304)
 position = Vector2(547, 284)
 spawn_interval = 5.0
 
-[node name="house" parent="." instance=ExtResource("6_7hmax")]
+[node name="house" parent="." unique_id=1330574672 instance=ExtResource("6_7hmax")]
 position = Vector2(744, 292)
+
+[node name="tree" parent="." unique_id=1524401863 instance=ExtResource("7_b7kfm")]
+position = Vector2(285, 328)
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=299344106]
+script = ExtResource("8_hud")
+
+[node name="LootboxCountLabel" type="Label" parent="UI" unique_id=213834753]
+offset_left = 481.0
+offset_top = 585.0
+offset_right = 725.0
+offset_bottom = 613.0
+text = "Lootboxes: 0"

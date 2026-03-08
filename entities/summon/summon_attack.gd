@@ -25,8 +25,8 @@ func _process(delta: float) -> void:
 		queue_free()
 		return
 
-	var to_target := _target.global_position - global_position
-	var distance := to_target.length()
+	var to_target: Vector2 = _target.global_position - global_position
+	var distance: float = to_target.length()
 	if distance <= hit_distance:
 		if _target.has_method("take_damage"):
 			_target.call("take_damage", _damage)

@@ -9,8 +9,8 @@ extends CharacterBody2D
 @export var attack_cooldown: float = 0.8
 @export var attack_projectile_scene: PackedScene = preload("res://entities/summon/summon_attack.tscn")
 
-const PHYSICS_LAYER_WORLD := 1 << 0
-const PHYSICS_LAYER_SUMMON := 1 << 3
+const PHYSICS_LAYER_WORLD: int = 1 << 0
+const PHYSICS_LAYER_SUMMON: int = 1 << 3
 
 var _enemy_target: Node2D
 var _player_target: Node2D
@@ -34,7 +34,7 @@ func _physics_process(delta: float) -> void:
 		_time_to_repath = repath_interval
 
 	if is_instance_valid(_enemy_target):
-		var distance_to_enemy := global_position.distance_to(_enemy_target.global_position)
+		var distance_to_enemy: float = global_position.distance_to(_enemy_target.global_position)
 		if distance_to_enemy <= attack_range:
 			velocity = Vector2.ZERO
 			_try_attack(_enemy_target)
@@ -63,11 +63,11 @@ func _launch_attack(target: Node2D) -> void:
 			target.call("take_damage", attack_damage)
 		return
 
-	var attack_instance := attack_projectile_scene.instantiate()
+	var attack_instance: Node = attack_projectile_scene.instantiate()
 	if not attack_instance is Node2D:
 		return
 
-	var projectile := attack_instance as Node2D
+	var projectile: Node2D = attack_instance as Node2D
 	projectile.global_position = global_position
 	if projectile.has_method("setup"):
 		projectile.call("setup", target, attack_damage)
@@ -81,12 +81,12 @@ func _move_towards(target_position: Vector2) -> void:
 		velocity = Vector2.ZERO
 
 func _find_player() -> Node2D:
-	var players := get_tree().get_nodes_in_group("players")
+	var players: Array = get_tree().get_nodes_in_group("players")
 	if not players.is_empty() and players[0] is Node2D:
 		return players[0] as Node2D
 
 	if get_tree().current_scene != null:
-		var by_name := get_tree().current_scene.find_child("player", true, false)
+		var by_name: Node = get_tree().current_scene.find_child("player", true, false)
 		if by_name is Node2D:
 			return by_name as Node2D
 
@@ -94,14 +94,14 @@ func _find_player() -> Node2D:
 
 func _find_closest_enemy() -> Node2D:
 	var closest_enemy: Node2D
-	var closest_distance_sq := INF
+	var closest_distance_sq: float = INF
 
 	for candidate in get_tree().get_nodes_in_group("enemies"):
 		if not candidate is Node2D:
 			continue
 
-		var enemy_2d := candidate as Node2D
-		var distance_sq := global_position.distance_squared_to(enemy_2d.global_position)
+		var enemy_2d: Node2D = candidate as Node2D
+		var distance_sq: float = global_position.distance_squared_to(enemy_2d.global_position)
 		if distance_sq < closest_distance_sq:
 			closest_distance_sq = distance_sq
 			closest_enemy = enemy_2d

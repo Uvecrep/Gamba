@@ -24,32 +24,32 @@ func _on_spawn_timer_timeout() -> void:
 	if _alive_enemy_count() >= max_alive_enemies:
 		return
 
-	var enemy_instance := enemy_scene.instantiate()
+	var enemy_instance: Node = enemy_scene.instantiate()
 	if not enemy_instance is Node2D:
 		push_warning("enemy_scene is not a Node2D scene.")
 		return
 
-	var enemy_2d := enemy_instance as Node2D
+	var enemy_2d: Node2D = enemy_instance as Node2D
 	enemy_2d.global_position = _pick_spawn_position()
 	_resolve_target_parent().add_child(enemy_instance)
 
 func _alive_enemy_count() -> int:
-	var count := 0
+	var count: int = 0
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(enemy):
 			count += 1
 	return count
 
 func _pick_spawn_position() -> Vector2:
-	var spawn_root := get_node_or_null(spawn_points_root_path)
+	var spawn_root: Node = get_node_or_null(spawn_points_root_path)
 	if spawn_root == null:
 		return global_position
 
-	var points := spawn_root.get_children()
+	var points: Array[Node] = spawn_root.get_children()
 	if points.is_empty():
 		return global_position
 
-	var random_point := points[randi() % points.size()]
+	var random_point: Node = points[randi() % points.size()]
 	if random_point is Node2D:
 		return (random_point as Node2D).global_position
 
@@ -57,7 +57,7 @@ func _pick_spawn_position() -> Vector2:
 
 func _resolve_target_parent() -> Node:
 	if target_parent_path != NodePath(""):
-		var configured_parent := get_node_or_null(target_parent_path)
+		var configured_parent: Node = get_node_or_null(target_parent_path)
 		if configured_parent != null:
 			return configured_parent
 

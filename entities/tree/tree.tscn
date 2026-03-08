@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://bnb85qll64ayq"]
+
+[ext_resource type="Script" uid="uid://byh8l2e83pirx" path="res://entities/tree/tree.gd" id="1_2e5kc"]
+[ext_resource type="Texture2D" uid="uid://d332vv4slojvn" path="res://assets/characters/tree.png" id="2_j2nfi"]
+[ext_resource type="Texture2D" uid="uid://iftuo3yyscy6" path="res://assets/characters/lootbox_fruit.png" id="3_2swbe"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ve3t3"]
+size = Vector2(54, 66)
+
+[node name="tree" type="StaticBody2D" unique_id=591576038]
+script = ExtResource("1_2e5kc")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=684601904]
+position = Vector2(0, 18)
+shape = SubResource("RectangleShape2D_ve3t3")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1167518820]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_j2nfi")
+
+[node name="GrowthTimer" type="Timer" parent="." unique_id=2084177012]
+wait_time = 30.0
+
+[node name="FruitSprites" type="Node2D" parent="." unique_id=1032264095]
+
+[node name="Fruit1" type="Sprite2D" parent="FruitSprites" unique_id=242864110]
+visible = false
+texture_filter = 1
+position = Vector2(-15, -50)
+texture = ExtResource("3_2swbe")
+
+[node name="Fruit2" type="Sprite2D" parent="FruitSprites" unique_id=1610762486]
+visible = false
+texture_filter = 1
+position = Vector2(57, -32)
+texture = ExtResource("3_2swbe")
+
+[node name="Fruit3" type="Sprite2D" parent="FruitSprites" unique_id=1943932944]
+visible = false
+texture_filter = 1
+position = Vector2(-16, 44)
+texture = ExtResource("3_2swbe")
+
+[node name="Fruit4" type="Sprite2D" parent="FruitSprites" unique_id=901024854]
+visible = false
+texture_filter = 1
+position = Vector2(-56, -8)
+texture = ExtResource("3_2swbe")
+
+[node name="Fruit5" type="Sprite2D" parent="FruitSprites" unique_id=832075630]
+visible = false
+texture_filter = 1
+position = Vector2(16, 0)
+texture = ExtResource("3_2swbe")
+
+[node name="Fruit6" type="Sprite2D" parent="FruitSprites" unique_id=159359206]
+visible = false
+texture_filter = 1
+position = Vector2(65, 44)
+texture = ExtResource("3_2swbe")

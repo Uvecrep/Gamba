@@ -13,13 +13,13 @@ func roll() -> LootEntry:
 		assert(false, "Lootbox.roll() failed: lootTable is empty")
 		return null
 	
-	var total_weight := 0.0
+	var total_weight: float = 0.0
 	
 	for x in lootTable:
 		total_weight += x.weight
 	
-	var rand := randf() * total_weight
-	var cumulative := 0.0
+	var rand: float = randf() * total_weight
+	var cumulative: float = 0.0
 	
 	for x in lootTable:
 		cumulative += x.weight
