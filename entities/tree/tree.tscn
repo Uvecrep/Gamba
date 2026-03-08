@@ -59,3 +59,13 @@ visible = false
 texture_filter = 1
 position = Vector2(65, 44)
 texture = ExtResource("3_2swbe")
+
+[node name="HarvestPromptLabel" type="Label" parent="." unique_id=582520813]
+visible = false
+z_index = 20
+offset_left = -88.0
+offset_top = 127.0
+offset_right = 92.0
+offset_bottom = 155.0
+text = "Press E to harvest"
+horizontal_alignment = 1

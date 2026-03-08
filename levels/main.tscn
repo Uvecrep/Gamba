@@ -36,6 +36,14 @@ offset_right = 725.0
 offset_bottom = 613.0
 text = "Lootboxes: 0"
 
+[node name="LootboxPromptLabel" type="Label" parent="UI" unique_id=470985317]
+offset_left = 359.0
+offset_top = 609.0
+offset_right = 717.0
+offset_bottom = 637.0
+text = "Press Q to open a lootbox"
+horizontal_alignment = 1
+
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=696703801]
 process_mode = 2
 layer = 10

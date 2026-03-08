@@ -5,12 +5,16 @@ signal fruit_count_changed(current: int, maximum: int)
 @export var growth_interval_seconds: float = 30.0
 @export var max_fruit: int = 6
 @export var starting_fruit: int = 0
+@export var harvest_prompt_action: StringName = &"interact"
+@export var default_harvest_range: float = 96.0
 
 var _fruit_count: int = 0
 var _shown_fruit_indices: Array[int] = []
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _harvest_hint_text: String = "E"
 
 @onready var _growth_timer: Timer = $GrowthTimer
+@onready var _harvest_prompt_label: Label = $HarvestPromptLabel
 @onready var _fruit_sprites: Array[Sprite2D] = [
 	get_node_or_null("FruitSprites/Fruit1") as Sprite2D,
 	get_node_or_null("FruitSprites/Fruit2") as Sprite2D,
@@ -24,6 +28,7 @@ func _ready() -> void:
 	add_to_group("trees")
 	_rng.randomize()
 	_initialize_fruit_visuals()
+	_harvest_hint_text = _resolve_action_hint(harvest_prompt_action)
 
 	_growth_timer.wait_time = maxf(growth_interval_seconds, 0.01)
 	if not _growth_timer.timeout.is_connected(_on_growth_timer_timeout):
@@ -31,6 +36,10 @@ func _ready() -> void:
 
 	_set_fruit_count(starting_fruit)
 	_refresh_growth_timer()
+	_update_harvest_prompt()
+
+func _process(_delta: float) -> void:
+	_update_harvest_prompt()
 
 func get_fruit_count() -> int:
 	return _fruit_count
@@ -62,6 +71,7 @@ func _on_growth_timer_timeout() -> void:
 func _set_fruit_count(value: int) -> void:
 	_fruit_count = clampi(value, 0, maxi(max_fruit, 0))
 	_update_fruit_visuals()
+	_update_harvest_prompt()
 	fruit_count_changed.emit(_fruit_count, max_fruit)
 
 func _refresh_growth_timer() -> void:
@@ -106,3 +116,54 @@ func _initialize_fruit_visuals() -> void:
 	for fruit_sprite in _fruit_sprites:
 		if fruit_sprite != null:
 			fruit_sprite.visible = false
+
+func _update_harvest_prompt() -> void:
+	if _harvest_prompt_label == null:
+		return
+
+	var should_show := can_harvest() and _is_any_player_in_harvest_range()
+	_harvest_prompt_label.visible = should_show
+	if not should_show:
+		return
+
+	_harvest_prompt_label.text = "Press %s to harvest" % _harvest_hint_text
+
+func _is_any_player_in_harvest_range() -> bool:
+	var players := get_tree().get_nodes_in_group("players")
+	for player in players:
+		if not (player is Node2D):
+			continue
+
+		var harvest_range := maxf(default_harvest_range, 0.0)
+		var player_harvest_range: Variant = player.get("harvest_range")
+		if typeof(player_harvest_range) == TYPE_FLOAT or typeof(player_harvest_range) == TYPE_INT:
+			harvest_range = maxf(float(player_harvest_range), 0.0)
+
+		var player_node := player as Node2D
+		var distance_sq := global_position.distance_squared_to(player_node.global_position)
+		if distance_sq <= harvest_range * harvest_range:
+			return true
+
+	return false
+
+func _resolve_action_hint(action: StringName) -> String:
+	if not InputMap.has_action(action):
+		return String(action).to_upper()
+
+	var events: Array[InputEvent] = InputMap.action_get_events(action)
+	for event in events:
+		if event == null:
+			continue
+
+		if event is InputEventKey:
+			var key_event := event as InputEventKey
+			if key_event.physical_keycode != 0:
+				return OS.get_keycode_string(key_event.physical_keycode)
+			if key_event.keycode != 0:
+				return OS.get_keycode_string(key_event.keycode)
+
+		var event_text := event.as_text()
+		if not event_text.is_empty():
+			return event_text
+
+	return String(action).to_upper()
