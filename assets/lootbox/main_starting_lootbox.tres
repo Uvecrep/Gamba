@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://cp1vkiokldj33"]
+
+[ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://assets/lootbox/lootbox.gd" id="1_lootbox"]
+[ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://assets/lootbox/loot_entry.gd" id="2_entry"]
+[ext_resource type="Script" uid="uid://b8tplg8ohx7w4" path="res://assets/lootbox/lootbox_outcome_spawn_summon.gd" id="3_spawn_outcome"]
+[ext_resource type="Script" uid="uid://cpkrdf3d52eb1" path="res://assets/lootbox/lootbox_mod.gd" id="4_fi66f"]
+[ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="4_summon_scene"]
+[ext_resource type="Texture2D" uid="uid://0sej33u0fs" path="res://assets/characters/rare_summon.png" id="5_rare_summon_texture"]
+
+[sub_resource type="Resource" id="Outcome_Normal"]
+script = ExtResource("3_spawn_outcome")
+
+[sub_resource type="Resource" id="Entry_Normal"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Normal")
+weight = 80.0
+
+[sub_resource type="Resource" id="Outcome_Rare"]
+script = ExtResource("3_spawn_outcome")
+damage_multiplier = 1.2
+max_health_multiplier = 1.2
+summon_texture_override = ExtResource("5_rare_summon_texture")
+
+[sub_resource type="Resource" id="Entry_Rare"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Rare")
+weight = 20.0
+
+[resource]
+script = ExtResource("1_lootbox")
+name = "Starter Summon Box"
+color = "Green"
+description = "Summons an ally. 20% chance to summon a rarer stronger ally."
+lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Normal"), SubResource("Entry_Rare")])

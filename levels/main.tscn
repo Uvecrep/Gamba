@@ -2,12 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://bhxxgyq6e3ond" path="res://entities/player/player.tscn" id="1_2262g"]
 [ext_resource type="PackedScene" uid="uid://d34vqfagsgpkm" path="res://levels/world.tscn" id="2_wdj6m"]
-[ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="4_wrc4g"]
 [ext_resource type="PackedScene" uid="uid://domyo1x6j4x7w" path="res://entities/enemy/enemy_spawner.tscn" id="5_u7xt2"]
 [ext_resource type="PackedScene" uid="uid://b6u051drnvexw" path="res://entities/house/house.tscn" id="6_7hmax"]
 [ext_resource type="PackedScene" uid="uid://bnb85qll64ayq" path="res://entities/tree/tree.tscn" id="7_b7kfm"]
 [ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/lootbox_counter_hud.gd" id="8_hud"]
-[ext_resource type="Script" path="res://levels/main.gd" id="9_main"]
+[ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -25,10 +24,7 @@ position = Vector2(1873, -2514)
 spawn_interval = 5.0
 
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
-position = Vector2(438, 292)
-
-[node name="summon" parent="." unique_id=1038151326 instance=ExtResource("4_wrc4g")]
-position = Vector2(530, 304)
+position = Vector2(768, 451)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=299344106]
 script = ExtResource("8_hud")
@@ -41,9 +37,9 @@ offset_bottom = 613.0
 text = "Lootboxes: 0"
 
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=696703801]
-visible = false
 process_mode = 2
 layer = 10
+visible = false
 
 [node name="Backdrop" type="ColorRect" parent="GameOverLayer" unique_id=1295777314]
 anchors_preset = 15
@@ -54,6 +50,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.72)
 
 [node name="GameOverPanel" type="PanelContainer" parent="GameOverLayer" unique_id=48287472]
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -64,35 +61,31 @@ offset_right = 182.0
 offset_bottom = 80.0
 
 [node name="MarginContainer" type="MarginContainer" parent="GameOverLayer/GameOverPanel" unique_id=1648685912]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 16
 
 [node name="VBoxContainer" type="VBoxContainer" parent="GameOverLayer/GameOverPanel/MarginContainer" unique_id=516451679]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer" unique_id=1862287365]
-horizontal_alignment = 1
+layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Game Over"
+horizontal_alignment = 1
 
 [node name="HintLabel" type="Label" parent="GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer" unique_id=1303071754]
-horizontal_alignment = 1
+layout_mode = 2
 text = "Your house was destroyed."
+horizontal_alignment = 1
 
 [node name="RestartButton" type="Button" parent="GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer" unique_id=751337111]
+layout_mode = 2
 text = "Restart"
 
 [node name="QuitButton" type="Button" parent="GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer" unique_id=227680988]
+layout_mode = 2
 text = "Quit"
