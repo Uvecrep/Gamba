@@ -12,21 +12,21 @@
 
 [node name="World" parent="." unique_id=32232329 instance=ExtResource("2_wdj6m")]
 
-[node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
-position = Vector2(438, 292)
-
-[node name="summon" parent="." unique_id=1038151326 instance=ExtResource("4_wrc4g")]
-position = Vector2(530, 304)
-
-[node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
-position = Vector2(547, 284)
-spawn_interval = 5.0
-
 [node name="house" parent="." unique_id=1330574672 instance=ExtResource("6_7hmax")]
 position = Vector2(812, 280)
 
 [node name="tree" parent="." unique_id=1524401863 instance=ExtResource("7_b7kfm")]
 position = Vector2(292, 291)
+
+[node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
+position = Vector2(1873, -2514)
+spawn_interval = 5.0
+
+[node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
+position = Vector2(438, 292)
+
+[node name="summon" parent="." unique_id=1038151326 instance=ExtResource("4_wrc4g")]
+position = Vector2(530, 304)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=299344106]
 script = ExtResource("8_hud")
