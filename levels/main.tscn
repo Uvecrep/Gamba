@@ -23,10 +23,10 @@ position = Vector2(547, 284)
 spawn_interval = 5.0
 
 [node name="house" parent="." unique_id=1330574672 instance=ExtResource("6_7hmax")]
-position = Vector2(744, 292)
+position = Vector2(812, 280)
 
 [node name="tree" parent="." unique_id=1524401863 instance=ExtResource("7_b7kfm")]
-position = Vector2(285, 328)
+position = Vector2(292, 291)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=299344106]
 script = ExtResource("8_hud")
