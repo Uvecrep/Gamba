@@ -5,5 +5,6 @@ class_name LootboxOutcomePrint
 
 @export var to_print : String
 
-func execute() -> void:
+func execute(_context: Dictionary = {}) -> bool:
 	print("LootboxOutcomePrint: " + to_print)
+	return true

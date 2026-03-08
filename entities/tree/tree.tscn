@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bnb85qll64ayq"]
 
 [ext_resource type="Script" uid="uid://byh8l2e83pirx" path="res://entities/tree/tree.gd" id="1_2e5kc"]
-[ext_resource type="Texture2D" uid="uid://d332vv4slojvn" path="res://assets/characters/tree.png" id="2_j2nfi"]
-[ext_resource type="Texture2D" uid="uid://iftuo3yyscy6" path="res://assets/characters/lootbox_fruit.png" id="3_2swbe"]
+[ext_resource type="Texture2D" uid="uid://d332vv4slojvn" path="res://assets/objects/tree.png" id="2_j2nfi"]
+[ext_resource type="Texture2D" uid="uid://iftuo3yyscy6" path="res://assets/objects/lootbox_fruit.png" id="3_2swbe"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ve3t3"]
 size = Vector2(54, 66)
@@ -20,7 +20,7 @@ scale = Vector2(2, 2)
 texture = ExtResource("2_j2nfi")
 
 [node name="GrowthTimer" type="Timer" parent="." unique_id=2084177012]
-wait_time = 30.0
+wait_time = 20.0
 
 [node name="FruitSprites" type="Node2D" parent="." unique_id=1032264095]
 
@@ -59,3 +59,13 @@ visible = false
 texture_filter = 1
 position = Vector2(65, 44)
 texture = ExtResource("3_2swbe")
+
+[node name="HarvestPromptLabel" type="Label" parent="." unique_id=582520813]
+visible = false
+z_index = 20
+offset_left = -88.0
+offset_top = 127.0
+offset_right = 92.0
+offset_bottom = 155.0
+text = "Press E to harvest"
+horizontal_alignment = 1

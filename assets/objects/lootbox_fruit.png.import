@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://13ok7lamwvqa"
-path="res://.godot/imported/projectile.png-738e25765b4858aa5c05612f65117ba1.ctex"
+uid="uid://iftuo3yyscy6"
+path="res://.godot/imported/lootbox_fruit.png-82836226aac6ec593f067f4fe7af1260.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/projectile.png"
-dest_files=["res://.godot/imported/projectile.png-738e25765b4858aa5c05612f65117ba1.ctex"]
+source_file="res://assets/objects/lootbox_fruit.png"
+dest_files=["res://.godot/imported/lootbox_fruit.png-82836226aac6ec593f067f4fe7af1260.ctex"]
 
 [params]
 

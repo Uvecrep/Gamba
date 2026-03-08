@@ -8,6 +8,7 @@ extends CharacterBody2D
 @export var attack_damage: float = 20.0
 @export var attack_cooldown: float = 0.8
 @export var attack_projectile_scene: PackedScene = preload("res://entities/summon/summon_attack.tscn")
+@export var max_health: float = 80.0
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_SUMMON: int = 1 << 3
@@ -16,6 +17,9 @@ var _enemy_target: Node2D
 var _player_target: Node2D
 var _time_to_repath: float = 0.0
 var _time_to_next_attack: float = 0.0
+var _current_health: float = 0.0
+
+@onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -23,6 +27,8 @@ func _ready() -> void:
 	collision_mask = PHYSICS_LAYER_WORLD
 	add_to_group("summons")
 	_player_target = _find_player()
+	_current_health = max_health
+	_update_health_bar()
 
 func _physics_process(delta: float) -> void:
 	_time_to_repath -= delta
@@ -51,6 +57,24 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 
 	move_and_slide()
+
+func take_damage(amount: float) -> void:
+	if amount <= 0.0:
+		return
+
+	_current_health = clampf(_current_health - amount, 0.0, max_health)
+	_update_health_bar()
+
+	if _current_health <= 0.0:
+		queue_free()
+
+func _update_health_bar() -> void:
+	if _health_bar == null:
+		return
+
+	_health_bar.max_value = max_health
+	_health_bar.value = _current_health
+	_health_bar.visible = true
 
 func _launch_attack(target: Node2D) -> void:
 	if attack_projectile_scene == null:

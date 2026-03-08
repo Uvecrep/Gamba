@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://iftuo3yyscy6"
-path="res://.godot/imported/lootbox_fruit.png-86e2acd439cba95135b1031882f05088.ctex"
+uid="uid://d332vv4slojvn"
+path="res://.godot/imported/tree.png-ec9781505eea79b476e6197acf5741cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/lootbox_fruit.png"
-dest_files=["res://.godot/imported/lootbox_fruit.png-86e2acd439cba95135b1031882f05088.ctex"]
+source_file="res://assets/objects/tree.png"
+dest_files=["res://.godot/imported/tree.png-ec9781505eea79b476e6197acf5741cd.ctex"]
 
 [params]
 

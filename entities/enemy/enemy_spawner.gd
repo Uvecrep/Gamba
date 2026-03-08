@@ -15,7 +15,21 @@ func _ready() -> void:
 	_spawn_timer.wait_time = spawn_interval
 	_spawn_timer.timeout.connect(_on_spawn_timer_timeout)
 	if auto_start:
+		start_spawning()
+
+func start_spawning() -> void:
+	if _spawn_timer == null:
+		return
+
+	_spawn_timer.wait_time = spawn_interval
+	if _spawn_timer.is_stopped():
 		_spawn_timer.start()
+
+func stop_spawning() -> void:
+	if _spawn_timer == null:
+		return
+
+	_spawn_timer.stop()
 
 func _on_spawn_timer_timeout() -> void:
 	if enemy_scene == null:

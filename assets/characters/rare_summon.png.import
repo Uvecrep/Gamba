@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d332vv4slojvn"
-path="res://.godot/imported/tree.png-11a1f74e44559c9ffcde756f186d7169.ctex"
+uid="uid://0sej33u0fs"
+path="res://.godot/imported/rare_summon.png-3538d5688d9c2ec8f4b09e83e57bbdd5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/tree.png"
-dest_files=["res://.godot/imported/tree.png-11a1f74e44559c9ffcde756f186d7169.ctex"]
+source_file="res://assets/characters/rare_summon.png"
+dest_files=["res://.godot/imported/rare_summon.png-3538d5688d9c2ec8f4b09e83e57bbdd5.ctex"]
 
 [params]
 

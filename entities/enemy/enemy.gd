@@ -4,9 +4,12 @@ extends CharacterBody2D
 @export var repath_interval: float = 0.2
 @export var target_reach_distance: float = 32.0
 @export var target_stop_padding: float = 2.0
-@export var nearby_target_groups: PackedStringArray = ["summons", "players"]
+@export var nearby_target_groups: PackedStringArray = ["summons"]
 @export var fallback_target_group: StringName = &"house"
 @export var nearby_target_radius: float = 180.0
+@export var melee_damage: float = 15.0
+@export var melee_attack_cooldown: float = 1.0
+@export var melee_attack_extra_range: float = 6.0
 @export var max_health: float = 100.0
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
@@ -14,6 +17,7 @@ const PHYSICS_LAYER_ENEMY: int = 1 << 2
 
 var _current_target: Node2D
 var _time_to_repath: float = 0.0
+var _time_to_next_melee_hit: float = 0.0
 var _current_health: float = 0.0
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
@@ -28,6 +32,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_time_to_repath -= delta
+	_time_to_next_melee_hit = maxf(_time_to_next_melee_hit - delta, 0.0)
 	if _time_to_repath <= 0.0:
 		var nearby_target := _find_closest_target_in_groups(nearby_target_groups, nearby_target_radius)
 		if is_instance_valid(nearby_target):
@@ -44,10 +49,28 @@ func _physics_process(delta: float) -> void:
 			velocity = global_position.direction_to(_current_target.global_position) * move_speed
 		else:
 			velocity = Vector2.ZERO
+
+		_try_melee_attack(_current_target, target_distance, stop_distance)
 	else:
 		velocity = Vector2.ZERO
 
 	move_and_slide()
+
+func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: float) -> void:
+	if melee_damage <= 0.0 or melee_attack_cooldown <= 0.0:
+		return
+	if not target.has_method("take_damage"):
+		return
+	if _time_to_next_melee_hit > 0.0:
+		return
+
+	# Keep melee tight around collision contact while allowing a small tolerance.
+	var melee_distance := stop_distance + melee_attack_extra_range
+	if target_distance > melee_distance:
+		return
+
+	_time_to_next_melee_hit = melee_attack_cooldown
+	target.call("take_damage", melee_damage)
 
 func take_damage(amount: float) -> void:
 	if amount <= 0.0:

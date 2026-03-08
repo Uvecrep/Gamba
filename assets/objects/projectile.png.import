@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://445ll3r46mhy"
-path="res://.godot/imported/enemy_tower.png-fdaec15a0f5ac77af9d22b55575b798c.ctex"
+uid="uid://13ok7lamwvqa"
+path="res://.godot/imported/projectile.png-1c49ec80755ec4221c301b6f20a8056a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/enemy_tower.png"
-dest_files=["res://.godot/imported/enemy_tower.png-fdaec15a0f5ac77af9d22b55575b798c.ctex"]
+source_file="res://assets/objects/projectile.png"
+dest_files=["res://.godot/imported/projectile.png-1c49ec80755ec4221c301b6f20a8056a.ctex"]
 
 [params]
 

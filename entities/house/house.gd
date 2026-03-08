@@ -1,5 +1,7 @@
 extends StaticBody2D
 
+signal destroyed
+
 @export var max_health: float = 500.0
 
 var _current_health: float = 0.0
@@ -14,11 +16,14 @@ func _ready() -> void:
 func take_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return
+	if _current_health <= 0.0:
+		return
 
 	_current_health = clampf(_current_health - amount, 0.0, max_health)
 	_update_health_bar()
 
 	if _current_health <= 0.0:
+		destroyed.emit()
 		queue_free()
 
 func _update_health_bar() -> void:
