@@ -17,3 +17,12 @@ shape = SubResource("RectangleShape2D_l2f3a")
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_ac4sb")
+
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=1462033111]
+offset_left = -30.0
+offset_top = -36.0
+offset_right = 28.0
+offset_bottom = -28.0
+mouse_filter = 2
+value = 80.0
+show_percentage = false
