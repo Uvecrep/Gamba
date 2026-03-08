@@ -42,7 +42,7 @@ func harvest_fruit(amount: int = 1) -> int:
 	if amount <= 0:
 		return 0
 
-	var harvested: int = mini(amount, _fruit_count)
+	var harvested := mini(amount, _fruit_count)
 	if harvested <= 0:
 		return 0
 
@@ -73,39 +73,33 @@ func _refresh_growth_timer() -> void:
 		_growth_timer.start()
 
 func _update_fruit_visuals() -> void:
-	var target_visible_count: int = mini(_fruit_count, _fruit_sprites.size())
+	var target_visible_count := mini(_fruit_count, _fruit_sprites.size())
 
 	while _shown_fruit_indices.size() < target_visible_count:
-		var hidden_index: int = _pick_random_hidden_fruit_index()
-		if hidden_index < 0:
+		var hidden_indices: Array[int] = []
+		for i in _fruit_sprites.size():
+			if _fruit_sprites[i] == null:
+				continue
+			if _shown_fruit_indices.has(i):
+				continue
+
+			hidden_indices.append(i)
+
+		if hidden_indices.is_empty():
 			break
 
+		var hidden_index := hidden_indices[_rng.randi_range(0, hidden_indices.size() - 1)]
+
 		_shown_fruit_indices.append(hidden_index)
-		var fruit_to_show: Sprite2D = _fruit_sprites[hidden_index]
+		var fruit_to_show := _fruit_sprites[hidden_index]
 		if fruit_to_show != null:
 			fruit_to_show.visible = true
 
 	while _shown_fruit_indices.size() > target_visible_count:
-		var shown_index: int = int(_shown_fruit_indices.pop_back())
-		var fruit_to_hide: Sprite2D = _fruit_sprites[shown_index]
+		var shown_index := int(_shown_fruit_indices.pop_back())
+		var fruit_to_hide := _fruit_sprites[shown_index]
 		if fruit_to_hide != null:
 			fruit_to_hide.visible = false
-
-func _pick_random_hidden_fruit_index() -> int:
-	var hidden_indices: Array[int] = []
-	for i in _fruit_sprites.size():
-		if _fruit_sprites[i] == null:
-			continue
-		if _shown_fruit_indices.has(i):
-			continue
-
-		hidden_indices.append(i)
-
-	if hidden_indices.is_empty():
-		return -1
-
-	var random_hidden_index: int = _rng.randi_range(0, hidden_indices.size() - 1)
-	return hidden_indices[random_hidden_index]
 
 func _initialize_fruit_visuals() -> void:
 	_shown_fruit_indices.clear()
