@@ -6,7 +6,7 @@ extends CharacterBody2D
 @export var harvest_amount_per_interaction: int = 1
 @export var harvest_action: StringName = &"interact"
 @export var use_lootbox_action: StringName = &"use_lootbox"
-@export var active_lootbox: Lootbox = preload("res://assets/lootbox/main_starting_lootbox.tres")
+@export var active_lootbox: Lootbox = preload("res://entities/lootbox/main_starting_lootbox.tres")
 
 signal lootbox_inventory_changed(current: int, previous: int)
 
