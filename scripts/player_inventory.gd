@@ -3,32 +3,52 @@ class_name PlayerInventory
 
 signal lootboxes_changed(current: int, previous: int)
 
-var _lootbox_count: int = 0
 
-func get_lootbox_count() -> int:
-	return _lootbox_count
+var _lootboxes : Array[Lootbox] = []
+var _lootbox_counts : Array[int] = []
 
-func set_lootbox_count(value: int) -> void:
+
+func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 	var next_count: int = maxi(value, 0)
-	if next_count == _lootbox_count:
+	
+	if not _lootboxes.has(lootbox):
+		# TODO: Maybe lootboxes with the same ID should be grouped together
+		# Reason being you might have two lootboxes with the same ID, but different mods?
+		_lootboxes.append(lootbox)
+		_lootbox_counts.append(0)
+	
+	var lootbox_index = _lootboxes.find(lootbox)
+	if next_count == _lootbox_counts[lootbox_index]:
 		return
 
-	var previous_count: int = _lootbox_count
-	_lootbox_count = next_count
-	lootboxes_changed.emit(_lootbox_count, previous_count)
+	var previous_count: int = _lootbox_counts[lootbox_index]
+	_lootbox_counts[lootbox_index] = next_count
+	lootboxes_changed.emit(next_count, previous_count)
 
-func add_lootboxes(amount: int) -> int:
-	if amount <= 0:
-		return 0
+func add_lootboxes(lootbox: Lootbox, amount: int) -> int:
+	if amount <= 0: return 0
 
-	set_lootbox_count(_lootbox_count + amount)
+	if not _lootboxes.has(lootbox):
+		# TODO: Maybe lootboxes with the same ID should be grouped together
+		# Reason being you might have two lootboxes with the same ID, but different mods?
+		_lootboxes.append(lootbox)
+		_lootbox_counts.append(0)
+
+	var lootbox_index = _lootboxes.find(lootbox)
+
+	set_lootbox_count(lootbox, _lootbox_counts[lootbox_index] + amount)
 	return amount
 
-func try_spend_lootboxes(amount: int) -> bool:
+func try_spend_lootboxes(lootbox : Lootbox, amount: int) -> bool:
 	if amount <= 0:
 		return true
-	if _lootbox_count < amount:
+	if not _lootboxes.has(lootbox):
+		return false
+	var lootbox_index = _lootboxes.find(lootbox)
+	var lootbox_count = _lootbox_counts[lootbox_index]
+	# TODO If we don't have enough lootboxes, should we still spend as many as we can?
+	if lootbox_count < amount:
 		return false
 
-	set_lootbox_count(_lootbox_count - amount)
+	set_lootbox_count(lootbox, lootbox_count - amount)
 	return true
