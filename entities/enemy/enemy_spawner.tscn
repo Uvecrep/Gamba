@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://domyo1x6j4x7w"]
+
+[ext_resource type="Script" uid="uid://bxorybuqsh7pp" path="res://entities/enemy/enemy_spawner.gd" id="1_ihm03"]
+[ext_resource type="PackedScene" uid="uid://b00jrxmgdmyu5" path="res://entities/enemy/enemy.tscn" id="2_0v8m4"]
+[ext_resource type="Texture2D" path="res://assets/objects/enemy_tower.png" id="3_4q7ap"]
+
+[node name="EnemySpawner" type="Node2D" unique_id=1632124706]
+script = ExtResource("1_ihm03")
+enemy_scene = ExtResource("2_0v8m4")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1293004188]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("3_4q7ap")
+
+[node name="SpawnTimer" type="Timer" parent="." unique_id=906045446]
+wait_time = 2.0
+autostart = true
+
+[node name="SpawnPoints" type="Node2D" parent="." unique_id=1462486555]
+
+[node name="SpawnPointLeft" type="Marker2D" parent="SpawnPoints" unique_id=2138696044]
+position = Vector2(-380, -220)
+
+[node name="SpawnPointRight" type="Marker2D" parent="SpawnPoints" unique_id=1362932414]
+position = Vector2(420, -210)
+
+[node name="SpawnPointBottom" type="Marker2D" parent="SpawnPoints" unique_id=1099449168]
+position = Vector2(0, 310)

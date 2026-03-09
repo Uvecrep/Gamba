@@ -1,3 +1,15 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Local design document (kept out of git)
+/GDD.md
+
+# Aseprite source files
+*.aseprite
+
+# Local editor settings
+.vscode/
+
+# Asset library addons (local)
+/addons/

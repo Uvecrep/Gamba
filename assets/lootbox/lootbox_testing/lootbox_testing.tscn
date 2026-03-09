@@ -1,0 +1,348 @@
+[gd_scene format=3 uid="uid://cfwt05gklojus"]
+
+[ext_resource type="Script" uid="uid://bhd606emms7pi" path="res://assets/lootbox/lootbox_testing/lootbox_testing.gd" id="1_lvy4r"]
+
+[node name="Control" type="Control" unique_id=1423338499]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LootBoxDebugUi" type="Node" parent="." unique_id=546445388 node_paths=PackedStringArray("LoadResourceLineEdit", "LootboxPathLabel", "LootboxNameLabel", "LootboxColorLabel", "LootboxDescriptionLabel", "RollButton")]
+script = ExtResource("1_lvy4r")
+LoadResourceLineEdit = NodePath("../LoadResourcePanel/HBoxContainer/PanelContainer2/LoadResourceLineEdit")
+LootboxPathLabel = NodePath("../ResourcePropsPanel/PanelContainer4/HBoxContainer/PanelContainer2/MarginContainer/LootBoxPathLabel")
+LootboxNameLabel = NodePath("../ResourcePropsPanel/PanelContainer/HBoxContainer/PanelContainer2/MarginContainer/LootBoxNameLabel")
+LootboxColorLabel = NodePath("../ResourcePropsPanel/PanelContainer2/HBoxContainer/PanelContainer2/MarginContainer/LootBoxColorLabel")
+LootboxDescriptionLabel = NodePath("../ResourcePropsPanel/PanelContainer3/HBoxContainer/PanelContainer2/MarginContainer/LootBoxDescriptionLabel")
+RollButton = NodePath("../RollButton")
+
+[node name="LoadResourcePanel" type="PanelContainer" parent="." unique_id=1344455486]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 50.0
+offset_top = 35.0
+offset_right = -50.0
+offset_bottom = 66.0
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="LoadResourcePanel" unique_id=1806170322]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="LoadResourcePanel/HBoxContainer" unique_id=1579629185]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="LoadResourcePanel/HBoxContainer/PanelContainer" unique_id=1429016770]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="Label2" type="Label" parent="LoadResourcePanel/HBoxContainer/PanelContainer/MarginContainer" unique_id=267836651]
+layout_mode = 2
+text = "Load LootBox Resource from Path"
+
+[node name="Control" type="Control" parent="LoadResourcePanel/HBoxContainer" unique_id=785467167]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="LoadResourcePanel/HBoxContainer" unique_id=1117434288]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LoadResourceLineEdit" type="LineEdit" parent="LoadResourcePanel/HBoxContainer/PanelContainer2" unique_id=1475092570]
+custom_minimum_size = Vector2(174.73, 0)
+layout_mode = 2
+
+[node name="Control2" type="Control" parent="LoadResourcePanel/HBoxContainer" unique_id=1583519337]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="LoadResourceButton" type="Button" parent="LoadResourcePanel/HBoxContainer" unique_id=221816009]
+layout_mode = 2
+text = "Load"
+
+[node name="ResourcePropsPanel" type="VBoxContainer" parent="." unique_id=1823137383]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 50.0
+offset_top = 100.0
+offset_right = -50.0
+offset_bottom = 233.0
+grow_horizontal = 2
+
+[node name="PanelContainer4" type="PanelContainer" parent="ResourcePropsPanel" unique_id=781898279]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer4" unique_id=1464008825]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer4/HBoxContainer" unique_id=1057552787]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="ResourcePropsPanel/PanelContainer4/HBoxContainer/PanelContainer" unique_id=1289866647]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Path"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer4/HBoxContainer" unique_id=1322288995]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer4/HBoxContainer" unique_id=1074349123]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer4/HBoxContainer/PanelContainer2" unique_id=893743036]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxPathLabel" type="Label" parent="ResourcePropsPanel/PanelContainer4/HBoxContainer/PanelContainer2/MarginContainer" unique_id=1736511726]
+layout_mode = 2
+text = "res://asdf"
+
+[node name="PanelContainer" type="PanelContainer" parent="ResourcePropsPanel" unique_id=2043356747]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer" unique_id=2042986436]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer/HBoxContainer" unique_id=1295444660]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="ResourcePropsPanel/PanelContainer/HBoxContainer/PanelContainer" unique_id=884409884]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Name"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer/HBoxContainer" unique_id=746314551]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer/HBoxContainer" unique_id=405203127]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer/HBoxContainer/PanelContainer2" unique_id=1391731221]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxNameLabel" type="Label" parent="ResourcePropsPanel/PanelContainer/HBoxContainer/PanelContainer2/MarginContainer" unique_id=220099735]
+layout_mode = 2
+text = "Gobbo Box"
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel" unique_id=1805285549]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer2" unique_id=1385531736]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer2/HBoxContainer" unique_id=1615466311]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="ResourcePropsPanel/PanelContainer2/HBoxContainer/PanelContainer" unique_id=1231790476]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Color"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer2/HBoxContainer" unique_id=1404706318]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer2/HBoxContainer" unique_id=519241825]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer2/HBoxContainer/PanelContainer2" unique_id=396021004]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxColorLabel" type="Label" parent="ResourcePropsPanel/PanelContainer2/HBoxContainer/PanelContainer2/MarginContainer" unique_id=1153254390]
+layout_mode = 2
+text = "Green"
+
+[node name="PanelContainer3" type="PanelContainer" parent="ResourcePropsPanel" unique_id=352080730]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer3" unique_id=849515627]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer" unique_id=2091466586]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer/PanelContainer" unique_id=232242576]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Description"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer" unique_id=262855969]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer" unique_id=1177571885]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer/PanelContainer2" unique_id=1328310344]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxDescriptionLabel" type="Label" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer/PanelContainer2/MarginContainer" unique_id=1504728125]
+layout_mode = 2
+text = "It make the gobbos. Nerd."
+
+[node name="PanelContainer5" type="PanelContainer" parent="ResourcePropsPanel" unique_id=72276568]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ResourcePropsPanel/PanelContainer5" unique_id=1818600610]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer" unique_id=909723060]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer" unique_id=1410219043]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer/PanelContainer" unique_id=40875604]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Loot Entries"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer" unique_id=2118024954]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer" unique_id=644852296]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LookboxEntriesCount" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer/MarginContainer" unique_id=807726525]
+layout_mode = 2
+text = "Count: 0"
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer" unique_id=1506813007]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer" unique_id=1095570100]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer" unique_id=891388907]
+layout_mode = 2
+
+[node name="Container" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=1254377304]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="IndexLabel" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2/Container" unique_id=1703641987]
+layout_mode = 0
+offset_right = 23.0
+offset_bottom = 23.0
+text = "00"
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=771374461]
+custom_minimum_size = Vector2(116, 0)
+layout_mode = 2
+
+[node name="EntryOutcome" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2/PanelContainer" unique_id=1191456836]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "WeakGobbo"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=1768360573]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=230848636]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2/PanelContainer2" unique_id=76267751]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxDescriptionLabel" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2/PanelContainer2/MarginContainer" unique_id=1285019650]
+layout_mode = 2
+text = "Weight: 10 (92.4%)"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer" unique_id=1869726164]
+layout_mode = 2
+
+[node name="Container" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3" unique_id=1117031598]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="IndexLabel" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3/Container" unique_id=901257457]
+layout_mode = 0
+offset_right = 23.0
+offset_bottom = 23.0
+text = "01"
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3" unique_id=1536007470]
+custom_minimum_size = Vector2(116, 0)
+layout_mode = 2
+
+[node name="EntryOutcome" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3/PanelContainer" unique_id=1491627385]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "StrongGobbo"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3" unique_id=7328016]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3" unique_id=526657463]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3/PanelContainer2" unique_id=1411681093]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxDescriptionLabel" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3/PanelContainer2/MarginContainer" unique_id=1022671936]
+layout_mode = 2
+text = "Weight: 1 (9%)"
+
+[node name="RollButton" type="Button" parent="." unique_id=1697941823]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 50.0
+offset_top = 526.0
+offset_right = -1007.0
+offset_bottom = 561.0
+grow_horizontal = 2
+text = "Roll!"
+
+[connection signal="text_submitted" from="LoadResourcePanel/HBoxContainer/PanelContainer2/LoadResourceLineEdit" to="LootBoxDebugUi" method="_on_line_edit_text_submitted"]
+[connection signal="pressed" from="LoadResourcePanel/HBoxContainer/LoadResourceButton" to="LootBoxDebugUi" method="_on_load_button_pressed"]
+[connection signal="pressed" from="RollButton" to="LootBoxDebugUi" method="_on_roll_button_pressed"]

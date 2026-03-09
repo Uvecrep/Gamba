@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://b6u051drnvexw"]
+
+[ext_resource type="Script" uid="uid://dd7lyveqrt2fr" path="res://entities/house/house.gd" id="1_k80ea"]
+[ext_resource type="Texture2D" uid="uid://c1dxvapmfr16r" path="res://assets/objects/house.png" id="2_h9w4k"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2ikcc"]
+size = Vector2(88, 80)
+
+[node name="house" type="StaticBody2D" unique_id=1849396205]
+script = ExtResource("1_k80ea")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1518183757]
+position = Vector2(0, 6)
+shape = SubResource("RectangleShape2D_2ikcc")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1831104327]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_h9w4k")
+
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=218997741]
+offset_left = -58.0
+offset_top = -88.0
+offset_right = 62.0
+offset_bottom = -80.0
+mouse_filter = 2
+value = 100.0
+show_percentage = false
