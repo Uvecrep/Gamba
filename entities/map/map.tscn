@@ -1,0 +1,110 @@
+[gd_scene format=3 uid="uid://ctw78p1ceaxjy"]
+
+[ext_resource type="Script" uid="uid://1wfd7xeefhl1" path="res://entities/map/map.gd" id="1_kk2rm"]
+[ext_resource type="Texture2D" uid="uid://ieob36quyyap" path="res://assets/objects/map.png" id="2_h6s73"]
+[ext_resource type="Script" uid="uid://cac7da2j07f1g" path="res://entities/map/world_minimap.gd" id="3_tsfpf"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b2gxv"]
+size = Vector2(54, 40)
+
+[node name="map" type="StaticBody2D" unique_id=870297204]
+script = ExtResource("1_kk2rm")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=895059539]
+position = Vector2(0, 12)
+shape = SubResource("RectangleShape2D_b2gxv")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1261753492]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_h6s73")
+
+[node name="InteractPrompt" type="Label" parent="." unique_id=1643205578]
+visible = false
+z_index = 20
+offset_left = -95.0
+offset_top = 54.0
+offset_right = 95.0
+offset_bottom = 82.0
+text = "Press E to read map"
+horizontal_alignment = 1
+
+[node name="MapLayer" type="CanvasLayer" parent="." unique_id=1474302335]
+layer = 6
+visible = false
+
+[node name="MapWindow" type="PanelContainer" parent="MapLayer" unique_id=1629627591]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -284.5
+offset_right = 360.0
+offset_bottom = 280.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MapLayer/MapWindow" unique_id=1254168510]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MapLayer/MapWindow/MarginContainer" unique_id=1630045454]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=1957785014]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "World Map"
+horizontal_alignment = 1
+
+[node name="WorldMinimap" type="Control" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=1104800583]
+custom_minimum_size = Vector2(640, 320)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 1
+script = ExtResource("3_tsfpf")
+
+[node name="InstructionLabel" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=1848920314]
+layout_mode = 2
+text = "Left-click summons to select. Drag with left-click to box-select. Shift/Ctrl adds to selection. Right-click map to move selected. Green summon dots are holding."
+autowrap_mode = 2
+
+[node name="SelectionLabel" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=798396771]
+layout_mode = 2
+text = "Selected summons: 0 | Hold Toggled: 0 | Auto: 0"
+
+[node name="StatusLabel" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=1849203119]
+layout_mode = 2
+text = "Left-click or drag to select. Right-click the map to move selected summons."
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=101560302]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HoldSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=359282170]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Toggle Hold"
+
+[node name="ClearSelectionButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=585255620]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Clear Selection"
+
+[node name="CloseButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=1384501708]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Close"
+
+[node name="CloseHint" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=213420270]
+layout_mode = 2
+text = "Press E to close map"
+horizontal_alignment = 1
