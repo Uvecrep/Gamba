@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="LootBox" format=3 uid="uid://b0oo54l8ej2ut"]
 
-[ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://assets/lootbox/loot_entry.gd" id="1_q0l5s"]
-[ext_resource type="Script" uid="uid://cpkrdf3d52eb1" path="res://assets/lootbox/lootbox_mod.gd" id="2_hrebi"]
-[ext_resource type="Script" uid="uid://21p6env5khrm" path="res://assets/lootbox/lootbox_outcome_print.gd" id="2_qoq28"]
-[ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://assets/lootbox/lootbox.gd" id="3_qoq28"]
+[ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://entities/lootbox/loot_entry.gd" id="1_q0l5s"]
+[ext_resource type="Script" uid="uid://cpkrdf3d52eb1" path="res://entities/lootbox/lootbox_mod.gd" id="2_hrebi"]
+[ext_resource type="Script" uid="uid://21p6env5khrm" path="res://entities/lootbox/lootbox_outcome_print.gd" id="2_qoq28"]
+[ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://entities/lootbox/lootbox.gd" id="3_qoq28"]
 
 [sub_resource type="Resource" id="Resource_qoq28"]
 script = ExtResource("2_qoq28")

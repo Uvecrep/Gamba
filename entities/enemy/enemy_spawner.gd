@@ -9,6 +9,8 @@ extends Node2D
 @onready var _spawn_timer: Timer = $SpawnTimer
 
 func _ready() -> void:
+	add_to_group("enemy_towers")
+
 	if enemy_scene == null:
 		push_warning("EnemySpawner needs enemy_scene set for wave spawns.")
 
@@ -36,14 +38,14 @@ func _on_spawn_timer_timeout() -> void:
 		return
 
 	# Keep early waves readable by capping total active enemies.
-	var alive_count := 0
+	var alive_count: int = 0
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if is_instance_valid(enemy):
 			alive_count += 1
 	if alive_count >= max_alive_enemies:
 		return
 
-	var enemy := enemy_scene.instantiate() as Node2D
+	var enemy: Node2D = enemy_scene.instantiate() as Node2D
 	if enemy == null:
 		return
 
@@ -54,15 +56,15 @@ func _on_spawn_timer_timeout() -> void:
 		add_child(enemy)
 
 func _pick_spawn_position() -> Vector2:
-	var spawn_root := get_node_or_null(spawn_points_root_path)
+	var spawn_root: Node = get_node_or_null(spawn_points_root_path)
 	if spawn_root == null:
 		return global_position
 
-	var points := spawn_root.get_children()
+	var points: Array = spawn_root.get_children()
 	if points.is_empty():
 		return global_position
 
-	var random_point := points[randi() % points.size()]
+	var random_point: Node = points[randi() % points.size()]
 	if random_point is Node2D:
 		return random_point.global_position
 
