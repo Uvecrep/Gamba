@@ -7,6 +7,15 @@ signal lootboxes_changed(current: int, previous: int)
 var _lootboxes : Array[Lootbox] = []
 var _lootbox_counts : Array[int] = []
 
+func get_lootbox_in_slot(index : int) -> Lootbox:
+	if index < 0 or index >= _lootboxes.size(): return null
+	
+	return _lootboxes[index]
+
+func get_lootbox_count_in_slot(index : int) -> int:
+	if index < 0 or index >= _lootboxes.size(): return -1
+	
+	return _lootbox_counts[index]
 
 func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 	var next_count: int = maxi(value, 0)

@@ -1,7 +1,6 @@
 extends CharacterBody2D
 
 @export var speed: float = 400.0
-@export var starting_lootboxes: int = 1
 @export var harvest_range: float = 96.0
 @export var harvest_amount_per_interaction: int = 1
 @export var harvest_action: StringName = &"interact"
@@ -32,16 +31,8 @@ func _ready() -> void:
 	if not inventory.lootboxes_changed.is_connected(_on_inventory_lootboxes_changed):
 		inventory.lootboxes_changed.connect(_on_inventory_lootboxes_changed)
 
-	inventory.set_lootbox_count(starting_lootboxes)
-
 func get_lootbox_count() -> int:
 	return inventory.get_lootbox_count()
-
-func add_lootboxes(amount: int) -> int:
-	return inventory.add_lootboxes(amount)
-
-func try_spend_lootboxes(amount: int) -> bool:
-	return inventory.try_spend_lootboxes(amount)
 
 func _on_inventory_lootboxes_changed(current: int, previous: int) -> void:
 	lootbox_inventory_changed.emit(current, previous)
@@ -60,12 +51,12 @@ func _physics_process(_delta: float) -> void:
 
 	if not Input.is_action_just_pressed(use_lootbox_action):
 		return
-	if not try_spend_lootboxes(1):
+	if not inventory.try_spend_lootboxes(null,1):
 		return
 
 	if not _open_active_lootbox():
 		# Refund on roll/outcome failure so lootboxes are not lost by configuration errors.
-		add_lootboxes(1)
+		inventory.add_lootboxes(null, 1)
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()
@@ -105,7 +96,7 @@ func _handle_interaction_input() -> void:
 	if nearest_interactable == nearest_tree:
 		var harvested: int = int(nearest_tree.call("harvest_fruit", harvest_amount_per_interaction))
 		if harvested > 0:
-			add_lootboxes(harvested)
+			inventory.add_lootboxes(null, harvested)
 		return
 
 	if nearest_interactable.has_method("interact"):
