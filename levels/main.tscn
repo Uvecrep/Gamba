@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
 [ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
 [ext_resource type="PackedScene" uid="uid://dnbwxv6w4m5e2" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
+[ext_resource type="PackedScene" uid="uid://dji85hd60lf4h" path="res://ui/debug_inventory/debug_inventory.tscn" id="11_c7dyn"]
 [ext_resource type="PackedScene" uid="uid://b3l6nl5mf8nkh" path="res://entities/pickups/box_pickup.tscn" id="11_xdh4e"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
@@ -66,6 +67,9 @@ offset_right = 1200.0
 offset_bottom = 1081.0
 text = "Sapling Can Plant: No"
 horizontal_alignment = 1
+
+[node name="DebugInventory" parent="UI" unique_id=1649588140 node_paths=PackedStringArray("player_ref") instance=ExtResource("11_c7dyn")]
+player_ref = NodePath("../../player")
 
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=696703801]
 process_mode = 2

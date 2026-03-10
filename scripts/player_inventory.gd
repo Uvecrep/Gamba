@@ -3,6 +3,8 @@ class_name PlayerInventory
 
 signal lootboxes_changed(current: int, previous: int)
 
+signal inventory_changed()
+
 var selected_index : int = -1
 
 var _lootboxes : Array[Lootbox] = []
@@ -57,6 +59,7 @@ func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 		selected_index = 0
 	
 	lootboxes_changed.emit()
+	inventory_changed.emit()
 
 func add_lootboxes(lootbox: Lootbox, amount: int) -> int:
 	if amount <= 0: return 0
@@ -79,7 +82,6 @@ func try_spend_lootboxes(lootbox : Lootbox, amount: int) -> bool:
 		return false
 	var lootbox_index = _lootboxes.find(lootbox)
 	var lootbox_count = _lootbox_counts[lootbox_index]
-	# TODO If we don't have enough lootboxes, should we still spend as many as we can?
 	if lootbox_count < amount:
 		return false
 
