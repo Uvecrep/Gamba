@@ -9,6 +9,7 @@ extends CanvasLayer
 var _use_lootbox_hint_text: String = "lootbox button"
 
 func _ready() -> void:
+	return
 	_use_lootbox_hint_text = _resolve_action_hint(use_lootbox_action)
 	_update_prompt(0)
 
@@ -27,8 +28,8 @@ func _ready() -> void:
 	if not player.is_connected("lootbox_inventory_changed", inventory_changed_callable):
 		player.connect("lootbox_inventory_changed", inventory_changed_callable)
 
-	var initial_count_variant: Variant = player.call("get_lootbox_count")
-	_update_label(int(initial_count_variant))
+	#var initial_count_variant: Variant = player.call("get_lootbox_count")
+	#_update_label(int(initial_count_variant))
 
 func _on_lootbox_inventory_changed(current: int, _previous: int) -> void:
 	_update_label(current)
