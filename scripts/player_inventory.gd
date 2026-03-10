@@ -3,9 +3,11 @@ class_name PlayerInventory
 
 signal lootboxes_changed(current: int, previous: int)
 
+var selected_index : int = -1
 
 var _lootboxes : Array[Lootbox] = []
 var _lootbox_counts : Array[int] = []
+
 
 func get_lootbox_in_slot(index : int) -> Lootbox:
 	if index < 0 or index >= _lootboxes.size(): return null
@@ -42,7 +44,19 @@ func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 
 	var previous_count: int = _lootbox_counts[lootbox_index]
 	_lootbox_counts[lootbox_index] = next_count
-	lootboxes_changed.emit(next_count, previous_count)
+	
+	# if we're going to zero, we should remove instead
+	if next_count == 0:
+		_lootboxes.remove_at(lootbox_index)
+		_lootbox_counts.remove_at(lootbox_index)
+		if lootbox_index >= selected_index: 
+			selected_index = selected_index - 1
+	
+	# If we only have one element left, we should select it
+	if _lootboxes.size() == 1:
+		selected_index = 0
+	
+	lootboxes_changed.emit()
 
 func add_lootboxes(lootbox: Lootbox, amount: int) -> int:
 	if amount <= 0: return 0
