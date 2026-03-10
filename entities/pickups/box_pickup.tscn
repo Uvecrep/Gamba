@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://jyurkxlawu41"]
+[gd_scene format=3 uid="uid://b3l6nl5mf8nkh"]
 
-[ext_resource type="Script" uid="uid://dto83ityng4jl" path="res://entities/pickups/pickup.gd" id="1_lg31k"]
+[ext_resource type="Script" uid="uid://cvxdabvmes3jp" path="res://entities/pickups/box_pickup.gd" id="1_snl5c"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lg31k"]
 
@@ -8,9 +8,9 @@
 font_size = 4
 font_color = Color(0, 0, 0, 1)
 
-[node name="Pickup" type="Area2D" unique_id=90449676]
+[node name="BoxPickup" type="Area2D" unique_id=90449676]
 collision_mask = 3
-script = ExtResource("1_lg31k")
+script = ExtResource("1_snl5c")
 metadata/_custom_type_script = "uid://dto83ityng4jl"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=89817170]
@@ -27,7 +27,7 @@ offset_left = -10.0
 offset_top = -10.0
 offset_right = 10.0
 offset_bottom = 10.0
-text = "base
+text = "box
 pickup"
 label_settings = SubResource("LabelSettings_lg31k")
 horizontal_alignment = 1
