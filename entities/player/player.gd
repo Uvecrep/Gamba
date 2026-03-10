@@ -1,4 +1,5 @@
 extends CharacterBody2D
+class_name Player
 
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
@@ -31,9 +32,6 @@ func _ready() -> void:
 	if not inventory.lootboxes_changed.is_connected(_on_inventory_lootboxes_changed):
 		inventory.lootboxes_changed.connect(_on_inventory_lootboxes_changed)
 
-func get_lootbox_count() -> int:
-	return inventory.get_lootbox_count()
-
 func _on_inventory_lootboxes_changed(current: int, previous: int) -> void:
 	lootbox_inventory_changed.emit(current, previous)
 
@@ -45,7 +43,7 @@ func _physics_process(_delta: float) -> void:
 	get_input()
 	move_and_slide()
 	_clamp_player_to_world_bounds()
-
+	
 	if Input.is_action_just_pressed(harvest_action):
 		_handle_interaction_input()
 
