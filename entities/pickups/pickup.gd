@@ -1,18 +1,14 @@
 extends Area2D
 class_name Pickup
 
-func _ready():
-	connect("body_entered", _on_body_entered)
-	print("helloooooo")
+func _ready() -> void:
+	# Pickups should only react to player bodies.
+	if not body_entered.is_connected(_on_body_entered):
+		body_entered.connect(_on_body_entered)
 
-# TODO, can't collide with player???
-
-func _on_body_entered(body):
+func _on_body_entered(body: Node) -> void:
 	if body is Player:
 		apply_pickup()
 
-func apply_pickup():
-	push_warning("Pickup.apply_Pickup() called on base class.")
-	
-func dummy_on_entered(body):
-	print("helloooooo")
+func apply_pickup() -> void:
+	push_warning("Collision Detected")

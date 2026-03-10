@@ -9,6 +9,7 @@ font_size = 4
 font_color = Color(0, 0, 0, 1)
 
 [node name="Pickup" type="Area2D" unique_id=90449676]
+collision_mask = 3
 script = ExtResource("1_lg31k")
 metadata/_custom_type_script = "uid://dto83ityng4jl"
 
@@ -31,6 +32,3 @@ text = "base
 pickup"
 label_settings = SubResource("LabelSettings_lg31k")
 horizontal_alignment = 1
-
-[connection signal="body_entered" from="." to="." method="dummy_on_entered"]
-[connection signal="body_entered" from="." to="." method="_on_body_entered"]
