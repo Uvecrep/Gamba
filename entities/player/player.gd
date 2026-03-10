@@ -1,13 +1,25 @@
 extends CharacterBody2D
 class_name Player
 
+enum LootboxKind {
+	CHAOS,
+	FOREST,
+}
+
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
 @export var harvest_amount_per_interaction: int = 1
 @export var harvest_action: StringName = &"interact"
 @export var use_lootbox_action: StringName = &"use_lootbox"
+@export var select_chaos_lootbox_action: StringName = &"select_chaos_lootbox"
+@export var select_forest_lootbox_action: StringName = &"select_forest_lootbox"
+@export var chaos_lootbox: Lootbox = preload("res://entities/lootbox/chaos_lootbox.tres")
+@export var forest_lootbox: Lootbox = preload("res://entities/lootbox/forest_lootbox.tres")
+@export var sapling_plant_range: float = 640.0
+@export var sapling_tree_scene: PackedScene = preload("res://entities/tree/tree.tscn")
 
-signal lootbox_inventory_changed(current: int, previous: int)
+signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
+signal sapling_carried_changed(is_carrying: bool)
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_PLAYER: int = 1 << 1
@@ -19,7 +31,8 @@ var inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
-
+var _is_carrying_sapling: bool = false
+var _selected_lootbox_kind: int = LootboxKind.CHAOS
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -32,8 +45,10 @@ func _ready() -> void:
 	if not inventory.lootboxes_changed.is_connected(_on_inventory_lootboxes_changed):
 		inventory.lootboxes_changed.connect(_on_inventory_lootboxes_changed)
 
-func _on_inventory_lootboxes_changed(current: int, previous: int) -> void:
-	lootbox_inventory_changed.emit(current, previous)
+	_emit_lootbox_inventory_changed()
+
+func _on_inventory_lootboxes_changed(_current: int, _previous: int) -> void:
+	_emit_lootbox_inventory_changed()
 
 func get_input() -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
@@ -43,6 +58,7 @@ func _physics_process(_delta: float) -> void:
 	get_input()
 	move_and_slide()
 	_clamp_player_to_world_bounds()
+	_handle_lootbox_selection_input()
 	
 	if Input.is_action_just_pressed(harvest_action):
 		_handle_interaction_input()
@@ -50,16 +66,79 @@ func _physics_process(_delta: float) -> void:
 	if not Input.is_action_just_pressed(use_lootbox_action):
 		return
 
-	_open_active_lootbox()
+	var selected_lootbox: Lootbox = _get_selected_lootbox_resource()
+	if selected_lootbox == null:
+		push_warning("Player: selected lootbox resource is not configured.")
+		return
+
+	if not inventory.try_spend_lootboxes(selected_lootbox, 1):
+		return
+
+	if not _open_lootbox(selected_lootbox):
+		# Refund on roll/outcome failure so lootboxes are not lost by configuration errors.
+		inventory.add_lootboxes(selected_lootbox, 1)
+
+func get_chaos_lootbox_count() -> int:
+	if chaos_lootbox == null:
+		return 0
+
+	return inventory.get_lootbox_count(chaos_lootbox)
+
+func get_forest_lootbox_count() -> int:
+	if forest_lootbox == null:
+		return 0
+
+	return inventory.get_lootbox_count(forest_lootbox)
+
+func get_selected_lootbox_kind() -> int:
+	return _selected_lootbox_kind
+
+func get_selected_lootbox_kind_name() -> String:
+	if _selected_lootbox_kind == LootboxKind.FOREST:
+		return "Forest"
+
+	return "Chaos"
+
+func _handle_lootbox_selection_input() -> void:
+	if Input.is_action_just_pressed(select_chaos_lootbox_action):
+		_set_selected_lootbox_kind(LootboxKind.CHAOS)
+
+	if Input.is_action_just_pressed(select_forest_lootbox_action):
+		_set_selected_lootbox_kind(LootboxKind.FOREST)
+
+func _set_selected_lootbox_kind(kind: int) -> void:
+	var clamped_kind: int = kind
+	if clamped_kind != LootboxKind.CHAOS and clamped_kind != LootboxKind.FOREST:
+		clamped_kind = LootboxKind.CHAOS
+
+	if _selected_lootbox_kind == clamped_kind:
+		return
+
+	_selected_lootbox_kind = clamped_kind
+	_emit_lootbox_inventory_changed()
+
+func _get_selected_lootbox_resource() -> Lootbox:
+	if _selected_lootbox_kind == LootboxKind.FOREST:
+		return forest_lootbox
+
+	return chaos_lootbox
+
+func _emit_lootbox_inventory_changed() -> void:
+	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), _selected_lootbox_kind)
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()
+	var nearest_crystal: Node = _find_nearest_harvestable_crystal()
 	var nearest_phone: Node = _find_nearest_phone()
 	var nearest_map: Node = _find_nearest_map()
 
 	var nearest_tree_distance_sq: float = INF
 	if nearest_tree is Node2D:
 		nearest_tree_distance_sq = global_position.distance_squared_to((nearest_tree as Node2D).global_position)
+
+	var nearest_crystal_distance_sq: float = INF
+	if nearest_crystal is Node2D:
+		nearest_crystal_distance_sq = global_position.distance_squared_to((nearest_crystal as Node2D).global_position)
 
 	var nearest_phone_distance_sq: float = INF
 	if nearest_phone is Node2D:
@@ -76,6 +155,10 @@ func _handle_interaction_input() -> void:
 		nearest_interactable = nearest_tree
 		nearest_distance_sq = nearest_tree_distance_sq
 
+	if nearest_crystal != null and nearest_crystal_distance_sq < nearest_distance_sq:
+		nearest_interactable = nearest_crystal
+		nearest_distance_sq = nearest_crystal_distance_sq
+
 	if nearest_phone != null and nearest_phone_distance_sq < nearest_distance_sq:
 		nearest_interactable = nearest_phone
 		nearest_distance_sq = nearest_phone_distance_sq
@@ -84,17 +167,111 @@ func _handle_interaction_input() -> void:
 		nearest_interactable = nearest_map
 		nearest_distance_sq = nearest_map_distance_sq
 
-	if nearest_interactable == null:
-		return
-
-	if nearest_interactable == nearest_tree:
+	if nearest_tree != null and nearest_interactable == nearest_tree:
 		var harvested: int = int(nearest_tree.call("harvest_fruit", harvest_amount_per_interaction))
 		if harvested > 0:
-			inventory.add_lootboxes(null, harvested)
+			inventory.add_lootboxes(forest_lootbox, harvested)
 		return
 
-	if nearest_interactable.has_method("interact"):
+	if nearest_crystal != null and nearest_interactable == nearest_crystal:
+		var harvested_crystal: int = int(nearest_crystal.call("harvest_fruit", harvest_amount_per_interaction))
+		if harvested_crystal > 0:
+			inventory.add_lootboxes(chaos_lootbox, harvested_crystal)
+		return
+
+	if nearest_interactable != null and nearest_interactable.has_method("interact"):
 		nearest_interactable.call("interact", self)
+		return
+
+	_try_plant_sapling_near_house()
+
+func pick_up_sapling() -> bool:
+	if _is_carrying_sapling:
+		return false
+
+	_set_is_carrying_sapling(true)
+	return true
+
+func is_carrying_sapling() -> bool:
+	return _is_carrying_sapling
+
+func can_plant_sapling_here() -> bool:
+	if not _is_carrying_sapling:
+		return false
+	if sapling_tree_scene == null:
+		return false
+
+	return _find_nearest_house_for_planting() != null
+
+func _try_plant_sapling_near_house() -> bool:
+	if not _is_carrying_sapling:
+		return false
+
+	var target_house: Node = _find_nearest_house_for_planting()
+	if target_house == null:
+		return false
+	if sapling_tree_scene == null:
+		push_warning("Player: sapling_tree_scene is not configured; cannot plant sapling.")
+		return false
+
+	var new_tree: Node = sapling_tree_scene.instantiate()
+	if not (new_tree is Node2D):
+		push_warning("Player: sapling_tree_scene root must inherit from Node2D.")
+		new_tree.queue_free()
+		return false
+
+	var parent_node: Node = get_tree().current_scene
+	if parent_node == null:
+		parent_node = get_parent()
+	if parent_node == null:
+		push_warning("Player: could not determine parent scene for planted tree.")
+		new_tree.queue_free()
+		return false
+
+	parent_node.add_child(new_tree)
+	(new_tree as Node2D).global_position = _get_plant_position(target_house as Node2D)
+	_set_is_carrying_sapling(false)
+	return true
+
+func _find_nearest_house_for_planting() -> Node:
+	var houses: Array = get_tree().get_nodes_in_group("house")
+	var nearest_house: Node = null
+	var nearest_distance_sq: float = sapling_plant_range * sapling_plant_range
+
+	for house in houses:
+		if not (house is Node2D):
+			continue
+
+		var house_node: Node2D = house as Node2D
+		var distance_sq: float = global_position.distance_squared_to(house_node.global_position)
+		if distance_sq > nearest_distance_sq:
+			continue
+
+		nearest_distance_sq = distance_sq
+		nearest_house = house
+
+	return nearest_house
+
+func _get_plant_position(target_house: Node2D) -> Vector2:
+	var plant_position: Vector2 = global_position
+	var from_house: Vector2 = plant_position - target_house.global_position
+	var minimum_house_clearance: float = 72.0
+
+	if from_house.length() >= minimum_house_clearance:
+		return plant_position
+
+	var direction: Vector2 = from_house.normalized()
+	if direction == Vector2.ZERO:
+		direction = Vector2.DOWN
+
+	return target_house.global_position + (direction * minimum_house_clearance)
+
+func _set_is_carrying_sapling(value: bool) -> void:
+	if _is_carrying_sapling == value:
+		return
+
+	_is_carrying_sapling = value
+	sapling_carried_changed.emit(_is_carrying_sapling)
 
 func _find_nearest_harvestable_tree() -> Node:
 	var trees: Array = get_tree().get_nodes_in_group("trees")
@@ -118,6 +295,29 @@ func _find_nearest_harvestable_tree() -> Node:
 		nearest_tree = tree
 
 	return nearest_tree
+
+func _find_nearest_harvestable_crystal() -> Node:
+	var crystals: Array = get_tree().get_nodes_in_group("crystals")
+	var nearest_crystal: Node = null
+	var nearest_distance_sq: float = harvest_range * harvest_range
+
+	for crystal in crystals:
+		if not (crystal is Node2D):
+			continue
+		if not crystal.has_method("can_harvest") or not crystal.has_method("harvest_fruit"):
+			continue
+		if not bool(crystal.call("can_harvest")):
+			continue
+
+		var crystal_node: Node2D = crystal as Node2D
+		var distance_sq: float = global_position.distance_squared_to(crystal_node.global_position)
+		if distance_sq > nearest_distance_sq:
+			continue
+
+		nearest_distance_sq = distance_sq
+		nearest_crystal = crystal
+
+	return nearest_crystal
 
 func _find_nearest_phone() -> Node:
 	var phones: Array = get_tree().get_nodes_in_group("phones")
@@ -165,19 +365,18 @@ func _find_nearest_map() -> Node:
 
 	return nearest_map
 
-func _open_active_lootbox() -> void:
-	var selected_lootbox = inventory.get_lootbox_in_slot(inventory.selected_index)
-	if selected_lootbox == null:
-		push_warning("Player: currently selected lootbox is null")
-		return
+func _open_lootbox(lootbox: Lootbox) -> bool:
+	if lootbox == null:
+		push_warning("Player: lootbox resource is not configured; cannot open lootbox.")
+		return false
 
-	var rolled_entry: LootEntry = selected_lootbox.roll()
+	var rolled_entry: LootEntry = lootbox.roll()
 	if rolled_entry == null:
-		push_warning("Player: active_lootbox returned no LootEntry.")
-		return
+		push_warning("Player: lootbox returned no LootEntry.")
+		return false
 	if rolled_entry.outcome == null:
 		push_warning("Player: rolled LootEntry has no outcome.")
-		return
+		return false
 
 	var context: Dictionary = {
 		"opener": self,

@@ -1,7 +1,7 @@
 extends RefCounted
 class_name PlayerInventory
 
-signal lootboxes_changed()
+signal lootboxes_changed(current: int, previous: int)
 
 var selected_index : int = -1
 
@@ -19,10 +19,22 @@ func get_lootbox_count_in_slot(index : int) -> int:
 	
 	return _lootbox_counts[index]
 
+func get_lootbox_count(lootbox: Lootbox) -> int:
+	if not _lootboxes.has(lootbox):
+		return 0
+
+	var lootbox_index := _lootboxes.find(lootbox)
+	if lootbox_index < 0:
+		return 0
+
+	return _lootbox_counts[lootbox_index]
+
 func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 	var next_count: int = maxi(value, 0)
 	
 	if not _lootboxes.has(lootbox):
+		# TODO: Maybe lootboxes with the same ID should be grouped together
+		# Reason being you might have two lootboxes with the same ID, but different mods?
 		_lootboxes.append(lootbox)
 		_lootbox_counts.append(0)
 	
@@ -50,6 +62,8 @@ func add_lootboxes(lootbox: Lootbox, amount: int) -> int:
 	if amount <= 0: return 0
 
 	if not _lootboxes.has(lootbox):
+		# TODO: Maybe lootboxes with the same ID should be grouped together
+		# Reason being you might have two lootboxes with the same ID, but different mods?
 		_lootboxes.append(lootbox)
 		_lootbox_counts.append(0)
 

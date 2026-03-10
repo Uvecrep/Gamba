@@ -2,12 +2,18 @@ extends Area2D
 class_name Pickup
 
 func _ready() -> void:
+	# Pickups should only react to player bodies.
 	if not body_entered.is_connected(_on_body_entered):
 		body_entered.connect(_on_body_entered)
 
 func _on_body_entered(body: Node) -> void:
-	if body is Player:
-		apply_pickup(body)
+	if not (body is Player):
+		return
 
-func apply_pickup(player : Player) -> void:
-		push_warning("pickup.apply_pickup() called on base class.")
+	var player: Player = body as Player
+	if apply_pickup(player):
+		queue_free()
+
+func apply_pickup(_player: Player) -> bool:
+	push_warning("Pickup: apply_pickup() is not implemented for this pickup type.")
+	return false
