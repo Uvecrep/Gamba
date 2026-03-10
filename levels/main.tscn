@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/lootbox_counter_hud.gd" id="8_hud"]
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
+[ext_resource type="PackedScene" uid="uid://b3l6nl5mf8nkh" path="res://entities/pickups/box_pickup.tscn" id="11_xdh4e"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -106,3 +107,7 @@ text = "Restart"
 [node name="QuitButton" type="Button" parent="GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer" unique_id=227680988]
 layout_mode = 2
 text = "Quit"
+
+[node name="BoxPickup" parent="." unique_id=90449676 instance=ExtResource("11_xdh4e")]
+position = Vector2(689, 669)
+lootbox_id = &"main"

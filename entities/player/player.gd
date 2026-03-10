@@ -6,7 +6,6 @@ class_name Player
 @export var harvest_amount_per_interaction: int = 1
 @export var harvest_action: StringName = &"interact"
 @export var use_lootbox_action: StringName = &"use_lootbox"
-@export var active_lootbox: Lootbox = preload("res://entities/lootbox/main_starting_lootbox.tres")
 
 signal lootbox_inventory_changed(current: int, previous: int)
 
@@ -20,6 +19,7 @@ var inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
+
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -49,12 +49,8 @@ func _physics_process(_delta: float) -> void:
 
 	if not Input.is_action_just_pressed(use_lootbox_action):
 		return
-	if not inventory.try_spend_lootboxes(null,1):
-		return
 
-	if not _open_active_lootbox():
-		# Refund on roll/outcome failure so lootboxes are not lost by configuration errors.
-		inventory.add_lootboxes(null, 1)
+	_open_active_lootbox()
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()
@@ -169,18 +165,19 @@ func _find_nearest_map() -> Node:
 
 	return nearest_map
 
-func _open_active_lootbox() -> bool:
-	if active_lootbox == null:
-		push_warning("Player: active_lootbox is not configured; cannot open lootbox.")
-		return false
+func _open_active_lootbox() -> void:
+	var selected_lootbox = inventory.get_lootbox_in_slot(inventory.selected_index)
+	if selected_lootbox == null:
+		push_warning("Player: currently selected lootbox is null")
+		return
 
-	var rolled_entry: LootEntry = active_lootbox.roll()
+	var rolled_entry: LootEntry = selected_lootbox.roll()
 	if rolled_entry == null:
 		push_warning("Player: active_lootbox returned no LootEntry.")
-		return false
+		return
 	if rolled_entry.outcome == null:
 		push_warning("Player: rolled LootEntry has no outcome.")
-		return false
+		return
 
 	var context: Dictionary = {
 		"opener": self,
