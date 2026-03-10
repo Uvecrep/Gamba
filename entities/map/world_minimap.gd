@@ -488,11 +488,11 @@ func _find_world_tile_map_layer() -> Node:
 
 	var world_node: Node = current_scene.get_node_or_null("World")
 	if world_node != null:
-		var world_tile_map: Node = world_node.get_node_or_null("TileMapLayer")
+		var world_tile_map: Node = world_node.get_node_or_null("TileMapGround")
 		if world_tile_map != null:
 			return world_tile_map
 
-	var fallback: Node = current_scene.find_child("TileMapLayer", true, false)
+	var fallback: Node = current_scene.find_child("TileMapGround", true, false)
 	if fallback != null:
 		return fallback
 

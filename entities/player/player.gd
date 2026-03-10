@@ -193,15 +193,15 @@ func _open_active_lootbox() -> bool:
 func _configure_world_bounds() -> void:
 	var tile_map_layer: Node = _find_world_tile_map_layer()
 	if tile_map_layer == null:
-		push_warning("Player: could not find TileMapLayer for world bounds.")
+		push_warning("Player: could not find TileMapGround for world bounds.")
 		return
 	if not tile_map_layer.has_method("get_used_rect") or not tile_map_layer.has_method("map_to_local"):
-		push_warning("Player: world TileMapLayer is missing required bounds methods.")
+		push_warning("Player: world TileMapGround is missing required bounds methods.")
 		return
 
 	var used_rect: Rect2i = tile_map_layer.call("get_used_rect")
 	if used_rect.size == Vector2i.ZERO:
-		push_warning("Player: world TileMapLayer has no used cells; bounds not applied.")
+		push_warning("Player: world TileMapGround has no used cells; bounds not applied.")
 		return
 
 	var tile_size: Vector2 = Vector2(32.0, 32.0)
@@ -282,11 +282,11 @@ func _find_world_tile_map_layer() -> Node:
 
 	var world_node: Node = current_scene.get_node_or_null("World")
 	if world_node != null:
-		var world_tile_map: Node = world_node.get_node_or_null("TileMapLayer")
+		var world_tile_map: Node = world_node.get_node_or_null("TileMapGround")
 		if world_tile_map != null:
 			return world_tile_map
 
-	var fallback: Node = current_scene.find_child("TileMapLayer", true, false)
+	var fallback: Node = current_scene.find_child("TileMapGround", true, false)
 	if fallback != null:
 		return fallback
 
