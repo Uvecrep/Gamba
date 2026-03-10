@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bvt606eb2ld6j"]
+
+[ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="1_yyn5h"]
+[ext_resource type="PackedScene" uid="uid://bhxxgyq6e3ond" path="res://entities/player/player.tscn" id="2_tr680"]
+
+[node name="PickupExample" type="Node2D" unique_id=1510140489]
+
+[node name="Pickup" parent="." unique_id=90449676 instance=ExtResource("1_yyn5h")]
+
+[node name="player" parent="." unique_id=57563531 instance=ExtResource("2_tr680")]
+position = Vector2(140, -8)

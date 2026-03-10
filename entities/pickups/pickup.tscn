@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://jyurkxlawu41"]
+
+[ext_resource type="Script" uid="uid://dto83ityng4jl" path="res://entities/pickups/pickup.gd" id="1_lg31k"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lg31k"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_lg31k"]
+font_size = 4
+font_color = Color(0, 0, 0, 1)
+
+[node name="Pickup" type="Area2D" unique_id=90449676]
+script = ExtResource("1_lg31k")
+metadata/_custom_type_script = "uid://dto83ityng4jl"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=89817170]
+scale = Vector2(2, 2)
+shape = SubResource("RectangleShape2D_lg31k")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=107602651]
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+
+[node name="Label" type="Label" parent="." unique_id=682097862]
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+text = "base
+pickup"
+label_settings = SubResource("LabelSettings_lg31k")
+horizontal_alignment = 1
+
+[connection signal="body_entered" from="." to="." method="dummy_on_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
