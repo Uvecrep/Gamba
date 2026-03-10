@@ -15,7 +15,7 @@ var _harvest_hint_text: String = "E"
 @onready var _lootbox_sprite: Sprite2D = $LootboxSprite
 
 func _ready() -> void:
-	add_to_group("trees")
+	add_to_group("crystals")
 	_harvest_hint_text = _resolve_action_hint(harvest_prompt_action)
 
 	_growth_timer.wait_time = maxf(growth_interval_seconds, 0.01)

@@ -17,6 +17,16 @@ func get_lootbox_count_in_slot(index : int) -> int:
 	
 	return _lootbox_counts[index]
 
+func get_lootbox_count(lootbox: Lootbox) -> int:
+	if not _lootboxes.has(lootbox):
+		return 0
+
+	var lootbox_index := _lootboxes.find(lootbox)
+	if lootbox_index < 0:
+		return 0
+
+	return _lootbox_counts[lootbox_index]
+
 func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 	var next_count: int = maxi(value, 0)
 	

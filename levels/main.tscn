@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
 [ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
-[ext_resource type="PackedScene" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
+[ext_resource type="PackedScene" uid="uid://dnbwxv6w4m5e2" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
