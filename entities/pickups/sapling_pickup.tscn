@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/pickups/sapling_pickup.gd" id="1_qt8ad"]
+[ext_resource type="Texture2D" path="res://assets/objects/sapling.png" id="2_nj2l3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1d86d"]
+size = Vector2(20, 20)
+
+[node name="SaplingPickup" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_qt8ad")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_1d86d")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_nj2l3")
+
+[node name="PromptLabel" type="Label" parent="."]
+z_index = 10
+offset_left = -55.0
+offset_top = 20.0
+offset_right = 55.0
+offset_bottom = 48.0
+text = "Sapling"
+horizontal_alignment = 1

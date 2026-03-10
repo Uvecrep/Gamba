@@ -7,8 +7,11 @@ class_name Player
 @export var harvest_action: StringName = &"interact"
 @export var use_lootbox_action: StringName = &"use_lootbox"
 @export var active_lootbox: Lootbox = preload("res://entities/lootbox/main_starting_lootbox.tres")
+@export var sapling_plant_range: float = 640.0
+@export var sapling_tree_scene: PackedScene = preload("res://entities/tree/tree.tscn")
 
 signal lootbox_inventory_changed(current: int, previous: int)
+signal sapling_carried_changed(is_carrying: bool)
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_PLAYER: int = 1 << 1
@@ -20,6 +23,7 @@ var inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
+var _is_carrying_sapling: bool = false
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -88,17 +92,105 @@ func _handle_interaction_input() -> void:
 		nearest_interactable = nearest_map
 		nearest_distance_sq = nearest_map_distance_sq
 
-	if nearest_interactable == null:
-		return
-
-	if nearest_interactable == nearest_tree:
+	if nearest_tree != null and nearest_interactable == nearest_tree:
 		var harvested: int = int(nearest_tree.call("harvest_fruit", harvest_amount_per_interaction))
 		if harvested > 0:
 			inventory.add_lootboxes(null, harvested)
 		return
 
-	if nearest_interactable.has_method("interact"):
+	if nearest_interactable != null and nearest_interactable.has_method("interact"):
 		nearest_interactable.call("interact", self)
+		return
+
+	_try_plant_sapling_near_house()
+
+func pick_up_sapling() -> bool:
+	if _is_carrying_sapling:
+		return false
+
+	_set_is_carrying_sapling(true)
+	return true
+
+func is_carrying_sapling() -> bool:
+	return _is_carrying_sapling
+
+func can_plant_sapling_here() -> bool:
+	if not _is_carrying_sapling:
+		return false
+	if sapling_tree_scene == null:
+		return false
+
+	return _find_nearest_house_for_planting() != null
+
+func _try_plant_sapling_near_house() -> bool:
+	if not _is_carrying_sapling:
+		return false
+
+	var target_house: Node = _find_nearest_house_for_planting()
+	if target_house == null:
+		return false
+	if sapling_tree_scene == null:
+		push_warning("Player: sapling_tree_scene is not configured; cannot plant sapling.")
+		return false
+
+	var new_tree: Node = sapling_tree_scene.instantiate()
+	if not (new_tree is Node2D):
+		push_warning("Player: sapling_tree_scene root must inherit from Node2D.")
+		new_tree.queue_free()
+		return false
+
+	var parent_node: Node = get_tree().current_scene
+	if parent_node == null:
+		parent_node = get_parent()
+	if parent_node == null:
+		push_warning("Player: could not determine parent scene for planted tree.")
+		new_tree.queue_free()
+		return false
+
+	parent_node.add_child(new_tree)
+	(new_tree as Node2D).global_position = _get_plant_position(target_house as Node2D)
+	_set_is_carrying_sapling(false)
+	return true
+
+func _find_nearest_house_for_planting() -> Node:
+	var houses: Array = get_tree().get_nodes_in_group("house")
+	var nearest_house: Node = null
+	var nearest_distance_sq: float = sapling_plant_range * sapling_plant_range
+
+	for house in houses:
+		if not (house is Node2D):
+			continue
+
+		var house_node: Node2D = house as Node2D
+		var distance_sq: float = global_position.distance_squared_to(house_node.global_position)
+		if distance_sq > nearest_distance_sq:
+			continue
+
+		nearest_distance_sq = distance_sq
+		nearest_house = house
+
+	return nearest_house
+
+func _get_plant_position(target_house: Node2D) -> Vector2:
+	var plant_position: Vector2 = global_position
+	var from_house: Vector2 = plant_position - target_house.global_position
+	var minimum_house_clearance: float = 72.0
+
+	if from_house.length() >= minimum_house_clearance:
+		return plant_position
+
+	var direction: Vector2 = from_house.normalized()
+	if direction == Vector2.ZERO:
+		direction = Vector2.DOWN
+
+	return target_house.global_position + (direction * minimum_house_clearance)
+
+func _set_is_carrying_sapling(value: bool) -> void:
+	if _is_carrying_sapling == value:
+		return
+
+	_is_carrying_sapling = value
+	sapling_carried_changed.emit(_is_carrying_sapling)
 
 func _find_nearest_harvestable_tree() -> Node:
 	var trees: Array = get_tree().get_nodes_in_group("trees")

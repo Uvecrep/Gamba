@@ -7,8 +7,13 @@ func _ready() -> void:
 		body_entered.connect(_on_body_entered)
 
 func _on_body_entered(body: Node) -> void:
-	if body is Player:
-		apply_pickup()
+	if not (body is Player):
+		return
 
-func apply_pickup() -> void:
-	push_warning("Collision Detected")
+	var player: Player = body as Player
+	if apply_pickup(player):
+		queue_free()
+
+func apply_pickup(_player: Player) -> bool:
+	push_warning("Pickup: apply_pickup() is not implemented for this pickup type.")
+	return false

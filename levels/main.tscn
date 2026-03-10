@@ -4,11 +4,12 @@
 [ext_resource type="PackedScene" uid="uid://d34vqfagsgpkm" path="res://levels/world.tscn" id="2_wdj6m"]
 [ext_resource type="PackedScene" uid="uid://domyo1x6j4x7w" path="res://entities/enemy/enemy_spawner.tscn" id="5_u7xt2"]
 [ext_resource type="PackedScene" uid="uid://b6u051drnvexw" path="res://entities/house/house.tscn" id="6_7hmax"]
-[ext_resource type="PackedScene" uid="uid://bnb85qll64ayq" path="res://entities/tree/tree.tscn" id="7_b7kfm"]
 [ext_resource type="PackedScene" path="res://entities/phone/phone.tscn" id="8_2v8j6"]
 [ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/lootbox_counter_hud.gd" id="8_hud"]
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
+[ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
+[ext_resource type="PackedScene" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -18,14 +19,17 @@ script = ExtResource("9_main")
 [node name="house" parent="." unique_id=1330574672 instance=ExtResource("6_7hmax")]
 position = Vector2(812, 280)
 
-[node name="tree" parent="." unique_id=1524401863 instance=ExtResource("7_b7kfm")]
-position = Vector2(292, 291)
+[node name="SaplingPickup" parent="." unique_id=1066748930 instance=ExtResource("10_2v0sd")]
+position = Vector2(492, -54)
 
 [node name="phone" parent="." unique_id=1188000190 instance=ExtResource("8_2v8j6")]
 position = Vector2(858, 439)
 
 [node name="map" parent="." unique_id=742775017 instance=ExtResource("9_pm7y4")]
 position = Vector2(649, 378)
+
+[node name="crystal" parent="." unique_id=2144231408 instance=ExtResource("11_1j61c")]
+position = Vector2(538, 427)
 
 [node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
 position = Vector2(1873, -2514)
@@ -51,6 +55,15 @@ offset_top = 1027.0
 offset_right = 1139.0
 offset_bottom = 1055.0
 text = "Press Q to open a lootbox"
+horizontal_alignment = 1
+
+[node name="SaplingPlantDebugLabel" type="Label" parent="UI" unique_id=2067746762]
+visible = false
+offset_left = 860.0
+offset_top = 1053.0
+offset_right = 1200.0
+offset_bottom = 1081.0
+text = "Sapling Can Plant: No"
 horizontal_alignment = 1
 
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=696703801]
