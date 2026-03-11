@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://xtfj7565v6v4"]
+
+[ext_resource type="Script" uid="uid://2x60pl2xk3d2" path="res://ui/inventory/inventory_slot.gd" id="1_huu8b"]
+
+[node name="InventorySlot" type="Control" unique_id=1434141939]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_huu8b")
+metadata/_custom_type_script = "uid://2x60pl2xk3d2"

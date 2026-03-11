@@ -9,6 +9,7 @@ size = Vector2(54, 66)
 
 [node name="tree" type="StaticBody2D" unique_id=591576038]
 script = ExtResource("1_2e5kc")
+produced_lootbox_id = &"lootbox_forest"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=684601904]
 position = Vector2(0, 18)

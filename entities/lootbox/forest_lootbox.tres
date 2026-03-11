@@ -53,6 +53,7 @@ outcome = SubResource("Outcome_Forest_Rooter")
 
 [resource]
 script = ExtResource("1_lootbox")
+id = &"forest"
 name = "Forest Box"
 color = "Green"
 description = "Harvested from trees. Contains five forest-themed summons."

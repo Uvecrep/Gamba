@@ -1,130 +1,69 @@
 extends CharacterBody2D
 class_name Player
 
-enum LootboxKind {
-	CHAOS,
-	FOREST,
-}
 
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
 @export var harvest_amount_per_interaction: int = 1
-@export var harvest_action: StringName = &"interact"
+@export var interact_action: StringName = &"interact"
 @export var use_lootbox_action: StringName = &"use_lootbox"
-@export var select_chaos_lootbox_action: StringName = &"select_chaos_lootbox"
-@export var select_forest_lootbox_action: StringName = &"select_forest_lootbox"
-@export var chaos_lootbox: Lootbox = preload("res://entities/lootbox/chaos_lootbox.tres")
-@export var forest_lootbox: Lootbox = preload("res://entities/lootbox/forest_lootbox.tres")
+@export var scroll_up_action: StringName = &"scroll_up"
+@export var scroll_down_action: StringName = &"scroll_down"
 @export var sapling_plant_range: float = 640.0
 @export var sapling_tree_scene: PackedScene = preload("res://entities/tree/tree.tscn")
 
-signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
-signal sapling_carried_changed(is_carrying: bool)
-
-const PHYSICS_LAYER_WORLD: int = 1 << 0
-const PHYSICS_LAYER_PLAYER: int = 1 << 1
-
 @onready var camera: Camera2D = $Camera2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
+@onready var health_bar: ProgressBar = $HealthBar
+
+var max_health: float = 100
+var current_health: float
 
 var inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
-var _is_carrying_sapling: bool = false
-var _selected_lootbox_kind: int = LootboxKind.CHAOS
+var pickups_following_me: Array[Pickup] = []
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
-	collision_layer = PHYSICS_LAYER_PLAYER
-	collision_mask = PHYSICS_LAYER_WORLD
+	collision_layer = Const.COLLISION_LAYERS.PLAYER
+	collision_mask = Const.COLLISION_LAYERS.WORLD
 	add_to_group("players")
 	player_bounds_padding = _get_player_bounds_padding()
 	_configure_world_bounds()
-
-	if not inventory.lootboxes_changed.is_connected(_on_inventory_lootboxes_changed):
-		inventory.lootboxes_changed.connect(_on_inventory_lootboxes_changed)
-
-	_emit_lootbox_inventory_changed()
-
-func _on_inventory_lootboxes_changed(_current: int, _previous: int) -> void:
-	_emit_lootbox_inventory_changed()
+	inventory.inventory_changed.connect(_on_inventory_changed)
 
 func get_input() -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
 	velocity = input_direction * speed
 
+func _process(delta: float) -> void:
+	if health_bar == null: return
+	
+	health_bar.max_value = max_health
+	health_bar.value = current_health
+
 func _physics_process(_delta: float) -> void:
 	get_input()
 	move_and_slide()
 	_clamp_player_to_world_bounds()
-	_handle_lootbox_selection_input()
 	
-	if Input.is_action_just_pressed(harvest_action):
+	if Input.is_action_just_pressed(interact_action):
 		_handle_interaction_input()
-
-	if not Input.is_action_just_pressed(use_lootbox_action):
-		return
-
-	var selected_lootbox: Lootbox = _get_selected_lootbox_resource()
-	if selected_lootbox == null:
-		push_warning("Player: selected lootbox resource is not configured.")
-		return
-
-	if not inventory.try_spend_lootboxes(selected_lootbox, 1):
-		return
-
-	if not _open_lootbox(selected_lootbox):
-		# Refund on roll/outcome failure so lootboxes are not lost by configuration errors.
-		inventory.add_lootboxes(selected_lootbox, 1)
-
-func get_chaos_lootbox_count() -> int:
-	if chaos_lootbox == null:
-		return 0
-
-	return inventory.get_lootbox_count(chaos_lootbox)
-
-func get_forest_lootbox_count() -> int:
-	if forest_lootbox == null:
-		return 0
-
-	return inventory.get_lootbox_count(forest_lootbox)
-
-func get_selected_lootbox_kind() -> int:
-	return _selected_lootbox_kind
-
-func get_selected_lootbox_kind_name() -> String:
-	if _selected_lootbox_kind == LootboxKind.FOREST:
-		return "Forest"
-
-	return "Chaos"
-
-func _handle_lootbox_selection_input() -> void:
-	if Input.is_action_just_pressed(select_chaos_lootbox_action):
-		_set_selected_lootbox_kind(LootboxKind.CHAOS)
-
-	if Input.is_action_just_pressed(select_forest_lootbox_action):
-		_set_selected_lootbox_kind(LootboxKind.FOREST)
-
-func _set_selected_lootbox_kind(kind: int) -> void:
-	var clamped_kind: int = kind
-	if clamped_kind != LootboxKind.CHAOS and clamped_kind != LootboxKind.FOREST:
-		clamped_kind = LootboxKind.CHAOS
-
-	if _selected_lootbox_kind == clamped_kind:
-		return
-
-	_selected_lootbox_kind = clamped_kind
-	_emit_lootbox_inventory_changed()
-
-func _get_selected_lootbox_resource() -> Lootbox:
-	if _selected_lootbox_kind == LootboxKind.FOREST:
-		return forest_lootbox
-
-	return chaos_lootbox
-
-func _emit_lootbox_inventory_changed() -> void:
-	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), _selected_lootbox_kind)
+	
+	var mouse_scroll_delta = 0;
+	if Input.is_action_just_released(scroll_up_action):
+		mouse_scroll_delta += 1
+	if Input.is_action_just_released(scroll_down_action):
+		mouse_scroll_delta -= 1
+	
+	if mouse_scroll_delta != 0:
+		inventory.selected_index = posmod(inventory.selected_index + mouse_scroll_delta,inventory.num_slots)
+		inventory.inventory_changed.emit()
+	
+	var mouse_pos = get_viewport().get_mouse_position() - (get_viewport().get_visible_rect().size/2)
+	camera.offset = mouse_pos * .1 # this is goofy, should plug into a better feeling damp function
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()
@@ -169,43 +108,44 @@ func _handle_interaction_input() -> void:
 
 	if nearest_tree != null and nearest_interactable == nearest_tree:
 		var harvested: int = int(nearest_tree.call("harvest_fruit", harvest_amount_per_interaction))
-		if harvested > 0:
-			inventory.add_lootboxes(forest_lootbox, harvested)
+		# if harvested > 0:
+			# inventory.add_lootboxes(forest_lootbox, harvested)
 		return
 
 	if nearest_crystal != null and nearest_interactable == nearest_crystal:
-		var harvested_crystal: int = int(nearest_crystal.call("harvest_fruit", harvest_amount_per_interaction))
-		if harvested_crystal > 0:
-			inventory.add_lootboxes(chaos_lootbox, harvested_crystal)
+		nearest_crystal.harvest_fruit()
 		return
 
 	if nearest_interactable != null and nearest_interactable.has_method("interact"):
 		nearest_interactable.call("interact", self)
 		return
+	
+	_try_use_item()
 
-	_try_plant_sapling_near_house()
-
-func pick_up_sapling() -> bool:
-	if _is_carrying_sapling:
+func _try_use_item() -> bool:
+	var selected_item = inventory.inventory_items[inventory.selected_index]
+	if selected_item == &"":
 		return false
-
-	_set_is_carrying_sapling(true)
-	return true
-
-func is_carrying_sapling() -> bool:
-	return _is_carrying_sapling
-
-func can_plant_sapling_here() -> bool:
-	if not _is_carrying_sapling:
-		return false
-	if sapling_tree_scene == null:
-		return false
-
-	return _find_nearest_house_for_planting() != null
+	
+	if selected_item == &"sapling":
+		if not _try_plant_sapling_near_house():
+			return false
+		inventory.remove_items(inventory.selected_index,1)
+		return true
+	
+	if selected_item.begins_with("lootbox_"):
+		var box_id = StringName(selected_item.split("_")[1])
+		if not LootboxGlobals.lootboxes.has(box_id):
+			push_warning("Player: Tried to open a lootbox '" + box_id + "' which is not present in the global array")
+			return false
+		if not _open_lootbox(LootboxGlobals.lootboxes[box_id]):
+			return false
+		inventory.remove_items(inventory.selected_index,1)
+		return true
+	
+	return false
 
 func _try_plant_sapling_near_house() -> bool:
-	if not _is_carrying_sapling:
-		return false
 
 	var target_house: Node = _find_nearest_house_for_planting()
 	if target_house == null:
@@ -230,7 +170,6 @@ func _try_plant_sapling_near_house() -> bool:
 
 	parent_node.add_child(new_tree)
 	(new_tree as Node2D).global_position = _get_plant_position(target_house as Node2D)
-	_set_is_carrying_sapling(false)
 	return true
 
 func _find_nearest_house_for_planting() -> Node:
@@ -265,13 +204,6 @@ func _get_plant_position(target_house: Node2D) -> Vector2:
 		direction = Vector2.DOWN
 
 	return target_house.global_position + (direction * minimum_house_clearance)
-
-func _set_is_carrying_sapling(value: bool) -> void:
-	if _is_carrying_sapling == value:
-		return
-
-	_is_carrying_sapling = value
-	sapling_carried_changed.emit(_is_carrying_sapling)
 
 func _find_nearest_harvestable_tree() -> Node:
 	var trees: Array = get_tree().get_nodes_in_group("trees")
@@ -487,3 +419,35 @@ func _find_world_tile_map_layer() -> Node:
 		return fallback
 
 	return null
+
+
+func _on_pickup_touched_radius(area: Area2D) -> void:
+	var pickup = area.get_parent()
+	if pickup == null: return
+	if pickup is not Pickup: return
+	
+	if not inventory.would_item_fit(pickup.item_id):
+		return
+	
+	pickup.floating_towards = self
+	pickups_following_me.append(pickup)
+
+func _on_pickup_touched_me(area: Area2D) -> void:
+	var pickup = area.get_parent()
+	if pickup == null: return
+	if pickup is not Pickup: return
+	if inventory.add_items(pickup.item_id,1):
+		pickup.queue_free()
+		var index = pickups_following_me.find(pickup)
+		pickups_following_me.remove_at(index)
+
+func _on_inventory_changed() -> void:
+	# Pickups that were following me should stop if they would no longer fit in my inventory
+	var pickups_no_longer_following : Array[Pickup] = []
+	for p in pickups_following_me:
+		if !inventory.would_item_fit(p.item_id):
+			p.floating_towards = null
+			pickups_no_longer_following.append(p)
+	for p in pickups_no_longer_following:
+		var index = pickups_following_me.find(p)
+		pickups_following_me.remove_at(index)
