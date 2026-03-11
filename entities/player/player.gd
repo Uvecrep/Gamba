@@ -156,12 +156,33 @@ func _handle_interaction_input() -> void:
 	if nearest_interactable != null and nearest_interactable.has_method("interact"):
 		nearest_interactable.call("interact", self)
 		return
+	
+	_try_use_item()
 
-	_try_plant_sapling_near_house()
+func _try_use_item() -> bool:
+	var selected_item = inventory.inventory_items[inventory.selected_index]
+	if selected_item == &"":
+		return false
+	
+	if selected_item == &"sapling":
+		if not _try_plant_sapling_near_house():
+			return false
+		inventory.remove_items(inventory.selected_index,1)
+		return true
+	
+	if selected_item.begins_with("lootbox_"):
+		var box_id = StringName(selected_item.split("_")[1])
+		if not LootboxGlobals.lootboxes.has(box_id):
+			push_warning("Player: Tried to open a lootbox '" + box_id + "' which is not present in the global array")
+			return false
+		if not _open_lootbox(LootboxGlobals.lootboxes[box_id]):
+			return false
+		inventory.remove_items(inventory.selected_index,1)
+		return true
+	
+	return false
 
 func _try_plant_sapling_near_house() -> bool:
-	if inventory.inventory_items[inventory.selected_index] != &"sapling":
-		return false
 
 	var target_house: Node = _find_nearest_house_for_planting()
 	if target_house == null:
@@ -186,7 +207,6 @@ func _try_plant_sapling_near_house() -> bool:
 
 	parent_node.add_child(new_tree)
 	(new_tree as Node2D).global_position = _get_plant_position(target_house as Node2D)
-	inventory.remove_items(inventory.selected_index,1)
 	return true
 
 func _find_nearest_house_for_planting() -> Node:
