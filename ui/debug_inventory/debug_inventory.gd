@@ -18,12 +18,17 @@ func _refresh_ui() -> void:
 	for item in item_container.get_children():
 		item.queue_free()
 	
-	for index in range(player_ref.inventory._lootboxes.size()):
+	for index in range(player_ref.inventory.num_slots):
 		var newitem: DebugInventoryItem = inventory_item_scene.instantiate()
 		item_container.add_child(newitem)
 		
-		var dataItem = player_ref.inventory.get_lootbox_in_slot(index)
-		if dataItem == null:
-			continue
+		var item_id = player_ref.inventory.get_slot_item_id(index)
+		var item_count = player_ref.inventory.get_slot_count(index)
 		
-		newitem.TextContext.text = str(index) + ": " + dataItem.name
+		if player_ref.inventory.selected_index == index:
+			newitem.TextContext.add_theme_color_override("font_color", Color.YELLOW)
+		
+		if item_id == &"":
+			newitem.TextContext.text = str(index) + ": Empty"
+		else:
+			newitem.TextContext.text = str(index) + ": " + str(item_count)+"x " + item_id

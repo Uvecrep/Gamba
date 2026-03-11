@@ -11,8 +11,8 @@ enum LootboxKind {
 @export var harvest_amount_per_interaction: int = 1
 @export var harvest_action: StringName = &"interact"
 @export var use_lootbox_action: StringName = &"use_lootbox"
-@export var select_chaos_lootbox_action: StringName = &"select_chaos_lootbox"
-@export var select_forest_lootbox_action: StringName = &"select_forest_lootbox"
+@export var scroll_up_action: StringName = &"scroll_up"
+@export var scroll_down_action: StringName = &"scroll_down"
 @export var chaos_lootbox: Lootbox = preload("res://entities/lootbox/chaos_lootbox.tres")
 @export var forest_lootbox: Lootbox = preload("res://entities/lootbox/forest_lootbox.tres")
 @export var sapling_plant_range: float = 640.0
@@ -42,14 +42,6 @@ func _ready() -> void:
 	player_bounds_padding = _get_player_bounds_padding()
 	_configure_world_bounds()
 
-	if not inventory.lootboxes_changed.is_connected(_on_inventory_lootboxes_changed):
-		inventory.lootboxes_changed.connect(_on_inventory_lootboxes_changed)
-
-	_emit_lootbox_inventory_changed()
-
-func _on_inventory_lootboxes_changed(_current: int, _previous: int) -> void:
-	_emit_lootbox_inventory_changed()
-
 func get_input() -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
 	velocity = input_direction * speed
@@ -58,37 +50,35 @@ func _physics_process(_delta: float) -> void:
 	get_input()
 	move_and_slide()
 	_clamp_player_to_world_bounds()
-	_handle_lootbox_selection_input()
 	
 	if Input.is_action_just_pressed(harvest_action):
 		_handle_interaction_input()
+	
+	var mouse_scroll_delta = 0;
+	if Input.is_action_just_released(scroll_up_action):
+		mouse_scroll_delta += 1
+		print("up!")
+	if Input.is_action_just_released(scroll_down_action):
+		mouse_scroll_delta -= 1
+		print("down!")	
+	
+	if mouse_scroll_delta != 0:
+		inventory.selected_index = posmod(inventory.selected_index + mouse_scroll_delta,inventory.num_slots)
+		inventory.inventory_changed.emit()
+		
+	# lootbox select
 
-	if not Input.is_action_just_pressed(use_lootbox_action):
-		return
+#func get_chaos_lootbox_count() -> int:
+	#if chaos_lootbox == null:
+		#return 0
+#
+	#return inventory.get_lootbox_count(chaos_lootbox)
 
-	var selected_lootbox: Lootbox = _get_selected_lootbox_resource()
-	if selected_lootbox == null:
-		push_warning("Player: selected lootbox resource is not configured.")
-		return
-
-	if not inventory.try_spend_lootboxes(selected_lootbox, 1):
-		return
-
-	if not _open_lootbox(selected_lootbox):
-		# Refund on roll/outcome failure so lootboxes are not lost by configuration errors.
-		inventory.add_lootboxes(selected_lootbox, 1)
-
-func get_chaos_lootbox_count() -> int:
-	if chaos_lootbox == null:
-		return 0
-
-	return inventory.get_lootbox_count(chaos_lootbox)
-
-func get_forest_lootbox_count() -> int:
-	if forest_lootbox == null:
-		return 0
-
-	return inventory.get_lootbox_count(forest_lootbox)
+#func get_forest_lootbox_count() -> int:
+	#if forest_lootbox == null:
+		#return 0
+#
+	#return inventory.get_lootbox_count(forest_lootbox)
 
 func get_selected_lootbox_kind() -> int:
 	return _selected_lootbox_kind
@@ -99,13 +89,6 @@ func get_selected_lootbox_kind_name() -> String:
 
 	return "Chaos"
 
-func _handle_lootbox_selection_input() -> void:
-	if Input.is_action_just_pressed(select_chaos_lootbox_action):
-		_set_selected_lootbox_kind(LootboxKind.CHAOS)
-
-	if Input.is_action_just_pressed(select_forest_lootbox_action):
-		_set_selected_lootbox_kind(LootboxKind.FOREST)
-
 func _set_selected_lootbox_kind(kind: int) -> void:
 	var clamped_kind: int = kind
 	if clamped_kind != LootboxKind.CHAOS and clamped_kind != LootboxKind.FOREST:
@@ -115,16 +98,12 @@ func _set_selected_lootbox_kind(kind: int) -> void:
 		return
 
 	_selected_lootbox_kind = clamped_kind
-	_emit_lootbox_inventory_changed()
 
 func _get_selected_lootbox_resource() -> Lootbox:
 	if _selected_lootbox_kind == LootboxKind.FOREST:
 		return forest_lootbox
 
 	return chaos_lootbox
-
-func _emit_lootbox_inventory_changed() -> void:
-	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), _selected_lootbox_kind)
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()

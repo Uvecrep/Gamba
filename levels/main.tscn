@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
 [ext_resource type="PackedScene" uid="uid://dnbwxv6w4m5e2" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
 [ext_resource type="PackedScene" uid="uid://dji85hd60lf4h" path="res://ui/debug_inventory/debug_inventory.tscn" id="11_c7dyn"]
-[ext_resource type="PackedScene" uid="uid://b3l6nl5mf8nkh" path="res://entities/pickups/box_pickup.tscn" id="11_xdh4e"]
+[ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -125,6 +125,34 @@ text = "Restart"
 layout_mode = 2
 text = "Quit"
 
-[node name="BoxPickup" parent="." unique_id=90449676 instance=ExtResource("11_xdh4e")]
-position = Vector2(689, 669)
-lootbox_id = &"main"
+[node name="Pickup" parent="." unique_id=1634760408 instance=ExtResource("13_1fput")]
+position = Vector2(570, 613)
+item_id = &"rabbit"
+
+[node name="Pickup2" parent="." unique_id=1896649483 instance=ExtResource("13_1fput")]
+position = Vector2(698, 690)
+item_id = &"pear"
+
+[node name="Pickup3" parent="." unique_id=1233044806 instance=ExtResource("13_1fput")]
+position = Vector2(631, 787)
+item_id = &"peach"
+
+[node name="Pickup4" parent="." unique_id=1657756741 instance=ExtResource("13_1fput")]
+position = Vector2(523, 747)
+item_id = &"dog"
+
+[node name="Pickup5" parent="." unique_id=556914396 instance=ExtResource("13_1fput")]
+position = Vector2(836, 781)
+item_id = &"hare"
+
+[node name="Pickup6" parent="." unique_id=1581105141 instance=ExtResource("13_1fput")]
+position = Vector2(964, 858)
+item_id = &"person"
+
+[node name="Pickup7" parent="." unique_id=1852521649 instance=ExtResource("13_1fput")]
+position = Vector2(897, 955)
+item_id = &"rabbit"
+
+[node name="Pickup8" parent="." unique_id=1853630017 instance=ExtResource("13_1fput")]
+position = Vector2(789, 915)
+item_id = &"rabbit"

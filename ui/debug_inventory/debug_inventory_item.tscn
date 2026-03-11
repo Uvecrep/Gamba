@@ -2,9 +2,7 @@
 
 [ext_resource type="Script" uid="uid://drk004agk3iot" path="res://ui/debug_inventory/debug_inventory_item.gd" id="1_wg2ir"]
 
-[node name="DebugInventoryItem" type="Control" unique_id=1680772078 node_paths=PackedStringArray("TextContext")]
-layout_mode = 3
-anchors_preset = 0
+[node name="DebugInventoryItem" type="PanelContainer" unique_id=946474684 node_paths=PackedStringArray("TextContext")]
 offset_right = 96.0
 offset_bottom = 23.0
 script = ExtResource("1_wg2ir")
@@ -12,7 +10,5 @@ TextContext = NodePath("Label")
 metadata/_custom_type_script = "uid://drk004agk3iot"
 
 [node name="Label" type="Label" parent="." unique_id=482843552]
-layout_mode = 0
-offset_right = 96.0
-offset_bottom = 23.0
+layout_mode = 2
 text = "0: someitem"
