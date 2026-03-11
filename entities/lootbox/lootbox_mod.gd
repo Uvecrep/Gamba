@@ -7,6 +7,6 @@ class_name LootboxMod
 
 # Base class for modifiers
 
-func modify(lootTable: Array[LootEntry]) -> bool:
+func modify(_lootTable: Array[LootEntry]) -> bool:
 	push_warning("modifiers.modify() called on base class. No modifications applied")
 	return false

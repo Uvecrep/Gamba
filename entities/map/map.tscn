@@ -73,7 +73,7 @@ script = ExtResource("3_tsfpf")
 
 [node name="InstructionLabel" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=1848920314]
 layout_mode = 2
-text = "Left-click summons to select. Drag with left-click to box-select. Shift/Ctrl adds to selection. Right-click map to move selected. Green summon dots are holding."
+text = "Left-click summons to select. Drag with left-click to box-select. Shift/Ctrl adds to selection. Right-click map to move selected. Use Hold/Follow/Auto to command selection."
 autowrap_mode = 2
 
 [node name="SelectionLabel" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=798396771]
@@ -93,6 +93,16 @@ theme_override_constants/separation = 8
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Toggle Hold"
+
+[node name="FollowSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=873920145]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Follow"
+
+[node name="AutoSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=892021346]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Auto"
 
 [node name="ClearSelectionButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=585255620]
 layout_mode = 2

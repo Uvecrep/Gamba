@@ -14,6 +14,15 @@ extends CharacterBody2D
 @export var nav_probe_ring_points: int = 8
 @export var nav_probe_ring_step: float = 16.0
 @export var nav_goal_update_interval: float = 0.45
+@export var follow_nav_target_update_interval: float = 0.2
+@export var follow_nav_target_min_shift: float = 20.0
+@export var command_follow_distance: float = 56.0
+@export var selected_marker_radius: float = 40.0
+@export var selected_marker_line_width: float = 3.0
+@export var selected_marker_fill_color: Color = Color(1.0, 0.94, 0.45, 0.16)
+@export var selected_marker_line_color: Color = Color(1.0, 0.94, 0.45, 0.98)
+@export var selected_marker_y_offset: float = 14.0
+@export var selected_marker_arc_points: int = 18
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_SUMMON: int = 1 << 3
@@ -21,6 +30,7 @@ const PHYSICS_LAYER_SUMMON: int = 1 << 3
 enum CommandMode {
 	AUTO,
 	MOVE,
+	FOLLOW,
 	HOLD,
 }
 
@@ -34,6 +44,9 @@ var _move_target_position: Vector2 = Vector2.ZERO
 var _hold_toggle_enabled: bool = false
 var _time_to_nav_goal_refresh: float = 0.0
 var _last_nav_goal_target: Node2D
+var _time_to_follow_nav_refresh: float = 0.0
+var _last_follow_nav_target: Vector2 = Vector2.INF
+var _is_command_selected: bool = false
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 @onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
@@ -54,13 +67,14 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_time_to_repath -= delta
 	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
+	_time_to_follow_nav_refresh = maxf(_time_to_follow_nav_refresh - delta, 0.0)
 	_time_to_next_attack = maxf(_time_to_next_attack - delta, 0.0)
 	if _time_to_repath <= 0.0:
 		_enemy_target = _find_closest_enemy()
 		if not is_instance_valid(_player_target):
 			_player_target = _find_player()
 
-		if _command_mode != CommandMode.MOVE:
+		if _command_mode == CommandMode.AUTO:
 			var nav_target: Node2D = _enemy_target
 			if not is_instance_valid(nav_target):
 				nav_target = _player_target
@@ -74,10 +88,15 @@ func _physics_process(delta: float) -> void:
 				_last_nav_goal_target = null
 				_time_to_nav_goal_refresh = 0.0
 				_clear_navigation_target()
+		else:
+			_last_nav_goal_target = null
+			_time_to_nav_goal_refresh = 0.0
 		_time_to_repath = repath_interval
 
 	if _command_mode == CommandMode.MOVE:
 		_handle_move_command()
+	elif _command_mode == CommandMode.FOLLOW:
+		_handle_follow_command()
 	elif _command_mode == CommandMode.HOLD:
 		_handle_hold_command()
 	elif is_instance_valid(_enemy_target):
@@ -123,6 +142,32 @@ func clear_manual_command() -> void:
 	else:
 		_command_mode = CommandMode.AUTO
 
+func set_follow_player() -> void:
+	if not is_instance_valid(_player_target):
+		_player_target = _find_player()
+
+	if not is_instance_valid(_player_target):
+		_command_mode = CommandMode.AUTO
+		return
+
+	# Follow is an explicit command mode and should clear hold toggle state.
+	_hold_toggle_enabled = false
+	_command_mode = CommandMode.FOLLOW
+	_time_to_follow_nav_refresh = 0.0
+	_last_follow_nav_target = Vector2.INF
+
+func set_auto_behavior() -> void:
+	_hold_toggle_enabled = false
+	_command_mode = CommandMode.AUTO
+	_clear_navigation_target()
+
+func set_selected_for_command(is_selected: bool) -> void:
+	if _is_command_selected == is_selected:
+		return
+
+	_is_command_selected = is_selected
+	queue_redraw()
+
 func is_holding_position() -> bool:
 	return _command_mode == CommandMode.HOLD
 
@@ -133,6 +178,8 @@ func get_command_mode_name() -> String:
 	match _command_mode:
 		CommandMode.MOVE:
 			return "MOVE"
+		CommandMode.FOLLOW:
+			return "FOLLOW"
 		CommandMode.HOLD:
 			return "HOLD"
 		_:
@@ -155,6 +202,44 @@ func _handle_hold_command() -> void:
 	velocity = Vector2.ZERO
 	_clear_navigation_target()
 	_try_attack_in_range()
+
+func _handle_follow_command() -> void:
+	if not is_instance_valid(_player_target):
+		_player_target = _find_player()
+
+	if not is_instance_valid(_player_target):
+		_command_mode = CommandMode.AUTO
+		velocity = Vector2.ZERO
+		return
+
+	var distance_to_player: float = global_position.distance_to(_player_target.global_position)
+	if distance_to_player > maxf(command_follow_distance, 16.0):
+		_update_follow_navigation_target(_player_target.global_position)
+		velocity = _get_navigation_velocity(_player_target.global_position)
+	else:
+		velocity = Vector2.ZERO
+		_clear_navigation_target()
+
+	_try_attack_in_range()
+
+func _update_follow_navigation_target(player_position: Vector2) -> void:
+	if _navigation_agent == null:
+		return
+	if _navigation_agent.get_navigation_map() == RID():
+		return
+
+	var should_refresh: bool = _time_to_follow_nav_refresh <= 0.0
+	if _last_follow_nav_target == Vector2.INF:
+		should_refresh = true
+	elif _last_follow_nav_target.distance_to(player_position) >= maxf(follow_nav_target_min_shift, 4.0):
+		should_refresh = true
+
+	if not should_refresh:
+		return
+
+	_set_navigation_target(player_position)
+	_last_follow_nav_target = player_position
+	_time_to_follow_nav_refresh = maxf(follow_nav_target_update_interval, 0.05)
 
 func _try_attack_in_range() -> bool:
 	if not is_instance_valid(_enemy_target):
@@ -310,3 +395,11 @@ func _find_closest_enemy() -> Node2D:
 			closest_enemy = enemy_2d
 
 	return closest_enemy
+
+func _draw() -> void:
+	if not _is_command_selected:
+		return
+
+	var marker_center: Vector2 = Vector2(0.0, selected_marker_y_offset)
+	draw_circle(marker_center, selected_marker_radius, selected_marker_fill_color)
+	draw_arc(marker_center, selected_marker_radius, 0.0, TAU, maxi(selected_marker_arc_points, 8), selected_marker_line_color, selected_marker_line_width, true)

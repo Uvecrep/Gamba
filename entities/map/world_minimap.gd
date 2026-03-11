@@ -33,6 +33,7 @@ var _drag_current_position: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	add_to_group("summon_selection_controllers")
 	_refresh_world_bounds()
 	queue_redraw()
 
@@ -174,20 +175,44 @@ func _select_summons_in_rect(selection_rect: Rect2, additive_selection: bool) ->
 			continue
 
 		_selected_summons.append(summon)
-
-	if _selected_summons.size() == previous_selection.size() and _same_node_selection(previous_selection, _selected_summons):
-		return
-
-	selection_changed.emit(_selected_summons.size())
-	queue_redraw()
+	_finalize_selection_change(previous_selection)
 
 func clear_selection() -> void:
 	if _selected_summons.is_empty():
 		return
 
+	var previous_selection: Array[Node2D] = _selected_summons.duplicate()
 	_selected_summons.clear()
-	selection_changed.emit(0)
-	queue_redraw()
+	_finalize_selection_change(previous_selection)
+
+func select_summons_in_world_circle(world_center: Vector2, radius: float, additive_selection: bool = true) -> int:
+	var radius_sq: float = maxf(radius, 0.0)
+	radius_sq *= radius_sq
+	var matched_summons: Array[Node2D] = []
+
+	for summon in _get_group_nodes_2d(&"summons"):
+		if summon.global_position.distance_squared_to(world_center) > radius_sq:
+			continue
+		matched_summons.append(summon)
+
+	set_selected_summons(matched_summons, additive_selection)
+	return matched_summons.size()
+
+func set_selected_summons(summons: Array[Node2D], additive_selection: bool = true) -> void:
+	_prune_selected_summons()
+	var previous_selection: Array[Node2D] = _selected_summons.duplicate()
+
+	if not additive_selection:
+		_selected_summons.clear()
+
+	for summon in summons:
+		if not is_instance_valid(summon):
+			continue
+		if _selected_summons.has(summon):
+			continue
+		_selected_summons.append(summon)
+
+	_finalize_selection_change(previous_selection)
 
 func hold_selected_summons() -> int:
 	_prune_selected_summons()
@@ -212,6 +237,44 @@ func hold_selected_summons() -> int:
 
 		summon.call("set_hold_position", target_hold_state)
 		commanded_count += 1
+
+	return commanded_count
+
+func follow_selected_summons() -> int:
+	_prune_selected_summons()
+	if _selected_summons.is_empty():
+		return 0
+
+	var commanded_count: int = 0
+	for summon in _selected_summons:
+		if not is_instance_valid(summon):
+			continue
+		if not summon.has_method("set_follow_player"):
+			continue
+
+		summon.call("set_follow_player")
+		commanded_count += 1
+
+	return commanded_count
+
+func auto_selected_summons() -> int:
+	_prune_selected_summons()
+	if _selected_summons.is_empty():
+		return 0
+
+	var commanded_count: int = 0
+	for summon in _selected_summons:
+		if not is_instance_valid(summon):
+			continue
+
+		if summon.has_method("set_auto_behavior"):
+			summon.call("set_auto_behavior")
+			commanded_count += 1
+			continue
+
+		if summon.has_method("clear_manual_command"):
+			summon.call("clear_manual_command")
+			commanded_count += 1
 
 	return commanded_count
 
@@ -288,6 +351,7 @@ func _select_summon(summon: Node2D, additive_selection: bool) -> void:
 		return
 
 	_prune_selected_summons()
+	var previous_selection: Array[Node2D] = _selected_summons.duplicate()
 	var changed: bool = false
 
 	if additive_selection:
@@ -306,8 +370,7 @@ func _select_summon(summon: Node2D, additive_selection: bool) -> void:
 	if not changed:
 		return
 
-	selection_changed.emit(_selected_summons.size())
-	queue_redraw()
+	_finalize_selection_change(previous_selection)
 
 func _issue_move_order(target_world_position: Vector2) -> int:
 	_prune_selected_summons()
@@ -339,6 +402,7 @@ func _find_summon_at_minimap_position(minimap_position: Vector2) -> Node2D:
 	return closest_summon
 
 func _prune_selected_summons() -> void:
+	var previous_selection: Array[Node2D] = _selected_summons.duplicate()
 	var previous_count: int = _selected_summons.size()
 	var alive_summons: Array[Node2D] = []
 	for summon in _selected_summons:
@@ -349,7 +413,35 @@ func _prune_selected_summons() -> void:
 		return
 
 	_selected_summons = alive_summons
+	_finalize_selection_change(previous_selection)
+
+func _finalize_selection_change(previous_selection: Array[Node2D]) -> void:
+	_sync_summon_selection_visuals(previous_selection)
+	if _selected_summons.size() == previous_selection.size() and _same_node_selection(previous_selection, _selected_summons):
+		return
+
 	selection_changed.emit(_selected_summons.size())
+	queue_redraw()
+
+func _sync_summon_selection_visuals(previous_selection: Array[Node2D]) -> void:
+	for previous_summon in previous_selection:
+		if not is_instance_valid(previous_summon):
+			continue
+		if _selected_summons.has(previous_summon):
+			continue
+		_set_summon_selected_visual(previous_summon, false)
+
+	for selected_summon in _selected_summons:
+		if not is_instance_valid(selected_summon):
+			continue
+		_set_summon_selected_visual(selected_summon, true)
+
+func _set_summon_selected_visual(summon: Node2D, is_selected: bool) -> void:
+	if summon == null:
+		return
+	if not summon.has_method("set_selected_for_command"):
+		return
+	summon.call("set_selected_for_command", is_selected)
 
 func _same_node_selection(previous_selection: Array[Node2D], current_selection: Array[Node2D]) -> bool:
 	if previous_selection.size() != current_selection.size():

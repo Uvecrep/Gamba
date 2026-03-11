@@ -13,6 +13,14 @@ enum LootboxKind {
 @export var use_lootbox_action: StringName = &"use_lootbox"
 @export var select_chaos_lootbox_action: StringName = &"select_chaos_lootbox"
 @export var select_forest_lootbox_action: StringName = &"select_forest_lootbox"
+@export var summon_command_hold_action: StringName = &"summon_command_hold"
+@export var summon_command_follow_action: StringName = &"summon_command_follow"
+@export var summon_command_auto_action: StringName = &"summon_command_auto"
+@export var summon_selection_radius: float = 72.0
+@export var summon_selection_drag_step: float = 22.0
+@export var summon_selection_preview_fill_color: Color = Color(1.0, 0.95, 0.45, 0.14)
+@export var summon_selection_preview_line_color: Color = Color(1.0, 0.95, 0.45, 0.95)
+@export var summon_selection_preview_line_width: float = 2.0
 @export var chaos_lootbox: Lootbox = preload("res://entities/lootbox/chaos_lootbox.tres")
 @export var forest_lootbox: Lootbox = preload("res://entities/lootbox/forest_lootbox.tres")
 @export var sapling_plant_range: float = 640.0
@@ -33,6 +41,11 @@ var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
 var _is_carrying_sapling: bool = false
 var _selected_lootbox_kind: int = LootboxKind.CHAOS
+var _is_middle_mouse_selecting: bool = false
+var _middle_select_last_world_point: Vector2 = Vector2.ZERO
+var _middle_select_found_summon: bool = false
+var _middle_select_preview_world_point: Vector2 = Vector2.ZERO
+var _summon_selection_controller: Node
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -55,10 +68,15 @@ func get_input() -> void:
 	velocity = input_direction * speed
 
 func _physics_process(_delta: float) -> void:
+	if _is_middle_mouse_selecting:
+		_middle_select_preview_world_point = get_global_mouse_position()
+		queue_redraw()
+
 	get_input()
 	move_and_slide()
 	_clamp_player_to_world_bounds()
 	_handle_lootbox_selection_input()
+	_handle_summon_command_shortcuts()
 	
 	if Input.is_action_just_pressed(harvest_action):
 		_handle_interaction_input()
@@ -77,6 +95,28 @@ func _physics_process(_delta: float) -> void:
 	if not _open_lootbox(selected_lootbox):
 		# Refund on roll/outcome failure so lootboxes are not lost by configuration errors.
 		inventory.add_lootboxes(selected_lootbox, 1)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _is_map_open():
+		if event is InputEventMouseButton:
+			var map_mouse_button: InputEventMouseButton = event as InputEventMouseButton
+			if map_mouse_button.button_index == MOUSE_BUTTON_MIDDLE and not map_mouse_button.pressed:
+				_reset_middle_mouse_selection_state()
+		return
+
+	if event is InputEventMouseButton:
+		var mouse_button: InputEventMouseButton = event as InputEventMouseButton
+		if mouse_button.button_index != MOUSE_BUTTON_MIDDLE:
+			return
+
+		if mouse_button.pressed:
+			_begin_middle_mouse_selection()
+		else:
+			_end_middle_mouse_selection()
+		return
+
+	if event is InputEventMouseMotion:
+		_update_middle_mouse_drag_selection()
 
 func get_chaos_lootbox_count() -> int:
 	if chaos_lootbox == null:
@@ -487,3 +527,120 @@ func _find_world_tile_map_layer() -> Node:
 		return fallback
 
 	return null
+
+func _begin_middle_mouse_selection() -> void:
+	if _is_map_open():
+		return
+
+	_is_middle_mouse_selecting = true
+	_middle_select_found_summon = false
+	_middle_select_last_world_point = get_global_mouse_position()
+	_middle_select_preview_world_point = _middle_select_last_world_point
+	queue_redraw()
+	if _select_summons_in_world_radius(_middle_select_last_world_point):
+		_middle_select_found_summon = true
+
+func _end_middle_mouse_selection() -> void:
+	if not _is_middle_mouse_selecting:
+		return
+
+	if not _middle_select_found_summon:
+		_clear_selected_summons()
+
+	_reset_middle_mouse_selection_state()
+
+func _update_middle_mouse_drag_selection() -> void:
+	if not _is_middle_mouse_selecting:
+		return
+	if _is_map_open():
+		return
+
+	var mouse_world_position: Vector2 = get_global_mouse_position()
+	if _middle_select_last_world_point.distance_to(mouse_world_position) < maxf(summon_selection_drag_step, 1.0):
+		return
+
+	_middle_select_last_world_point = mouse_world_position
+	_middle_select_preview_world_point = mouse_world_position
+	if _select_summons_in_world_radius(mouse_world_position):
+		_middle_select_found_summon = true
+
+func _reset_middle_mouse_selection_state() -> void:
+	_is_middle_mouse_selecting = false
+	_middle_select_found_summon = false
+	queue_redraw()
+
+func _select_summons_in_world_radius(world_position: Vector2) -> bool:
+	var selection_controller: Node = _get_summon_selection_controller()
+	if selection_controller == null:
+		return false
+	if not selection_controller.has_method("select_summons_in_world_circle"):
+		return false
+
+	var matched_count: int = int(selection_controller.call("select_summons_in_world_circle", world_position, summon_selection_radius, true))
+	return matched_count > 0
+
+func _clear_selected_summons() -> void:
+	var selection_controller: Node = _get_summon_selection_controller()
+	if selection_controller == null:
+		return
+	if not selection_controller.has_method("clear_selection"):
+		return
+
+	selection_controller.call("clear_selection")
+
+func _handle_summon_command_shortcuts() -> void:
+	if _is_map_open():
+		return
+
+	var selection_controller: Node = _get_summon_selection_controller()
+	if selection_controller == null:
+		return
+
+	if Input.is_action_just_pressed(summon_command_hold_action) and selection_controller.has_method("hold_selected_summons"):
+		selection_controller.call("hold_selected_summons")
+
+	if Input.is_action_just_pressed(summon_command_follow_action) and selection_controller.has_method("follow_selected_summons"):
+		selection_controller.call("follow_selected_summons")
+
+	if Input.is_action_just_pressed(summon_command_auto_action) and selection_controller.has_method("auto_selected_summons"):
+		selection_controller.call("auto_selected_summons")
+
+func _get_summon_selection_controller() -> Node:
+	if is_instance_valid(_summon_selection_controller):
+		return _summon_selection_controller
+
+	var controllers: Array = get_tree().get_nodes_in_group("summon_selection_controllers")
+	for controller in controllers:
+		if is_instance_valid(controller):
+			_summon_selection_controller = controller
+			return _summon_selection_controller
+
+	for map_node in get_tree().get_nodes_in_group("maps"):
+		if not is_instance_valid(map_node):
+			continue
+		if not map_node.has_method("get_minimap_control"):
+			continue
+
+		var minimap_control: Variant = map_node.call("get_minimap_control")
+		if minimap_control is Node:
+			_summon_selection_controller = minimap_control as Node
+			return _summon_selection_controller
+
+	return null
+
+func _is_map_open() -> bool:
+	for map_node in get_tree().get_nodes_in_group("maps"):
+		if not is_instance_valid(map_node):
+			continue
+		if map_node.has_method("is_map_open") and bool(map_node.call("is_map_open")):
+			return true
+
+	return false
+
+func _draw() -> void:
+	if not _is_middle_mouse_selecting:
+		return
+
+	var local_center: Vector2 = to_local(_middle_select_preview_world_point)
+	draw_circle(local_center, summon_selection_radius, summon_selection_preview_fill_color)
+	draw_arc(local_center, summon_selection_radius, 0.0, TAU, 48, summon_selection_preview_line_color, summon_selection_preview_line_width, true)

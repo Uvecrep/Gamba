@@ -3,7 +3,7 @@ extends StaticBody2D
 @export var interact_action: StringName = &"interact"
 @export var interact_range: float = 96.0
 
-const MAP_STATUS_HINT: String = "Click or drag to select. Right-click to move selected summons."
+const MAP_STATUS_HINT: String = "Click or drag to select. Right-click to move. Use Hold, Follow, or Auto for selected summons."
 
 var _action_hint_text: String = "E"
 var _map_open: bool = false
@@ -16,6 +16,8 @@ var _map_open: bool = false
 @onready var _status_label: Label = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/StatusLabel") as Label
 @onready var _close_hint_label: Label = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/CloseHint") as Label
 @onready var _hold_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/HoldSelectedButton") as Button
+@onready var _follow_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/FollowSelectedButton") as Button
+@onready var _auto_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/AutoSelectedButton") as Button
 @onready var _clear_selection_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/ClearSelectionButton") as Button
 @onready var _close_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/CloseButton") as Button
 
@@ -25,6 +27,10 @@ func _ready() -> void:
 
 	if is_instance_valid(_hold_selected_button):
 		_hold_selected_button.pressed.connect(_on_hold_selected_pressed)
+	if is_instance_valid(_follow_selected_button):
+		_follow_selected_button.pressed.connect(_on_follow_selected_pressed)
+	if is_instance_valid(_auto_selected_button):
+		_auto_selected_button.pressed.connect(_on_auto_selected_pressed)
 	if is_instance_valid(_clear_selection_button):
 		_clear_selection_button.pressed.connect(_on_clear_selection_pressed)
 	if is_instance_valid(_close_button):
@@ -70,6 +76,12 @@ func can_interact_with_player(player: Node2D) -> bool:
 
 	return global_position.distance_squared_to(player.global_position) <= interact_range * interact_range
 
+func is_map_open() -> bool:
+	return _map_open
+
+func get_minimap_control() -> Control:
+	return _minimap
+
 func _set_map_open(should_open: bool) -> void:
 	_map_open = should_open
 	if _map_layer != null:
@@ -107,6 +119,30 @@ func _on_clear_selection_pressed() -> void:
 
 	_minimap.call("clear_selection")
 	_set_status("Selection cleared.")
+
+func _on_follow_selected_pressed() -> void:
+	if _minimap == null or not _minimap.has_method("follow_selected_summons"):
+		return
+
+	var followed_count: int = int(_minimap.call("follow_selected_summons"))
+	if followed_count <= 0:
+		_set_status("No summons selected.")
+		return
+
+	_set_status("Follow enabled for %d summon(s)." % followed_count)
+	_on_selection_changed(_get_selected_count())
+
+func _on_auto_selected_pressed() -> void:
+	if _minimap == null or not _minimap.has_method("auto_selected_summons"):
+		return
+
+	var auto_count: int = int(_minimap.call("auto_selected_summons"))
+	if auto_count <= 0:
+		_set_status("No summons selected.")
+		return
+
+	_set_status("Auto behavior resumed for %d summon(s)." % auto_count)
+	_on_selection_changed(_get_selected_count())
 
 func _on_close_pressed() -> void:
 	_set_map_open(false)
