@@ -11,9 +11,12 @@
 [ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
 [ext_resource type="PackedScene" uid="uid://dnbwxv6w4m5e2" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
 [ext_resource type="PackedScene" uid="uid://b3l6nl5mf8nkh" path="res://entities/pickups/box_pickup.tscn" id="11_xdh4e"]
+[ext_resource type="Script" path="res://scripts/fps_counter.gd" id="12_fps"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
+navigation_obstacle_padding = 16.0
+navigation_grid_clearance_pixels = 16.0
 
 [node name="World" parent="." unique_id=32232329 instance=ExtResource("2_wdj6m")]
 
@@ -66,6 +69,18 @@ offset_right = 1200.0
 offset_bottom = 1081.0
 text = "Sapling Can Plant: No"
 horizontal_alignment = 1
+
+[node name="FPSCounterLabel" type="Label" parent="UI" unique_id=1988605126]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -176.0
+offset_top = 12.0
+offset_right = -16.0
+offset_bottom = 40.0
+grow_horizontal = 0
+horizontal_alignment = 2
+script = ExtResource("12_fps")
 
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=696703801]
 process_mode = 2

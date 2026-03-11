@@ -30,6 +30,7 @@ func get_lootbox_count(lootbox: Lootbox) -> int:
 	return _lootbox_counts[lootbox_index]
 
 func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
+	var previous_total: int = _get_total_lootbox_count()
 	var next_count: int = maxi(value, 0)
 	
 	if not _lootboxes.has(lootbox):
@@ -42,7 +43,6 @@ func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 	if next_count == _lootbox_counts[lootbox_index]:
 		return
 
-	var previous_count: int = _lootbox_counts[lootbox_index]
 	_lootbox_counts[lootbox_index] = next_count
 	
 	# if we're going to zero, we should remove instead
@@ -55,8 +55,16 @@ func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 	# If we only have one element left, we should select it
 	if _lootboxes.size() == 1:
 		selected_index = 0
-	
-	lootboxes_changed.emit()
+
+	var current_total: int = _get_total_lootbox_count()
+	lootboxes_changed.emit(current_total, previous_total)
+
+func _get_total_lootbox_count() -> int:
+	var total: int = 0
+	for count in _lootbox_counts:
+		total += count
+
+	return total
 
 func add_lootboxes(lootbox: Lootbox, amount: int) -> int:
 	if amount <= 0: return 0
