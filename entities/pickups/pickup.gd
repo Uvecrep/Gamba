@@ -1,19 +1,17 @@
-extends Area2D
+extends RigidBody2D
 class_name Pickup
 
-func _ready() -> void:
-	# Pickups should only react to player bodies.
-	if not body_entered.is_connected(_on_body_entered):
-		body_entered.connect(_on_body_entered)
+@export var item_id : StringName
 
-func _on_body_entered(body: Node) -> void:
-	if not (body is Player):
-		return
+var floating_towards : Node2D
 
-	var player: Player = body as Player
-	if apply_pickup(player):
-		queue_free()
+#func _ready() -> void:
+	#if not $Area2D: return
+	## Pickups should only react to player bodies.
+	#if not $Area2D.body_entered.is_connected(_on_body_entered):
+		#$Area2D.body_entered.connect(_on_body_entered)
 
-func apply_pickup(_player: Player) -> bool:
-	push_warning("Pickup: apply_pickup() is not implemented for this pickup type.")
-	return false
+func _physics_process(delta: float) -> void:
+	if floating_towards != null:
+		var float_force = pow(floating_towards.position.distance_to(position),2)
+		apply_central_force(float_force * position.direction_to(floating_towards.position))

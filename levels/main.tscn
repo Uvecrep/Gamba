@@ -8,9 +8,11 @@
 [ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/lootbox_counter_hud.gd" id="8_hud"]
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
-[ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
+[ext_resource type="PackedScene" uid="uid://c63lyvmlfrslj" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
 [ext_resource type="PackedScene" uid="uid://dnbwxv6w4m5e2" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
-[ext_resource type="PackedScene" uid="uid://b3l6nl5mf8nkh" path="res://entities/pickups/box_pickup.tscn" id="11_xdh4e"]
+[ext_resource type="PackedScene" uid="uid://dji85hd60lf4h" path="res://ui/debug_inventory/debug_inventory.tscn" id="11_c7dyn"]
+[ext_resource type="PackedScene" uid="uid://b815q8hl3sixl" path="res://ui/inventory/inventory.tscn" id="12_1fput"]
+[ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
 [ext_resource type="Script" uid="uid://b7fjvdi8rvejq" path="res://scripts/fps_counter.gd" id="12_fps"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
@@ -26,6 +28,9 @@ position = Vector2(812, 280)
 [node name="SaplingPickup" parent="." unique_id=1066748930 instance=ExtResource("10_2v0sd")]
 position = Vector2(492, -54)
 
+[node name="SaplingPickup2" parent="." unique_id=819176781 instance=ExtResource("10_2v0sd")]
+position = Vector2(337, -34)
+
 [node name="phone" parent="." unique_id=1188000190 instance=ExtResource("8_2v8j6")]
 position = Vector2(858, 439)
 
@@ -34,18 +39,22 @@ position = Vector2(649, 378)
 
 [node name="crystal" parent="." unique_id=2144231408 instance=ExtResource("11_1j61c")]
 position = Vector2(538, 427)
+starting_lootboxes = 1
+produced_lootbox_id = &"lootbox_chaos"
 
 [node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
 position = Vector2(1873, -2514)
 spawn_interval = 10.0
 
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
+z_index = 1
 position = Vector2(652, 451)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=299344106]
 script = ExtResource("8_hud")
 
 [node name="LootboxCountLabel" type="Label" parent="UI" unique_id=213834753]
+visible = false
 offset_left = 970.0
 offset_top = 1001.0
 offset_right = 1087.0
@@ -54,6 +63,7 @@ text = "Lootboxes: 0"
 horizontal_alignment = 1
 
 [node name="LootboxPromptLabel" type="Label" parent="UI" unique_id=470985317]
+visible = false
 offset_left = 920.0
 offset_top = 1027.0
 offset_right = 1139.0
@@ -70,6 +80,11 @@ offset_bottom = 1081.0
 text = "Sapling Can Plant: No"
 horizontal_alignment = 1
 
+[node name="DebugInventory" parent="UI" unique_id=1649588140 node_paths=PackedStringArray("player_ref") instance=ExtResource("11_c7dyn")]
+player_ref = NodePath("../../player")
+
+[node name="Inventory" parent="UI" unique_id=1753442306 instance=ExtResource("12_1fput")]
+visible = false
 [node name="FPSCounterLabel" type="Label" parent="UI" unique_id=1988605126]
 anchors_preset = 1
 anchor_left = 1.0
@@ -143,6 +158,34 @@ text = "Restart"
 layout_mode = 2
 text = "Quit"
 
-[node name="BoxPickup" parent="." unique_id=90449676 instance=ExtResource("11_xdh4e")]
-position = Vector2(689, 669)
-lootbox_id = &"main"
+[node name="Pickup" parent="." unique_id=1634760408 instance=ExtResource("13_1fput")]
+position = Vector2(570, 613)
+item_id = &"lootbox_chaos"
+
+[node name="Pickup2" parent="." unique_id=1896649483 instance=ExtResource("13_1fput")]
+position = Vector2(698, 690)
+item_id = &"pear"
+
+[node name="Pickup3" parent="." unique_id=1233044806 instance=ExtResource("13_1fput")]
+position = Vector2(631, 787)
+item_id = &"peach"
+
+[node name="Pickup4" parent="." unique_id=1657756741 instance=ExtResource("13_1fput")]
+position = Vector2(523, 747)
+item_id = &"dog"
+
+[node name="Pickup5" parent="." unique_id=556914396 instance=ExtResource("13_1fput")]
+position = Vector2(836, 781)
+item_id = &"hare"
+
+[node name="Pickup6" parent="." unique_id=1581105141 instance=ExtResource("13_1fput")]
+position = Vector2(964, 858)
+item_id = &"person"
+
+[node name="Pickup7" parent="." unique_id=1852521649 instance=ExtResource("13_1fput")]
+position = Vector2(897, 955)
+item_id = &"rabbit"
+
+[node name="Pickup8" parent="." unique_id=1853630017 instance=ExtResource("13_1fput")]
+position = Vector2(789, 915)
+item_id = &"rabbit"

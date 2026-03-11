@@ -23,6 +23,8 @@ var _summon_follow_hint_text: String = "F"
 var _summon_auto_hint_text: String = "R"
 var _player: Node = null
 
+# TODO: I, Kyle, have borked most of this functionality. It still compiles though, so leaving for the time being
+
 func _ready() -> void:
 	_use_lootbox_hint_text = _resolve_action_hint(use_lootbox_action)
 	_select_chaos_hint_text = _resolve_action_hint(select_chaos_lootbox_action)

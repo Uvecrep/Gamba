@@ -2,10 +2,14 @@ extends StaticBody2D
 
 signal lootbox_ready_changed(has_lootbox: bool)
 
-@export var growth_interval_seconds: float = 30.0
+@export var growth_interval_seconds: float = 10.0
 @export var starting_lootboxes: int = 0
 @export var harvest_prompt_action: StringName = &"interact"
 @export var default_harvest_range: float = 96.0
+var box_pickup_scene : PackedScene = preload("res://entities/pickups/box_pickup.tscn")
+
+
+@export var produced_lootbox_id: StringName
 
 var _lootboxes: int = 0
 var _harvest_hint_text: String = "E"
@@ -33,13 +37,20 @@ func can_harvest() -> bool:
 	return _lootboxes > 0
 
 func harvest_fruit(amount: int = 1) -> int:
-	if amount <= 0:
-		return 0
+	if amount <= 0: return 0
 
 	var harvested: int = mini(amount, _lootboxes)
-	if harvested <= 0:
-		return 0
-
+	if harvested <= 0: return 0
+	
+	for i in range(harvested):
+		var new_box: Pickup = box_pickup_scene.instantiate()
+		$"..".add_child(new_box)
+		new_box.position = position
+		new_box.apply_central_impulse(Vector2.UP * 600)
+		new_box.floating_towards=$"../player"
+		new_box.item_id=produced_lootbox_id
+		
+	
 	_set_lootboxes(_lootboxes - harvested)
 	_refresh_growth_timer()
 	return harvested

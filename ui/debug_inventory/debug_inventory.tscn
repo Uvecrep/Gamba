@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://dji85hd60lf4h"]
+
+[ext_resource type="Script" uid="uid://4o1d2htc0in3" path="res://ui/debug_inventory/debug_inventory.gd" id="1_1yqmb"]
+[ext_resource type="PackedScene" uid="uid://d04n7onhlspw0" path="res://ui/debug_inventory/debug_inventory_item.tscn" id="2_mlmec"]
+
+[node name="DebugInventory" type="Control" unique_id=1649588140 node_paths=PackedStringArray("item_container")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1yqmb")
+inventory_item_scene = ExtResource("2_mlmec")
+item_container = NodePath("PanelContainer/MarginContainer/VBoxContainer2/VBoxContainer")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1583571219]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+offset_right = 135.0
+grow_vertical = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer" unique_id=169673810]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 5
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="PanelContainer/MarginContainer" unique_id=1044669603]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer2" unique_id=1047136276]
+layout_mode = 2
+text = "Debug Inventory"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer2" unique_id=6618960]
+layout_mode = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="PanelContainer/MarginContainer/VBoxContainer2/VBoxContainer" unique_id=842410986]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer2/VBoxContainer/PanelContainer" unique_id=1007695180]
+layout_mode = 2
+text = "0: someitem"
