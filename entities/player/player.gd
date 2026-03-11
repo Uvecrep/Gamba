@@ -1,14 +1,13 @@
 extends CharacterBody2D
 class_name Player
 
+signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
+
 
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
 @export var harvest_amount_per_interaction: int = 1
 @export var interact_action: StringName = &"interact"
-@export var use_lootbox_action: StringName = &"use_lootbox"
-@export var select_chaos_lootbox_action: StringName = &"select_chaos_lootbox"
-@export var select_forest_lootbox_action: StringName = &"select_forest_lootbox"
 @export var summon_command_hold_action: StringName = &"summon_command_hold"
 @export var summon_command_follow_action: StringName = &"summon_command_follow"
 @export var summon_command_auto_action: StringName = &"summon_command_auto"
@@ -31,12 +30,10 @@ class_name Player
 var max_health: float = 100
 var current_health: float
 
-var inventory: PlayerInventory = PlayerInventory.new()
+var player_inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
-var _is_carrying_sapling: bool = false
-var _selected_lootbox_kind: int = LootboxKind.CHAOS
 var _is_middle_mouse_selecting: bool = false
 var _middle_select_last_world_point: Vector2 = Vector2.ZERO
 var _middle_select_found_summon: bool = false
@@ -51,13 +48,13 @@ func _ready() -> void:
 	add_to_group("players")
 	player_bounds_padding = _get_player_bounds_padding()
 	_configure_world_bounds()
-	inventory.inventory_changed.connect(_on_inventory_changed)
+	player_inventory.inventory_changed.connect(_on_inventory_changed)
 
 func get_input() -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
 	velocity = input_direction * speed
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if health_bar == null: return
 	
 	health_bar.max_value = max_health
@@ -71,26 +68,10 @@ func _physics_process(_delta: float) -> void:
 	get_input()
 	move_and_slide()
 	_clamp_player_to_world_bounds()
-	_handle_lootbox_selection_input()
 	_handle_summon_command_shortcuts()
 	
 	if Input.is_action_just_pressed(interact_action):
 		_handle_interaction_input()
-
-	if not Input.is_action_just_pressed(use_lootbox_action):
-		return
-
-	var selected_lootbox: Lootbox = _get_selected_lootbox_resource()
-	if selected_lootbox == null:
-		push_warning("Player: selected lootbox resource is not configured.")
-		return
-
-	if not inventory.try_spend_lootboxes(selected_lootbox, 1):
-		return
-
-	if not _open_lootbox(selected_lootbox):
-		# Refund on roll/outcome failure so lootboxes are not lost by configuration errors.
-		inventory.add_lootboxes(selected_lootbox, 1)
 
 	var mouse_scroll_delta = 0;
 	if Input.is_action_just_released(scroll_up_action):
@@ -99,8 +80,8 @@ func _physics_process(_delta: float) -> void:
 		mouse_scroll_delta -= 1
 	
 	if mouse_scroll_delta != 0:
-		inventory.selected_index = posmod(inventory.selected_index + mouse_scroll_delta,inventory.num_slots)
-		inventory.inventory_changed.emit()
+		player_inventory.selected_index = posmod(player_inventory.selected_index + mouse_scroll_delta,player_inventory.num_slots)
+		player_inventory.inventory_changed.emit()
 	
 	var mouse_pos = get_viewport().get_mouse_position() - (get_viewport().get_visible_rect().size/2)
 	camera.offset = mouse_pos * .1 # this is goofy, should plug into a better feeling damp function
@@ -131,49 +112,16 @@ func get_chaos_lootbox_count() -> int:
 	if chaos_lootbox == null:
 		return 0
 
-	return inventory.get_lootbox_count(chaos_lootbox)
+	return player_inventory.get_lootbox_count(chaos_lootbox)
 
 func get_forest_lootbox_count() -> int:
 	if forest_lootbox == null:
 		return 0
 
-	return inventory.get_lootbox_count(forest_lootbox)
-
-func get_selected_lootbox_kind() -> int:
-	return _selected_lootbox_kind
-
-func get_selected_lootbox_kind_name() -> String:
-	if _selected_lootbox_kind == LootboxKind.FOREST:
-		return "Forest"
-
-	return "Chaos"
-
-func _handle_lootbox_selection_input() -> void:
-	if Input.is_action_just_pressed(select_chaos_lootbox_action):
-		_set_selected_lootbox_kind(LootboxKind.CHAOS)
-
-	if Input.is_action_just_pressed(select_forest_lootbox_action):
-		_set_selected_lootbox_kind(LootboxKind.FOREST)
-
-func _set_selected_lootbox_kind(kind: int) -> void:
-	var clamped_kind: int = kind
-	if clamped_kind != LootboxKind.CHAOS and clamped_kind != LootboxKind.FOREST:
-		clamped_kind = LootboxKind.CHAOS
-
-	if _selected_lootbox_kind == clamped_kind:
-		return
-
-	_selected_lootbox_kind = clamped_kind
-	_emit_lootbox_inventory_changed()
-
-func _get_selected_lootbox_resource() -> Lootbox:
-	if _selected_lootbox_kind == LootboxKind.FOREST:
-		return forest_lootbox
-
-	return chaos_lootbox
+	return player_inventory.get_lootbox_count(forest_lootbox)
 
 func _emit_lootbox_inventory_changed() -> void:
-	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), _selected_lootbox_kind)
+	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), 0)
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()
@@ -217,9 +165,9 @@ func _handle_interaction_input() -> void:
 		nearest_distance_sq = nearest_map_distance_sq
 
 	if nearest_tree != null and nearest_interactable == nearest_tree:
-		var harvested: int = int(nearest_tree.call("harvest_fruit", harvest_amount_per_interaction))
+		var _harvested: int = int(nearest_tree.call("harvest_fruit", harvest_amount_per_interaction))
 		# if harvested > 0:
-			# inventory.add_lootboxes(forest_lootbox, harvested)
+			# player_inventory.add_lootboxes(forest_lootbox, harvested)
 		return
 
 	if nearest_crystal != null and nearest_interactable == nearest_crystal:
@@ -233,14 +181,14 @@ func _handle_interaction_input() -> void:
 	_try_use_item()
 
 func _try_use_item() -> bool:
-	var selected_item = inventory.inventory_items[inventory.selected_index]
+	var selected_item = player_inventory.inventory_items[player_inventory.selected_index]
 	if selected_item == &"":
 		return false
 	
 	if selected_item == &"sapling":
 		if not _try_plant_sapling_near_house():
 			return false
-		inventory.remove_items(inventory.selected_index,1)
+		player_inventory.remove_items(player_inventory.selected_index,1)
 		return true
 	
 	if selected_item.begins_with("lootbox_"):
@@ -250,7 +198,7 @@ func _try_use_item() -> bool:
 			return false
 		if not _open_lootbox(LootboxGlobals.lootboxes[box_id]):
 			return false
-		inventory.remove_items(inventory.selected_index,1)
+		player_inventory.remove_items(player_inventory.selected_index,1)
 		return true
 	
 	return false
@@ -651,8 +599,10 @@ func _on_pickup_touched_radius(area: Area2D) -> void:
 	var pickup = area.get_parent()
 	if pickup == null: return
 	if pickup is not Pickup: return
+	if not is_instance_valid(pickup): return
+	if pickups_following_me.has(pickup): return
 	
-	if not inventory.would_item_fit(pickup.item_id):
+	if not player_inventory.would_item_fit(pickup.item_id):
 		return
 	
 	pickup.floating_towards = self
@@ -662,18 +612,32 @@ func _on_pickup_touched_me(area: Area2D) -> void:
 	var pickup = area.get_parent()
 	if pickup == null: return
 	if pickup is not Pickup: return
-	if inventory.add_items(pickup.item_id,1):
+	if not is_instance_valid(pickup): return
+	if player_inventory.add_items(pickup.item_id,1):
+		pickup.floating_towards = null
 		pickup.queue_free()
 		var index = pickups_following_me.find(pickup)
-		pickups_following_me.remove_at(index)
+		if index >= 0:
+			pickups_following_me.remove_at(index)
 
 func _on_inventory_changed() -> void:
 	# Pickups that were following me should stop if they would no longer fit in my inventory
+	var invalid_pickups : Array[Pickup] = []
 	var pickups_no_longer_following : Array[Pickup] = []
 	for p in pickups_following_me:
-		if !inventory.would_item_fit(p.item_id):
+		if not is_instance_valid(p):
+			invalid_pickups.append(p)
+			continue
+		if !player_inventory.would_item_fit(p.item_id):
 			p.floating_towards = null
 			pickups_no_longer_following.append(p)
+	for p in invalid_pickups:
+		var invalid_index = pickups_following_me.find(p)
+		if invalid_index >= 0:
+			pickups_following_me.remove_at(invalid_index)
 	for p in pickups_no_longer_following:
 		var index = pickups_following_me.find(p)
-		pickups_following_me.remove_at(index)
+		if index >= 0:
+			pickups_following_me.remove_at(index)
+
+	_emit_lootbox_inventory_changed()

@@ -1,5 +1,5 @@
 extends RefCounted
-class_name PlayerInventory
+class_name LegacyLootboxInventory
 
 signal lootboxes_changed(current: int, previous: int)
 
