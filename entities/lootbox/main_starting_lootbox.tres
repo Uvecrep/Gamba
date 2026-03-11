@@ -6,6 +6,8 @@
 [ext_resource type="Script" uid="uid://cpkrdf3d52eb1" path="res://entities/lootbox/lootbox_mod.gd" id="4_fi66f"]
 [ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="4_summon_scene"]
 [ext_resource type="Texture2D" uid="uid://0sej33u0fs" path="res://assets/characters/rare_summon.png" id="5_rare_summon_texture"]
+[ext_resource type="Script" uid="uid://bl50k55wyph84" path="res://entities/lootbox/lootbox_odds_mod.gd" id="6_kegtj"]
+[ext_resource type="Script" uid="uid://bi7qsb5gpvkhr" path="res://entities/lootbox/lootbox_stats_mod.gd" id="7_hbenm"]
 
 [sub_resource type="Resource" id="Outcome_Normal"]
 script = ExtResource("3_spawn_outcome")
@@ -21,14 +23,33 @@ damage_multiplier = 1.2
 max_health_multiplier = 1.2
 summon_texture_override = ExtResource("5_rare_summon_texture")
 
-[sub_resource type="Resource" id="Entry_Rare"]
+[sub_resource type="Resource" id="Resource_hbenm"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Rare")
 weight = 20.0
+name = "Yellow Boi"
+
+[sub_resource type="Resource" id="Resource_08fi1"]
+script = ExtResource("6_kegtj")
+weight_modifier = 2.0
+change = "Multiplication"
+target = "Yellow Boi"
+modification_type = "One"
+modification_description = "Doubles Yellow Boi odds"
+metadata/_custom_type_script = "uid://bl50k55wyph84"
+
+[sub_resource type="Resource" id="Resource_rras7"]
+script = ExtResource("7_hbenm")
+stat_modifier = 10.0
+change = "Health"
+modification_type = "All"
+modification_description = "Beef up the health"
+metadata/_custom_type_script = "uid://bi7qsb5gpvkhr"
 
 [resource]
 script = ExtResource("1_lootbox")
 name = "Starter Summon Box"
 color = "Green"
 description = "Summons an ally. 20% chance to summon a rarer stronger ally."
-lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Normal"), SubResource("Entry_Rare")])
+modifications = Array[ExtResource("4_fi66f")]([SubResource("Resource_08fi1"), SubResource("Resource_rras7")])
+lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Normal"), SubResource("Resource_hbenm")])

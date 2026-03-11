@@ -12,6 +12,7 @@ class_name Lootbox
 
 
 func roll() -> LootEntry:
+	
 	if lootTable.size() == 0:
 		assert(false, "Lootbox.roll() failed: lootTable is empty")
 		return null
@@ -43,4 +44,10 @@ func roll() -> LootEntry:
 			return x
 	
 	assert(false, "Lootbox.roll() failed: no entry selected")
+	return null
+
+# Pass in a LootboxMod to add to the modifications array, will call modify on lootTable upon addition
+func addMods(mod: LootboxMod):
+	modifications.append(mod)
+	mod.modify(lootTable)
 	return null

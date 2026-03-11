@@ -9,6 +9,11 @@ extends CharacterBody2D
 @export var attack_cooldown: float = 0.8
 @export var attack_projectile_scene: PackedScene = preload("res://entities/summon/summon_attack.tscn")
 @export var max_health: float = 80.0
+@export var nav_path_desired_distance: float = 12.0
+@export var nav_target_desired_distance: float = 16.0
+@export var nav_probe_ring_points: int = 8
+@export var nav_probe_ring_step: float = 16.0
+@export var nav_goal_update_interval: float = 0.45
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_SUMMON: int = 1 << 3
@@ -27,25 +32,48 @@ var _current_health: float = 0.0
 var _command_mode: CommandMode = CommandMode.AUTO
 var _move_target_position: Vector2 = Vector2.ZERO
 var _hold_toggle_enabled: bool = false
+var _time_to_nav_goal_refresh: float = 0.0
+var _last_nav_goal_target: Node2D
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
+@onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = PHYSICS_LAYER_SUMMON
 	collision_mask = PHYSICS_LAYER_WORLD
 	add_to_group("summons")
+	if _navigation_agent != null:
+		_navigation_agent.path_desired_distance = maxf(nav_path_desired_distance, 4.0)
+		_navigation_agent.target_desired_distance = maxf(nav_target_desired_distance, 6.0)
+		_navigation_agent.set_navigation_map(get_world_2d().navigation_map)
 	_player_target = _find_player()
 	_current_health = max_health
 	_update_health_bar()
 
 func _physics_process(delta: float) -> void:
 	_time_to_repath -= delta
+	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
 	_time_to_next_attack = maxf(_time_to_next_attack - delta, 0.0)
 	if _time_to_repath <= 0.0:
 		_enemy_target = _find_closest_enemy()
 		if not is_instance_valid(_player_target):
 			_player_target = _find_player()
+
+		if _command_mode != CommandMode.MOVE:
+			var nav_target: Node2D = _enemy_target
+			if not is_instance_valid(nav_target):
+				nav_target = _player_target
+
+			if is_instance_valid(nav_target):
+				if _last_nav_goal_target != nav_target or _time_to_nav_goal_refresh <= 0.0:
+					_set_navigation_target_for_target(nav_target)
+					_last_nav_goal_target = nav_target
+					_time_to_nav_goal_refresh = maxf(nav_goal_update_interval, 0.05)
+			else:
+				_last_nav_goal_target = null
+				_time_to_nav_goal_refresh = 0.0
+				_clear_navigation_target()
 		_time_to_repath = repath_interval
 
 	if _command_mode == CommandMode.MOVE:
@@ -125,6 +153,7 @@ func _handle_move_command() -> void:
 
 func _handle_hold_command() -> void:
 	velocity = Vector2.ZERO
+	_clear_navigation_target()
 	_try_attack_in_range()
 
 func _try_attack_in_range() -> bool:
@@ -177,9 +206,82 @@ func _launch_attack(target: Node2D) -> void:
 
 func _move_towards(target_position: Vector2) -> void:
 	if global_position.distance_to(target_position) > target_reach_distance:
-		velocity = global_position.direction_to(target_position) * move_speed
+		_set_navigation_target(target_position)
+		velocity = _get_navigation_velocity(target_position)
 	else:
 		velocity = Vector2.ZERO
+		_clear_navigation_target()
+
+func _get_navigation_velocity(_target_position: Vector2) -> Vector2:
+	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
+		return Vector2.ZERO
+
+	if _navigation_agent.is_navigation_finished():
+		return Vector2.ZERO
+
+	var next_path_position: Vector2 = _navigation_agent.get_next_path_position()
+	return global_position.direction_to(next_path_position) * move_speed
+
+func _set_navigation_target(target_position: Vector2) -> void:
+	if _navigation_agent == null:
+		return
+
+	if _navigation_agent.target_position.distance_to(target_position) <= 6.0:
+		return
+
+	_navigation_agent.target_position = target_position
+
+func _set_navigation_target_for_target(target: Node2D) -> void:
+	if target == null:
+		return
+
+	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
+		_set_navigation_target(target.global_position)
+		return
+
+	var desired_distance: float = attack_range if target == _enemy_target else target_reach_distance
+	var best_target: Vector2 = _choose_best_navigation_target(target.global_position, desired_distance, target == _enemy_target)
+	_set_navigation_target(best_target)
+
+func _choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
+	if _navigation_agent == null:
+		return target_position
+
+	var nav_map: RID = _navigation_agent.get_navigation_map()
+	if nav_map == RID():
+		return target_position
+
+	var projected_center: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, target_position)
+	if not probe_ring:
+		return projected_center
+
+	var direction_from_target: Vector2 = (global_position - target_position).normalized()
+	if direction_from_target == Vector2.ZERO:
+		direction_from_target = Vector2.RIGHT
+
+	var desired_ring_distance: float = maxf(desired_distance, 8.0)
+	var best_candidate: Vector2 = projected_center
+	var best_score: float = projected_center.distance_to(target_position)
+	var ring_points: int = maxi(nav_probe_ring_points, 4)
+	var ring_distances: Array[float] = [desired_ring_distance, desired_ring_distance + maxf(nav_probe_ring_step, 4.0)]
+
+	for ring_distance in ring_distances:
+		for i in range(ring_points):
+			var angle_offset: float = TAU * float(i) / float(ring_points)
+			var ring_target: Vector2 = target_position + (direction_from_target.rotated(angle_offset) * ring_distance)
+			var projected_ring: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, ring_target)
+			var candidate_score: float = projected_ring.distance_to(ring_target)
+			if candidate_score < best_score:
+				best_score = candidate_score
+				best_candidate = projected_ring
+
+	return best_candidate
+
+func _clear_navigation_target() -> void:
+	if _navigation_agent == null:
+		return
+
+	_navigation_agent.target_position = global_position
 
 func _find_player() -> Node2D:
 	var players: Array = get_tree().get_nodes_in_group("players")
