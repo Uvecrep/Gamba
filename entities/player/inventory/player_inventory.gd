@@ -59,3 +59,13 @@ func add_items(item_id: StringName, num_items: int) -> bool:
 	inventory_item_counts[target_slot_index] += num_items
 	inventory_changed.emit()
 	return true
+
+# If allow_insufficient_funds is false, function will not do anything if you have fewer items than the number you want removed
+func remove_items(index : int, num_to_remove : int, allow_insufficient_funds : bool = false) -> bool:
+	if index < 0 or index >= num_slots: return false
+	
+	if num_to_remove > inventory_item_counts[index] and not allow_insufficient_funds:
+		return false
+	
+	set_slot_item_count(index, inventory_item_counts[index] - num_to_remove)
+	return true

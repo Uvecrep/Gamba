@@ -9,7 +9,7 @@ enum LootboxKind {
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
 @export var harvest_amount_per_interaction: int = 1
-@export var harvest_action: StringName = &"interact"
+@export var interact_action: StringName = &"interact"
 @export var use_lootbox_action: StringName = &"use_lootbox"
 @export var scroll_up_action: StringName = &"scroll_up"
 @export var scroll_down_action: StringName = &"scroll_down"
@@ -18,8 +18,6 @@ enum LootboxKind {
 @export var sapling_plant_range: float = 640.0
 @export var sapling_tree_scene: PackedScene = preload("res://entities/tree/tree.tscn")
 
-signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
-signal sapling_carried_changed(is_carrying: bool)
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_PLAYER: int = 1 << 1
@@ -31,7 +29,6 @@ var inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
-var _is_carrying_sapling: bool = false
 var _selected_lootbox_kind: int = LootboxKind.CHAOS
 
 func _ready() -> void:
@@ -51,16 +48,14 @@ func _physics_process(_delta: float) -> void:
 	move_and_slide()
 	_clamp_player_to_world_bounds()
 	
-	if Input.is_action_just_pressed(harvest_action):
+	if Input.is_action_just_pressed(interact_action):
 		_handle_interaction_input()
 	
 	var mouse_scroll_delta = 0;
 	if Input.is_action_just_released(scroll_up_action):
 		mouse_scroll_delta += 1
-		print("up!")
 	if Input.is_action_just_released(scroll_down_action):
 		mouse_scroll_delta -= 1
-		print("down!")	
 	
 	if mouse_scroll_delta != 0:
 		inventory.selected_index = posmod(inventory.selected_index + mouse_scroll_delta,inventory.num_slots)
@@ -164,26 +159,8 @@ func _handle_interaction_input() -> void:
 
 	_try_plant_sapling_near_house()
 
-func pick_up_sapling() -> bool:
-	if _is_carrying_sapling:
-		return false
-
-	_set_is_carrying_sapling(true)
-	return true
-
-func is_carrying_sapling() -> bool:
-	return _is_carrying_sapling
-
-func can_plant_sapling_here() -> bool:
-	if not _is_carrying_sapling:
-		return false
-	if sapling_tree_scene == null:
-		return false
-
-	return _find_nearest_house_for_planting() != null
-
 func _try_plant_sapling_near_house() -> bool:
-	if not _is_carrying_sapling:
+	if inventory.inventory_items[inventory.selected_index] != &"sapling":
 		return false
 
 	var target_house: Node = _find_nearest_house_for_planting()
@@ -209,7 +186,7 @@ func _try_plant_sapling_near_house() -> bool:
 
 	parent_node.add_child(new_tree)
 	(new_tree as Node2D).global_position = _get_plant_position(target_house as Node2D)
-	_set_is_carrying_sapling(false)
+	inventory.remove_items(inventory.selected_index,1)
 	return true
 
 func _find_nearest_house_for_planting() -> Node:
@@ -244,13 +221,6 @@ func _get_plant_position(target_house: Node2D) -> Vector2:
 		direction = Vector2.DOWN
 
 	return target_house.global_position + (direction * minimum_house_clearance)
-
-func _set_is_carrying_sapling(value: bool) -> void:
-	if _is_carrying_sapling == value:
-		return
-
-	_is_carrying_sapling = value
-	sapling_carried_changed.emit(_is_carrying_sapling)
 
 func _find_nearest_harvestable_tree() -> Node:
 	var trees: Array = get_tree().get_nodes_in_group("trees")

@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/lootbox_counter_hud.gd" id="8_hud"]
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
-[ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
+[ext_resource type="PackedScene" uid="uid://c63lyvmlfrslj" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
 [ext_resource type="PackedScene" uid="uid://dnbwxv6w4m5e2" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
 [ext_resource type="PackedScene" uid="uid://dji85hd60lf4h" path="res://ui/debug_inventory/debug_inventory.tscn" id="11_c7dyn"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
@@ -23,6 +23,9 @@ position = Vector2(812, 280)
 
 [node name="SaplingPickup" parent="." unique_id=1066748930 instance=ExtResource("10_2v0sd")]
 position = Vector2(492, -54)
+
+[node name="SaplingPickup2" parent="." unique_id=819176781 instance=ExtResource("10_2v0sd")]
+position = Vector2(337, -34)
 
 [node name="phone" parent="." unique_id=1188000190 instance=ExtResource("8_2v8j6")]
 position = Vector2(858, 439)
