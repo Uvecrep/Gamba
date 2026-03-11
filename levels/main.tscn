@@ -50,6 +50,7 @@ position = Vector2(652, 451)
 script = ExtResource("8_hud")
 
 [node name="LootboxCountLabel" type="Label" parent="UI" unique_id=213834753]
+visible = false
 offset_left = 970.0
 offset_top = 1001.0
 offset_right = 1087.0
@@ -58,6 +59,7 @@ text = "Lootboxes: 0"
 horizontal_alignment = 1
 
 [node name="LootboxPromptLabel" type="Label" parent="UI" unique_id=470985317]
+visible = false
 offset_left = 920.0
 offset_top = 1027.0
 offset_right = 1139.0

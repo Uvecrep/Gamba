@@ -12,10 +12,6 @@ class_name Player
 @export var sapling_plant_range: float = 640.0
 @export var sapling_tree_scene: PackedScene = preload("res://entities/tree/tree.tscn")
 
-
-const PHYSICS_LAYER_WORLD: int = 1 << 0
-const PHYSICS_LAYER_PLAYER: int = 1 << 1
-
 @onready var camera: Camera2D = $Camera2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
 
@@ -27,8 +23,8 @@ var pickups_following_me: Array[Pickup] = []
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
-	collision_layer = PHYSICS_LAYER_PLAYER
-	collision_mask = PHYSICS_LAYER_WORLD
+	collision_layer = Const.COLLISION_LAYERS.PLAYER
+	collision_mask = Const.COLLISION_LAYERS.WORLD
 	add_to_group("players")
 	player_bounds_padding = _get_player_bounds_padding()
 	_configure_world_bounds()
@@ -55,6 +51,9 @@ func _physics_process(_delta: float) -> void:
 	if mouse_scroll_delta != 0:
 		inventory.selected_index = posmod(inventory.selected_index + mouse_scroll_delta,inventory.num_slots)
 		inventory.inventory_changed.emit()
+	
+	var mouse_pos = get_viewport().get_mouse_position() - (get_viewport().get_visible_rect().size/2)
+	camera.offset = mouse_pos * .1 # this is goofy, should plug into a better feeling damp function
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()

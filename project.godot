@@ -18,6 +18,8 @@ config/icon="uid://dh1jj6uvf68bk"
 [autoload]
 
 LootboxGlobals="*uid://dxsypt4tjw8ks"
+ItemGlobals="*uid://bc05npn0mt456"
+Const="*uid://3wrj6qajgox6"
 
 [display]
 

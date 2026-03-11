@@ -1,5 +1,5 @@
 extends Node
-# Autoload class for accessing lootboxes
+# Autoload class for lootbox resource management
 
 var lootbox_paths: Array[String] = [
 	"res://entities/lootbox/chaos_lootbox.tres",
