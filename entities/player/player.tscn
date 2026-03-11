@@ -19,6 +19,7 @@ scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=677123141]
+process_callback = 0
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
 enabled = true

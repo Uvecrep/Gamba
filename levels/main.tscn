@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
 [ext_resource type="PackedScene" uid="uid://dnbwxv6w4m5e2" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
 [ext_resource type="PackedScene" uid="uid://b3l6nl5mf8nkh" path="res://entities/pickups/box_pickup.tscn" id="11_xdh4e"]
-[ext_resource type="Script" path="res://scripts/fps_counter.gd" id="12_fps"]
+[ext_resource type="Script" uid="uid://b7fjvdi8rvejq" path="res://scripts/fps_counter.gd" id="12_fps"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
