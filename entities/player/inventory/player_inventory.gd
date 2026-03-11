@@ -2,6 +2,7 @@ extends RefCounted
 class_name PlayerInventory
 
 signal inventory_changed()
+signal inventory_became_full()
 
 var selected_index : int = 0
 var num_slots : int = 5 # TODO implement changing number of slots? Static rn
@@ -42,22 +43,23 @@ func add_items(item_id: StringName, num_items: int) -> bool:
 	if num_items <= 0: return false
 	
 	var target_slot_index = -1
+	var filled_new_slot = false
 	
 	if inventory_items.has(item_id):
 		target_slot_index = inventory_items.find(item_id)
 	else:
-		var empty_slots = []
-		for i in range(inventory_item_counts.size()):
-			if inventory_item_counts[i] == 0:
-				empty_slots.append(i)
+		var empty_slots = _get_empty_slots()
 		if empty_slots.size() == 0: 
 			return false
 		
 		target_slot_index = empty_slots[0] # TODO: Should maybe have a smarter way of determining this
 		inventory_items[target_slot_index] = item_id
+		filled_new_slot = true
 	
 	inventory_item_counts[target_slot_index] += num_items
 	inventory_changed.emit()
+	if filled_new_slot and _get_empty_slots().size() == 0: 
+		inventory_became_full.emit()
 	return true
 
 # If allow_insufficient_funds is false, function will not do anything if you have fewer items than the number you want removed
@@ -69,3 +71,15 @@ func remove_items(index : int, num_to_remove : int, allow_insufficient_funds : b
 	
 	set_slot_item_count(index, inventory_item_counts[index] - num_to_remove)
 	return true
+
+func would_item_fit(item_id: StringName) -> bool:
+	if _get_empty_slots().size() > 0: return true
+	if inventory_items.has(item_id): return true
+	return false
+
+func _get_empty_slots() -> Array[int]:
+	var empty_slots : Array[int] = []
+	for i in range(inventory_item_counts.size()):
+			if inventory_item_counts[i] == 0:
+				empty_slots.append(i)
+	return empty_slots

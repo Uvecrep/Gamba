@@ -9,7 +9,7 @@ font_color = Color(0, 0, 0, 1)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lg31k"]
 
 [node name="Pickup" type="RigidBody2D" unique_id=971572308]
-collision_layer = 0
+collision_layer = 16
 collision_mask = 0
 input_pickable = true
 gravity_scale = 0.0
@@ -36,7 +36,7 @@ label_settings = SubResource("LabelSettings_lg31k")
 horizontal_alignment = 1
 
 [node name="Area2D" type="Area2D" parent="." unique_id=245951352]
-collision_layer = 0
+collision_layer = 16
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=89817170]

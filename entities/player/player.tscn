@@ -6,6 +6,8 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wdj6m"]
 size = Vector2(50, 60)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_abrql"]
+
 [node name="player" type="CharacterBody2D" unique_id=57563531]
 script = ExtResource("1_abrql")
 
@@ -21,4 +23,22 @@ texture = ExtResource("2_abrql")
 [node name="Camera2D" type="Camera2D" parent="." unique_id=677123141]
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
-enabled = true
+
+[node name="PickupMagnetRadius" type="Area2D" parent="." unique_id=1306884590]
+collision_layer = 0
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupMagnetRadius" unique_id=1240991250]
+scale = Vector2(6.63, 6.63)
+shape = SubResource("CircleShape2D_abrql")
+
+[node name="PickupCollectRadius" type="Area2D" parent="." unique_id=1705002565]
+collision_layer = 0
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PickupCollectRadius" unique_id=159304062]
+scale = Vector2(2.805, 2.805)
+shape = SubResource("CircleShape2D_abrql")
+
+[connection signal="area_entered" from="PickupMagnetRadius" to="." method="_on_pickup_touched_radius"]
+[connection signal="area_entered" from="PickupCollectRadius" to="." method="_on_pickup_touched_me"]

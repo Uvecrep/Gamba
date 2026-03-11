@@ -1,10 +1,6 @@
 extends CharacterBody2D
 class_name Player
 
-enum LootboxKind {
-	CHAOS,
-	FOREST,
-}
 
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
@@ -13,8 +9,6 @@ enum LootboxKind {
 @export var use_lootbox_action: StringName = &"use_lootbox"
 @export var scroll_up_action: StringName = &"scroll_up"
 @export var scroll_down_action: StringName = &"scroll_down"
-@export var chaos_lootbox: Lootbox = preload("res://entities/lootbox/chaos_lootbox.tres")
-@export var forest_lootbox: Lootbox = preload("res://entities/lootbox/forest_lootbox.tres")
 @export var sapling_plant_range: float = 640.0
 @export var sapling_tree_scene: PackedScene = preload("res://entities/tree/tree.tscn")
 
@@ -24,12 +18,13 @@ const PHYSICS_LAYER_PLAYER: int = 1 << 1
 
 @onready var camera: Camera2D = $Camera2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
+@onready var pickup_radius: Area2D = $PickupRadius
 
 var inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
-var _selected_lootbox_kind: int = LootboxKind.CHAOS
+var pickups_following_me: Array[Pickup] = []
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -38,6 +33,7 @@ func _ready() -> void:
 	add_to_group("players")
 	player_bounds_padding = _get_player_bounds_padding()
 	_configure_world_bounds()
+	inventory.inventory_changed.connect(_on_inventory_changed)
 
 func get_input() -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
@@ -60,45 +56,6 @@ func _physics_process(_delta: float) -> void:
 	if mouse_scroll_delta != 0:
 		inventory.selected_index = posmod(inventory.selected_index + mouse_scroll_delta,inventory.num_slots)
 		inventory.inventory_changed.emit()
-		
-	# lootbox select
-
-#func get_chaos_lootbox_count() -> int:
-	#if chaos_lootbox == null:
-		#return 0
-#
-	#return inventory.get_lootbox_count(chaos_lootbox)
-
-#func get_forest_lootbox_count() -> int:
-	#if forest_lootbox == null:
-		#return 0
-#
-	#return inventory.get_lootbox_count(forest_lootbox)
-
-func get_selected_lootbox_kind() -> int:
-	return _selected_lootbox_kind
-
-func get_selected_lootbox_kind_name() -> String:
-	if _selected_lootbox_kind == LootboxKind.FOREST:
-		return "Forest"
-
-	return "Chaos"
-
-func _set_selected_lootbox_kind(kind: int) -> void:
-	var clamped_kind: int = kind
-	if clamped_kind != LootboxKind.CHAOS and clamped_kind != LootboxKind.FOREST:
-		clamped_kind = LootboxKind.CHAOS
-
-	if _selected_lootbox_kind == clamped_kind:
-		return
-
-	_selected_lootbox_kind = clamped_kind
-
-func _get_selected_lootbox_resource() -> Lootbox:
-	if _selected_lootbox_kind == LootboxKind.FOREST:
-		return forest_lootbox
-
-	return chaos_lootbox
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()
@@ -143,8 +100,8 @@ func _handle_interaction_input() -> void:
 
 	if nearest_tree != null and nearest_interactable == nearest_tree:
 		var harvested: int = int(nearest_tree.call("harvest_fruit", harvest_amount_per_interaction))
-		if harvested > 0:
-			inventory.add_lootboxes(forest_lootbox, harvested)
+		# if harvested > 0:
+			# inventory.add_lootboxes(forest_lootbox, harvested)
 		return
 
 	if nearest_crystal != null and nearest_interactable == nearest_crystal:
@@ -454,3 +411,35 @@ func _find_world_tile_map_layer() -> Node:
 		return fallback
 
 	return null
+
+
+func _on_pickup_touched_radius(area: Area2D) -> void:
+	var pickup = area.get_parent()
+	if pickup == null: return
+	if pickup is not Pickup: return
+	
+	if not inventory.would_item_fit(pickup.item_id):
+		return
+	
+	pickup.floating_towards = self
+	pickups_following_me.append(pickup)
+
+func _on_pickup_touched_me(area: Area2D) -> void:
+	var pickup = area.get_parent()
+	if pickup == null: return
+	if pickup is not Pickup: return
+	if inventory.add_items(pickup.item_id,1):
+		pickup.queue_free()
+		var index = pickups_following_me.find(pickup)
+		pickups_following_me.remove_at(index)
+
+func _on_inventory_changed() -> void:
+	# Pickups that were following me should stop if they would no longer fit in my inventory
+	var pickups_no_longer_following : Array[Pickup] = []
+	for p in pickups_following_me:
+		if !inventory.would_item_fit(p.item_id):
+			p.floating_towards = null
+			pickups_no_longer_following.append(p)
+	for p in pickups_no_longer_following:
+		var index = pickups_following_me.find(p)
+		pickups_following_me.remove_at(index)
