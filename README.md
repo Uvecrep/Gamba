@@ -1,4 +1,4 @@
-# Gamba Davids Dev Branch
+# Gamba
 
 ## Pitch
 You are a summoner using your summon farm to generate loot boxes. These boxes summon minions that help defend your farm and explore for more loot boxes. The objective is to defeat the rival summoner’s farm.
