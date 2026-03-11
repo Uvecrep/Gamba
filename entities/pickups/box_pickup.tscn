@@ -1,32 +1,44 @@
 [gd_scene format=3 uid="uid://b3l6nl5mf8nkh"]
 
 [ext_resource type="Script" uid="uid://dto83ityng4jl" path="res://entities/pickups/pickup.gd" id="1_snl5c"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_lg31k"]
+[ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="2_hhcav"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_lg31k"]
 font_size = 4
 font_color = Color(0, 0, 0, 1)
 
-[node name="BoxPickup" type="Area2D" unique_id=96315874]
-collision_mask = 3
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lg31k"]
+size = Vector2(12.5, 12.5)
+
+[node name="Pickup" type="RigidBody2D" unique_id=971572308]
+collision_layer = 0
+collision_mask = 0
+input_pickable = true
+gravity_scale = 0.0
+lock_rotation = true
+linear_damp = 0.1
+angular_damp = 1.0
 script = ExtResource("1_snl5c")
+metadata/_custom_type_script = "uid://dto83ityng4jl"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=89817170]
-shape = SubResource("RectangleShape2D_lg31k")
-
-[node name="ColorRect" type="ColorRect" parent="." unique_id=107602651]
-offset_left = -10.0
-offset_top = -10.0
-offset_right = 10.0
-offset_bottom = 10.0
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1684668961]
+texture = ExtResource("2_hhcav")
 
 [node name="Label" type="Label" parent="." unique_id=682097862]
 offset_left = -10.0
 offset_top = -10.0
 offset_right = 10.0
 offset_bottom = 10.0
-text = "box
-pickup"
+text = "box"
 label_settings = SubResource("LabelSettings_lg31k")
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Area2D" type="Area2D" parent="." unique_id=245951352]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=89817170]
+position = Vector2(-0.5, -0.5)
+scale = Vector2(2, 2)
+shape = SubResource("RectangleShape2D_lg31k")

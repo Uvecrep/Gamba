@@ -148,9 +148,7 @@ func _handle_interaction_input() -> void:
 		return
 
 	if nearest_crystal != null and nearest_interactable == nearest_crystal:
-		var harvested_crystal: int = int(nearest_crystal.call("harvest_fruit", harvest_amount_per_interaction))
-		if harvested_crystal > 0:
-			inventory.add_lootboxes(chaos_lootbox, harvested_crystal)
+		nearest_crystal.harvest_fruit()
 		return
 
 	if nearest_interactable != null and nearest_interactable.has_method("interact"):

@@ -35,6 +35,8 @@ position = Vector2(649, 378)
 
 [node name="crystal" parent="." unique_id=2144231408 instance=ExtResource("11_1j61c")]
 position = Vector2(538, 427)
+starting_lootboxes = 1
+produced_lootbox_id = &"lootbox_chaos"
 
 [node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
 position = Vector2(1873, -2514)
