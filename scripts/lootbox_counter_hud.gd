@@ -1,9 +1,6 @@
 extends CanvasLayer
 
 @export var player_path: NodePath = ^"../player"
-@export var use_lootbox_action: StringName = &"use_lootbox"
-@export var select_chaos_lootbox_action: StringName = &"select_chaos_lootbox"
-@export var select_forest_lootbox_action: StringName = &"select_forest_lootbox"
 @export var interact_action: StringName = &"interact"
 @export var summon_command_hold_action: StringName = &"summon_command_hold"
 @export var summon_command_follow_action: StringName = &"summon_command_follow"
@@ -14,9 +11,6 @@ extends CanvasLayer
 @onready var _sapling_debug_label: Label = get_node_or_null("SaplingPlantDebugLabel") as Label
 @onready var _summon_command_hint_label: Label = get_node_or_null("SummonCommandHintLabel") as Label
 
-var _use_lootbox_hint_text: String = "lootbox button"
-var _select_chaos_hint_text: String = "1"
-var _select_forest_hint_text: String = "2"
 var _interact_hint_text: String = "E"
 var _summon_hold_hint_text: String = "H"
 var _summon_follow_hint_text: String = "F"
@@ -26,16 +20,13 @@ var _player: Node = null
 # TODO: I, Kyle, have borked most of this functionality. It still compiles though, so leaving for the time being
 
 func _ready() -> void:
-	_use_lootbox_hint_text = _resolve_action_hint(use_lootbox_action)
-	_select_chaos_hint_text = _resolve_action_hint(select_chaos_lootbox_action)
-	_select_forest_hint_text = _resolve_action_hint(select_forest_lootbox_action)
 	_interact_hint_text = _resolve_action_hint(interact_action)
 	_summon_hold_hint_text = _resolve_action_hint(summon_command_hold_action)
 	_summon_follow_hint_text = _resolve_action_hint(summon_command_follow_action)
 	_summon_auto_hint_text = _resolve_action_hint(summon_command_auto_action)
 	_update_summon_hint_label()
 	_update_label(0, 0)
-	_update_prompt(0, 0, 0)
+	_update_prompt(0, 0)
 
 	var player: Node = get_node_or_null(player_path)
 	if player == null:
@@ -70,16 +61,16 @@ func _process(_delta: float) -> void:
 	#var initial_count_variant: Variant = player.call("get_lootbox_count")
 	#_update_label(int(initial_count_variant))
 
-func _on_lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int) -> void:
+func _on_lootbox_inventory_changed(chaos_count: int, forest_count: int, _selected_kind: int) -> void:
 	_update_label(chaos_count, forest_count)
-	_update_prompt(chaos_count, forest_count, selected_kind)
+	_update_prompt(chaos_count, forest_count)
 
 func _update_label(chaos_count: int, forest_count: int) -> void:
 	var clamped_chaos_count := maxi(chaos_count, 0)
 	var clamped_forest_count := maxi(forest_count, 0)
 	_lootbox_count_label.text = "Chaos Boxes: %d   Forest Boxes: %d" % [clamped_chaos_count, clamped_forest_count]
 
-func _update_prompt(chaos_count: int, forest_count: int, selected_kind: int) -> void:
+func _update_prompt(chaos_count: int, forest_count: int) -> void:
 	if _lootbox_prompt_label == null:
 		return
 
@@ -89,16 +80,7 @@ func _update_prompt(chaos_count: int, forest_count: int, selected_kind: int) -> 
 	if not should_show:
 		return
 
-	var selected_name: String = "Chaos"
-	if selected_kind == 1:
-		selected_name = "Forest"
-
-	_lootbox_prompt_label.text = "Press %s to open selected (%s) | %s=Chaos %s=Forest" % [
-		_use_lootbox_hint_text,
-		selected_name,
-		_select_chaos_hint_text,
-		_select_forest_hint_text,
-	]
+	_lootbox_prompt_label.text = "Press %s to use selected inventory item" % _interact_hint_text
 
 func _refresh_lootbox_state_from_player() -> void:
 	if _player == null:
@@ -112,12 +94,8 @@ func _refresh_lootbox_state_from_player() -> void:
 	if _player.has_method("get_forest_lootbox_count"):
 		forest_count = int(_player.call("get_forest_lootbox_count"))
 
-	var selected_kind: int = 0
-	if _player.has_method("get_selected_lootbox_kind"):
-		selected_kind = int(_player.call("get_selected_lootbox_kind"))
-
 	_update_label(chaos_count, forest_count)
-	_update_prompt(chaos_count, forest_count, selected_kind)
+	_update_prompt(chaos_count, forest_count)
 
 func _on_sapling_carried_changed(_is_carrying: bool) -> void:
 	_update_sapling_plant_debug_label()

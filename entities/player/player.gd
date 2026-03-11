@@ -3,19 +3,11 @@ class_name Player
 
 signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
 
-enum LootboxKind {
-	CHAOS,
-	FOREST,
-}
-
 
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
 @export var harvest_amount_per_interaction: int = 1
 @export var interact_action: StringName = &"interact"
-@export var use_lootbox_action: StringName = &"use_lootbox"
-@export var select_chaos_lootbox_action: StringName = &"select_chaos_lootbox"
-@export var select_forest_lootbox_action: StringName = &"select_forest_lootbox"
 @export var summon_command_hold_action: StringName = &"summon_command_hold"
 @export var summon_command_follow_action: StringName = &"summon_command_follow"
 @export var summon_command_auto_action: StringName = &"summon_command_auto"
@@ -42,7 +34,6 @@ var player_inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
-var _selected_lootbox_kind: int = LootboxKind.CHAOS
 var _is_middle_mouse_selecting: bool = false
 var _middle_select_last_world_point: Vector2 = Vector2.ZERO
 var _middle_select_found_summon: bool = false
@@ -77,20 +68,10 @@ func _physics_process(_delta: float) -> void:
 	get_input()
 	move_and_slide()
 	_clamp_player_to_world_bounds()
-	_handle_lootbox_selection_input()
 	_handle_summon_command_shortcuts()
 	
 	if Input.is_action_just_pressed(interact_action):
 		_handle_interaction_input()
-
-	if Input.is_action_just_pressed(use_lootbox_action):
-		var selected_lootbox: Lootbox = _get_selected_lootbox_resource()
-		if selected_lootbox == null:
-			push_warning("Player: selected lootbox resource is not configured.")
-		elif player_inventory.try_spend_lootboxes(selected_lootbox, 1):
-			if not _open_lootbox(selected_lootbox):
-				# Refund on roll/outcome failure so lootboxes are not lost by configuration errors.
-				player_inventory.add_lootboxes(selected_lootbox, 1)
 
 	var mouse_scroll_delta = 0;
 	if Input.is_action_just_released(scroll_up_action):
@@ -139,41 +120,8 @@ func get_forest_lootbox_count() -> int:
 
 	return player_inventory.get_lootbox_count(forest_lootbox)
 
-func get_selected_lootbox_kind() -> int:
-	return _selected_lootbox_kind
-
-func get_selected_lootbox_kind_name() -> String:
-	if _selected_lootbox_kind == LootboxKind.FOREST:
-		return "Forest"
-
-	return "Chaos"
-
-func _handle_lootbox_selection_input() -> void:
-	if Input.is_action_just_pressed(select_chaos_lootbox_action):
-		_set_selected_lootbox_kind(LootboxKind.CHAOS)
-
-	if Input.is_action_just_pressed(select_forest_lootbox_action):
-		_set_selected_lootbox_kind(LootboxKind.FOREST)
-
-func _set_selected_lootbox_kind(kind: int) -> void:
-	var clamped_kind: int = kind
-	if clamped_kind != LootboxKind.CHAOS and clamped_kind != LootboxKind.FOREST:
-		clamped_kind = LootboxKind.CHAOS
-
-	if _selected_lootbox_kind == clamped_kind:
-		return
-
-	_selected_lootbox_kind = clamped_kind
-	_emit_lootbox_inventory_changed()
-
-func _get_selected_lootbox_resource() -> Lootbox:
-	if _selected_lootbox_kind == LootboxKind.FOREST:
-		return forest_lootbox
-
-	return chaos_lootbox
-
 func _emit_lootbox_inventory_changed() -> void:
-	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), _selected_lootbox_kind)
+	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), 0)
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()
@@ -651,6 +599,8 @@ func _on_pickup_touched_radius(area: Area2D) -> void:
 	var pickup = area.get_parent()
 	if pickup == null: return
 	if pickup is not Pickup: return
+	if not is_instance_valid(pickup): return
+	if pickups_following_me.has(pickup): return
 	
 	if not player_inventory.would_item_fit(pickup.item_id):
 		return
@@ -662,20 +612,32 @@ func _on_pickup_touched_me(area: Area2D) -> void:
 	var pickup = area.get_parent()
 	if pickup == null: return
 	if pickup is not Pickup: return
+	if not is_instance_valid(pickup): return
 	if player_inventory.add_items(pickup.item_id,1):
+		pickup.floating_towards = null
 		pickup.queue_free()
 		var index = pickups_following_me.find(pickup)
-		pickups_following_me.remove_at(index)
+		if index >= 0:
+			pickups_following_me.remove_at(index)
 
 func _on_inventory_changed() -> void:
 	# Pickups that were following me should stop if they would no longer fit in my inventory
+	var invalid_pickups : Array[Pickup] = []
 	var pickups_no_longer_following : Array[Pickup] = []
 	for p in pickups_following_me:
+		if not is_instance_valid(p):
+			invalid_pickups.append(p)
+			continue
 		if !player_inventory.would_item_fit(p.item_id):
 			p.floating_towards = null
 			pickups_no_longer_following.append(p)
+	for p in invalid_pickups:
+		var invalid_index = pickups_following_me.find(p)
+		if invalid_index >= 0:
+			pickups_following_me.remove_at(invalid_index)
 	for p in pickups_no_longer_following:
 		var index = pickups_following_me.find(p)
-		pickups_following_me.remove_at(index)
+		if index >= 0:
+			pickups_following_me.remove_at(index)
 
 	_emit_lootbox_inventory_changed()
