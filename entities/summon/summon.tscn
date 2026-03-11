@@ -3,15 +3,15 @@
 [ext_resource type="Script" uid="uid://ctvbtxmf0rlor" path="res://entities/summon/summon.gd" id="1_l2f3a"]
 [ext_resource type="Texture2D" uid="uid://cvepnl03ncegr" path="res://assets/characters/summon.png" id="2_ac4sb"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_l2f3a"]
-size = Vector2(58, 61)
+[sub_resource type="CircleShape2D" id="CircleShape2D_l2f3a"]
+radius = 14.0
 
 [node name="summon" type="CharacterBody2D" unique_id=1924052032]
 script = ExtResource("1_l2f3a")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1367573543]
-position = Vector2(-1, 1.5)
-shape = SubResource("RectangleShape2D_l2f3a")
+position = Vector2(0, 4)
+shape = SubResource("CircleShape2D_l2f3a")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1891930626]
 texture_filter = 1
@@ -26,3 +26,9 @@ offset_bottom = -28.0
 mouse_filter = 2
 value = 80.0
 show_percentage = false
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="." unique_id=207678202]
+path_desired_distance = 6.0
+target_desired_distance = 10.0
+radius = 14.0
+max_speed = 110.0
