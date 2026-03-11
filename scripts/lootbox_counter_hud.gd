@@ -5,15 +5,22 @@ extends CanvasLayer
 @export var select_chaos_lootbox_action: StringName = &"select_chaos_lootbox"
 @export var select_forest_lootbox_action: StringName = &"select_forest_lootbox"
 @export var interact_action: StringName = &"interact"
+@export var summon_command_hold_action: StringName = &"summon_command_hold"
+@export var summon_command_follow_action: StringName = &"summon_command_follow"
+@export var summon_command_auto_action: StringName = &"summon_command_auto"
 
 @onready var _lootbox_count_label: Label = $LootboxCountLabel
 @onready var _lootbox_prompt_label: Label = $LootboxPromptLabel
 @onready var _sapling_debug_label: Label = get_node_or_null("SaplingPlantDebugLabel") as Label
+@onready var _summon_command_hint_label: Label = get_node_or_null("SummonCommandHintLabel") as Label
 
 var _use_lootbox_hint_text: String = "lootbox button"
 var _select_chaos_hint_text: String = "1"
 var _select_forest_hint_text: String = "2"
 var _interact_hint_text: String = "E"
+var _summon_hold_hint_text: String = "H"
+var _summon_follow_hint_text: String = "F"
+var _summon_auto_hint_text: String = "R"
 var _player: Node = null
 
 # TODO: I, Kyle, have borked most of this functionality. It still compiles though, so leaving for the time being
@@ -23,6 +30,10 @@ func _ready() -> void:
 	_select_chaos_hint_text = _resolve_action_hint(select_chaos_lootbox_action)
 	_select_forest_hint_text = _resolve_action_hint(select_forest_lootbox_action)
 	_interact_hint_text = _resolve_action_hint(interact_action)
+	_summon_hold_hint_text = _resolve_action_hint(summon_command_hold_action)
+	_summon_follow_hint_text = _resolve_action_hint(summon_command_follow_action)
+	_summon_auto_hint_text = _resolve_action_hint(summon_command_auto_action)
+	_update_summon_hint_label()
 	_update_label(0, 0)
 	_update_prompt(0, 0, 0)
 
@@ -135,6 +146,16 @@ func _update_sapling_plant_debug_label() -> void:
 		status_text = "Yes"
 
 	_sapling_debug_label.text = "Sapling Can Plant: %s (Press %s)" % [status_text, _interact_hint_text]
+
+func _update_summon_hint_label() -> void:
+	if _summon_command_hint_label == null:
+		return
+
+	_summon_command_hint_label.text = "MMB: Select summons | %s: Hold | %s: Follow | %s: Auto" % [
+		_summon_hold_hint_text,
+		_summon_follow_hint_text,
+		_summon_auto_hint_text,
+	]
 
 func _resolve_action_hint(action: StringName) -> String:
 	if not InputMap.has_action(action):

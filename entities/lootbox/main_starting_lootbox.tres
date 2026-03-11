@@ -6,8 +6,8 @@
 [ext_resource type="Script" uid="uid://cpkrdf3d52eb1" path="res://entities/lootbox/lootbox_mod.gd" id="4_fi66f"]
 [ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="4_summon_scene"]
 [ext_resource type="Texture2D" uid="uid://0sej33u0fs" path="res://assets/characters/rare_summon.png" id="5_rare_summon_texture"]
-[ext_resource type="Script" uid="uid://bl50k55wyph84" path="res://entities/lootbox/lootbox_odds_mod.gd" id="6_kegtj"]
-[ext_resource type="Script" uid="uid://bi7qsb5gpvkhr" path="res://entities/lootbox/lootbox_stats_mod.gd" id="7_hbenm"]
+[ext_resource type="Script" path="res://entities/lootbox/lootbox_odds_mod.gd" id="6_kegtj"]
+[ext_resource type="Script" path="res://entities/lootbox/lootbox_stats_mod.gd" id="7_hbenm"]
 
 [sub_resource type="Resource" id="Outcome_Normal"]
 script = ExtResource("3_spawn_outcome")
@@ -36,7 +36,6 @@ change = "Multiplication"
 target = "Yellow Boi"
 modification_type = "One"
 modification_description = "Doubles Yellow Boi odds"
-metadata/_custom_type_script = "uid://bl50k55wyph84"
 
 [sub_resource type="Resource" id="Resource_rras7"]
 script = ExtResource("7_hbenm")
@@ -44,7 +43,6 @@ stat_modifier = 10.0
 change = "Health"
 modification_type = "All"
 modification_description = "Beef up the health"
-metadata/_custom_type_script = "uid://bi7qsb5gpvkhr"
 
 [resource]
 script = ExtResource("1_lootbox")
