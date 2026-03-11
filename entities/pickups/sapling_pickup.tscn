@@ -28,8 +28,8 @@ text = "Sapling"
 horizontal_alignment = 1
 
 [node name="Area2D" type="Area2D" parent="." unique_id=842771787]
-collision_layer = 0
-collision_mask = 2
+collision_layer = 16
+collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=374092680]
 shape = SubResource("RectangleShape2D_1d86d")

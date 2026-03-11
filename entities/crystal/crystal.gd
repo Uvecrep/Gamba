@@ -6,7 +6,7 @@ signal lootbox_ready_changed(has_lootbox: bool)
 @export var starting_lootboxes: int = 0
 @export var harvest_prompt_action: StringName = &"interact"
 @export var default_harvest_range: float = 96.0
-@export var box_pickup_scene : PackedScene = preload("res://entities/pickups/box_pickup.tscn")
+var box_pickup_scene : PackedScene = preload("res://entities/pickups/box_pickup.tscn")
 
 
 @export var produced_lootbox_id: StringName
@@ -37,19 +37,17 @@ func can_harvest() -> bool:
 	return _lootboxes > 0
 
 func harvest_fruit(amount: int = 1) -> int:
-	if amount <= 0:
-		return 0
+	if amount <= 0: return 0
 
 	var harvested: int = mini(amount, _lootboxes)
-	if harvested <= 0:
-		return 0
+	if harvested <= 0: return 0
 	
 	for i in range(harvested):
 		var new_box: Pickup = box_pickup_scene.instantiate()
 		$"..".add_child(new_box)
 		new_box.position = position
 		new_box.apply_central_impulse(Vector2.UP * 600)
-		new_box.floating_to=$"../player"
+		new_box.floating_towards=$"../player"
 		new_box.item_id=produced_lootbox_id
 		
 	

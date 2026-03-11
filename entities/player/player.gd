@@ -18,7 +18,6 @@ const PHYSICS_LAYER_PLAYER: int = 1 << 1
 
 @onready var camera: Camera2D = $Camera2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
-@onready var pickup_radius: Area2D = $PickupRadius
 
 var inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()

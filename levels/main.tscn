@@ -43,6 +43,7 @@ position = Vector2(1873, -2514)
 spawn_interval = 10.0
 
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
+z_index = 1
 position = Vector2(652, 451)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=299344106]
