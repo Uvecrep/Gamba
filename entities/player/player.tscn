@@ -41,5 +41,14 @@ collision_mask = 16
 scale = Vector2(2.805, 2.805)
 shape = SubResource("CircleShape2D_abrql")
 
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=383812078]
+offset_left = -30.0
+offset_top = -36.0
+offset_right = 28.0
+offset_bottom = -28.0
+mouse_filter = 2
+value = 100.0
+show_percentage = false
+
 [connection signal="area_entered" from="PickupMagnetRadius" to="." method="_on_pickup_touched_radius"]
 [connection signal="area_entered" from="PickupCollectRadius" to="." method="_on_pickup_touched_me"]

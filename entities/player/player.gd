@@ -14,6 +14,10 @@ class_name Player
 
 @onready var camera: Camera2D = $Camera2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
+@onready var health_bar: ProgressBar = $HealthBar
+
+var max_health: float = 100
+var current_health: float
 
 var inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
@@ -33,6 +37,12 @@ func _ready() -> void:
 func get_input() -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
 	velocity = input_direction * speed
+
+func _process(delta: float) -> void:
+	if health_bar == null: return
+	
+	health_bar.max_value = max_health
+	health_bar.value = current_health
 
 func _physics_process(_delta: float) -> void:
 	get_input()
