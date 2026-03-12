@@ -6,6 +6,7 @@ class_name LootboxOutcomeSpawnSummon
 @export var damage_multiplier: float = 1.0
 @export var max_health_multiplier: float = 1.0
 @export var summon_texture_override: Texture2D
+@export var summon_identity: StringName
 
 func execute(context: Dictionary = {}) -> bool:
 	var opener := context.get("opener") as Node2D
@@ -21,6 +22,7 @@ func execute(context: Dictionary = {}) -> bool:
 		push_warning("LootboxOutcomeSpawnSummon: summon_scene does not instantiate to Node2D.")
 		return false
 
+	_apply_identity_modifiers(summon_node)
 	_apply_stat_modifiers(summon_node)
 	_apply_visual_modifiers(summon_node)
 
@@ -46,6 +48,17 @@ func _apply_stat_modifiers(summon_node: Node) -> void:
 	if _has_property(summon_node, "max_health"):
 		var current_health := float(summon_node.get("max_health"))
 		summon_node.set("max_health", current_health * maxf(max_health_multiplier, 0.01))
+
+func _apply_identity_modifiers(summon_node: Node) -> void:
+	if summon_identity == StringName():
+		return
+
+	if summon_node.has_method("set_summon_identity"):
+		summon_node.call("set_summon_identity", summon_identity)
+		return
+
+	if _has_property(summon_node, "summon_identity"):
+		summon_node.set("summon_identity", summon_identity)
 
 func _apply_visual_modifiers(summon_node: Node2D) -> void:
 	if summon_texture_override == null:

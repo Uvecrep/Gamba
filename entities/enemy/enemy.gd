@@ -6,7 +6,7 @@ extends CharacterBody2D
 @export var target_stop_padding: float = 2.0
 @export var nearby_target_groups: PackedStringArray = ["summons"]
 @export var fallback_target_group: StringName = &"house"
-@export var nearby_target_radius: float = 180.0
+@export var nearby_target_radius: float = 270.0
 @export var melee_damage: float = 15.0
 @export var melee_attack_cooldown: float = 1.0
 @export var melee_attack_extra_range: float = 6.0
@@ -17,9 +17,16 @@ extends CharacterBody2D
 @export var nav_probe_ring_step: float = 16.0
 @export var nav_goal_update_interval: float = 0.45
 @export var visibility_check_interval: float = 0.2
+@export var status_tick_interval: float = 0.2
+@export var max_sting_stacks: int = 8
+@export var knockback_decay: float = 900.0
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_ENEMY: int = 1 << 2
+const VFX_BURN_EFFECT_PATH: String = "res://assets/vfx/burn_effect.png"
+const VFX_ROOTED_PATH: String = "res://assets/vfx/rooted.png"
+const VFX_HIT_MARKER_PATH: String = "res://assets/vfx/hit_marker.png"
+const VFX_KNOCKBACK_PATH: String = "res://assets/vfx/knockback.png"
 
 var _current_target: Node2D
 var _time_to_repath: float = 0.0
@@ -29,11 +36,28 @@ var _time_to_nav_goal_refresh: float = 0.0
 var _time_to_visibility_refresh: float = 0.0
 var _last_nav_goal_target: Node2D
 var _cached_has_clear_path: bool = false
+var _burn_dps: float = 0.0
+var _burn_time_left: float = 0.0
+var _sting_stacks: int = 0
+var _sting_dps_per_stack: float = 0.0
+var _sting_time_left: float = 0.0
+var _sting_max_stack_burst_damage: float = 0.0
+var _sting_hits_toward_burst: int = 0
+var _root_time_left: float = 0.0
+var _status_tick_time_left: float = 0.0
+var _external_push_velocity: Vector2 = Vector2.ZERO
+var _burn_vfx_sprite: Sprite2D
+var _root_vfx_sprite: Sprite2D
+var _vfx_burn_effect: Texture2D
+var _vfx_rooted: Texture2D
+var _vfx_hit_marker: Texture2D
+var _vfx_knockback: Texture2D
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 @onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
 
 func _ready() -> void:
+	_load_vfx_assets()
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = PHYSICS_LAYER_ENEMY
 	collision_mask = PHYSICS_LAYER_WORLD
@@ -44,12 +68,16 @@ func _ready() -> void:
 		_navigation_agent.set_navigation_map(get_world_2d().navigation_map)
 	_current_health = max_health
 	_update_health_bar()
+	_setup_status_vfx()
 
 func _physics_process(delta: float) -> void:
 	_time_to_repath -= delta
 	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
 	_time_to_visibility_refresh = maxf(_time_to_visibility_refresh - delta, 0.0)
 	_time_to_next_melee_hit = maxf(_time_to_next_melee_hit - delta, 0.0)
+	_update_status_effects(delta)
+	_external_push_velocity = _external_push_velocity.move_toward(Vector2.ZERO, maxf(knockback_decay, 0.0) * delta)
+	var is_rooted: bool = _root_time_left > 0.0
 	if _time_to_repath <= 0.0:
 		var nearby_target := _find_closest_target_in_groups(nearby_target_groups, nearby_target_radius)
 		if is_instance_valid(nearby_target):
@@ -83,16 +111,20 @@ func _physics_process(delta: float) -> void:
 		var stop_distance: float = _get_surface_stop_distance(_current_target)
 		var allow_attack_without_clear_path: bool = _current_target.is_in_group("house")
 		var can_engage: bool = _cached_has_clear_path or allow_attack_without_clear_path
-		if target_distance > stop_distance or not can_engage:
+		if is_rooted:
+			velocity = Vector2.ZERO
+		elif target_distance > stop_distance or not can_engage:
 			velocity = _get_navigation_velocity(_current_target.global_position)
 		else:
 			velocity = Vector2.ZERO
 
-		_try_melee_attack(_current_target, target_distance, stop_distance, _cached_has_clear_path, allow_attack_without_clear_path)
+		if not is_rooted:
+			_try_melee_attack(_current_target, target_distance, stop_distance, _cached_has_clear_path, allow_attack_without_clear_path)
 	else:
 		velocity = Vector2.ZERO
 		_clear_navigation_target()
 
+	velocity += _external_push_velocity
 	move_and_slide()
 
 func _get_navigation_velocity(_target_position: Vector2) -> Vector2:
@@ -201,7 +233,59 @@ func _has_clear_path_to_target(target: Node2D) -> bool:
 	var collider: Variant = hit.get("collider")
 	return collider == target
 
+func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
+	_apply_damage(amount)
+	if amount > 0.0:
+		_spawn_local_vfx(_vfx_hit_marker, Vector2(0.0, -20.0), 0.14, Vector2.ONE)
+
+	if options.has("burn_dps") and options.has("burn_duration"):
+		var burn_dps: float = float(options.get("burn_dps", 0.0))
+		var burn_duration: float = float(options.get("burn_duration", 0.0))
+		if burn_dps > 0.0 and burn_duration > 0.0:
+			_burn_dps = maxf(_burn_dps, burn_dps)
+			_burn_time_left = maxf(_burn_time_left, burn_duration)
+
+	if options.has("sting_stacks_add"):
+		var stacks_to_add: int = int(options.get("sting_stacks_add", 0))
+		if stacks_to_add > 0:
+			var previous_sting_stacks: int = _sting_stacks
+			_sting_stacks = mini(_sting_stacks + stacks_to_add, maxi(max_sting_stacks, 1))
+			_sting_time_left = maxf(_sting_time_left, float(options.get("sting_duration", 2.0)))
+			_sting_dps_per_stack = maxf(_sting_dps_per_stack, float(options.get("sting_dps_per_stack", 1.0)))
+			_sting_max_stack_burst_damage = maxf(_sting_max_stack_burst_damage, float(options.get("sting_max_stack_burst_damage", 0.0)))
+
+			if _sting_stacks >= max_sting_stacks and _sting_max_stack_burst_damage > 0.0:
+				var burst_interval: int = maxi(max_sting_stacks, 1)
+				var hits_to_cap: int = maxi(max_sting_stacks - previous_sting_stacks, 0)
+				var overflow_hits: int = maxi(stacks_to_add - hits_to_cap, 0)
+				var counted_hits: int = stacks_to_add
+				if previous_sting_stacks < max_sting_stacks:
+					counted_hits = hits_to_cap + overflow_hits
+
+				_sting_hits_toward_burst += counted_hits
+				while _sting_hits_toward_burst >= burst_interval:
+					_sting_hits_toward_burst -= burst_interval
+					_apply_damage(_sting_max_stack_burst_damage)
+					_spawn_local_vfx(_vfx_hit_marker, Vector2(0.0, -28.0), 0.18, Vector2(1.2, 1.2))
+
+	if options.has("root_duration"):
+		var root_duration: float = float(options.get("root_duration", 0.0))
+		if root_duration > 0.0:
+			_root_time_left = maxf(_root_time_left, root_duration)
+			_spawn_local_vfx(_vfx_rooted, Vector2(0.0, 8.0), 0.18, Vector2(1.0, 1.0))
+
+	if options.has("knockback_force") and is_instance_valid(source):
+		var knockback_force: float = float(options.get("knockback_force", 0.0))
+		if knockback_force > 0.0:
+			var push_direction: Vector2 = source.global_position.direction_to(global_position)
+			if push_direction != Vector2.ZERO:
+				_external_push_velocity += push_direction * knockback_force
+				_spawn_local_vfx(_vfx_knockback, Vector2(0.0, -4.0), 0.16, Vector2.ONE, push_direction.angle())
+
 func take_damage(amount: float) -> void:
+	take_hit(amount)
+
+func _apply_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return
 
@@ -210,6 +294,94 @@ func take_damage(amount: float) -> void:
 
 	if _current_health <= 0.0:
 		_die()
+
+func _update_status_effects(delta: float) -> void:
+	_burn_time_left = maxf(_burn_time_left - delta, 0.0)
+	_sting_time_left = maxf(_sting_time_left - delta, 0.0)
+	_root_time_left = maxf(_root_time_left - delta, 0.0)
+	_status_tick_time_left = maxf(_status_tick_time_left - delta, 0.0)
+
+	if _burn_time_left <= 0.0:
+		_burn_dps = 0.0
+
+	if _sting_time_left <= 0.0:
+		_sting_stacks = 0
+		_sting_dps_per_stack = 0.0
+		_sting_max_stack_burst_damage = 0.0
+		_sting_hits_toward_burst = 0
+
+	if _status_tick_time_left > 0.0:
+		_update_status_vfx()
+		return
+
+	var tick_interval: float = maxf(status_tick_interval, 0.05)
+	_status_tick_time_left = tick_interval
+
+	var burn_damage: float = _burn_dps * tick_interval
+	if burn_damage > 0.0:
+		_apply_damage(burn_damage)
+
+	var sting_damage: float = _sting_dps_per_stack * float(_sting_stacks) * tick_interval
+	if sting_damage > 0.0:
+		_apply_damage(sting_damage)
+
+	_update_status_vfx()
+
+func _setup_status_vfx() -> void:
+	_burn_vfx_sprite = _create_persistent_status_sprite(_vfx_burn_effect, Vector2(0.0, -4.0), Vector2(1.0, 1.0))
+	_root_vfx_sprite = _create_persistent_status_sprite(_vfx_rooted, Vector2(0.0, 10.0), Vector2(1.0, 1.0))
+	_update_status_vfx()
+
+func _load_vfx_assets() -> void:
+	_vfx_burn_effect = load(VFX_BURN_EFFECT_PATH) as Texture2D
+	_vfx_rooted = load(VFX_ROOTED_PATH) as Texture2D
+	_vfx_hit_marker = load(VFX_HIT_MARKER_PATH) as Texture2D
+	_vfx_knockback = load(VFX_KNOCKBACK_PATH) as Texture2D
+
+func _create_persistent_status_sprite(texture: Texture2D, local_position: Vector2, sprite_scale: Vector2) -> Sprite2D:
+	if texture == null:
+		return null
+
+	var status_sprite := Sprite2D.new()
+	status_sprite.texture = texture
+	status_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	status_sprite.position = local_position
+	status_sprite.scale = sprite_scale
+	status_sprite.z_index = 5
+	status_sprite.visible = false
+	add_child(status_sprite)
+	return status_sprite
+
+func _update_status_vfx() -> void:
+	if _burn_vfx_sprite != null:
+		_burn_vfx_sprite.visible = _burn_time_left > 0.0
+		if _burn_vfx_sprite.visible:
+			var burn_pulse: float = 0.75 + (0.25 * sin(Time.get_ticks_msec() / 85.0))
+			_burn_vfx_sprite.modulate = Color(1.0, 1.0, 1.0, burn_pulse)
+
+	if _root_vfx_sprite != null:
+		_root_vfx_sprite.visible = _root_time_left > 0.0
+		if _root_vfx_sprite.visible:
+			var root_pulse: float = 0.8 + (0.2 * sin(Time.get_ticks_msec() / 110.0))
+			_root_vfx_sprite.modulate = Color(1.0, 1.0, 1.0, root_pulse)
+
+func _spawn_local_vfx(texture: Texture2D, local_offset: Vector2, lifetime: float, sprite_scale: Vector2 = Vector2.ONE, rotation_radians: float = 0.0) -> void:
+	if texture == null:
+		return
+
+	var vfx_sprite := Sprite2D.new()
+	vfx_sprite.texture = texture
+	vfx_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	vfx_sprite.position = local_offset
+	vfx_sprite.scale = sprite_scale
+	vfx_sprite.rotation = rotation_radians
+	vfx_sprite.z_index = 7
+	vfx_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
+	add_child(vfx_sprite)
+
+	var fade_tween: Tween = vfx_sprite.create_tween()
+	fade_tween.tween_property(vfx_sprite, "modulate:a", 0.0, maxf(lifetime, 0.05))
+	fade_tween.tween_callback(Callable(vfx_sprite, "queue_free"))
 
 func _die() -> void:
 	queue_free()
