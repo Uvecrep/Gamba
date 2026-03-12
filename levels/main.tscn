@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/lootbox_counter_hud.gd" id="8_hud"]
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
-[ext_resource type="PackedScene" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
+[ext_resource type="PackedScene" uid="uid://c63lyvmlfrslj" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
 [ext_resource type="PackedScene" uid="uid://dnbwxv6w4m5e2" path="res://entities/crystal/crystal.tscn" id="11_1j61c"]
 [ext_resource type="PackedScene" uid="uid://dji85hd60lf4h" path="res://ui/debug_inventory/debug_inventory.tscn" id="11_c7dyn"]
 [ext_resource type="PackedScene" uid="uid://b815q8hl3sixl" path="res://ui/inventory/inventory.tscn" id="12_1fput"]
@@ -43,7 +43,7 @@ starting_lootboxes = 1
 produced_lootbox_id = &"lootbox_chaos"
 
 [node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
-position = Vector2(1893, -2514)
+position = Vector2(1869, -2514)
 spawn_interval = 10.0
 
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]

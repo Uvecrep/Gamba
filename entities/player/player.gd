@@ -379,7 +379,6 @@ func _open_lootbox(lootbox: Lootbox) -> bool:
 func _configure_world_bounds() -> void:
 	var tile_map_layer: Node = _find_world_tile_map_layer()
 	if tile_map_layer == null:
-		push_warning("Player: could not find TileMapGround for world bounds.")
 		return
 	if not tile_map_layer.has_method("get_used_rect") or not tile_map_layer.has_method("map_to_local"):
 		push_warning("Player: world TileMapGround is missing required bounds methods.")

@@ -14,6 +14,7 @@
 [sub_resource type="Resource" id="Outcome_Chaos_BabyDragon"]
 script = ExtResource("3_spawn_outcome")
 summon_texture_override = ExtResource("4_baby_dragon_texture")
+summon_identity = &"baby_dragon"
 
 [sub_resource type="Resource" id="Entry_Chaos_BabyDragon"]
 script = ExtResource("2_entry")
@@ -22,6 +23,7 @@ outcome = SubResource("Outcome_Chaos_BabyDragon")
 [sub_resource type="Resource" id="Outcome_Chaos_Ghost"]
 script = ExtResource("3_spawn_outcome")
 summon_texture_override = ExtResource("5_ghost_texture")
+summon_identity = &"ghost"
 
 [sub_resource type="Resource" id="Entry_Chaos_Ghost"]
 script = ExtResource("2_entry")
@@ -30,6 +32,7 @@ outcome = SubResource("Outcome_Chaos_Ghost")
 [sub_resource type="Resource" id="Outcome_Chaos_JackInTheBox"]
 script = ExtResource("3_spawn_outcome")
 summon_texture_override = ExtResource("6_jack_in_the_box_texture")
+summon_identity = &"jack_in_the_box"
 
 [sub_resource type="Resource" id="Entry_Chaos_JackInTheBox"]
 script = ExtResource("2_entry")
@@ -38,6 +41,7 @@ outcome = SubResource("Outcome_Chaos_JackInTheBox")
 [sub_resource type="Resource" id="Outcome_Chaos_Slime"]
 script = ExtResource("3_spawn_outcome")
 summon_texture_override = ExtResource("7_slime_texture")
+summon_identity = &"slime"
 
 [sub_resource type="Resource" id="Entry_Chaos_Slime"]
 script = ExtResource("2_entry")
@@ -46,6 +50,7 @@ outcome = SubResource("Outcome_Chaos_Slime")
 [sub_resource type="Resource" id="Outcome_Chaos_SparkGoblin"]
 script = ExtResource("3_spawn_outcome")
 summon_texture_override = ExtResource("8_spark_goblin_texture")
+summon_identity = &"spark_goblin"
 
 [sub_resource type="Resource" id="Entry_Chaos_SparkGoblin"]
 script = ExtResource("2_entry")
