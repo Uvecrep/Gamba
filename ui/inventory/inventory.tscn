@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b815q8hl3sixl"]
 
-[ext_resource type="Script" uid="uid://vqti75yd87dr" path="res://ui/inventory/inventory.gd" id="1_t68fq"]
+[ext_resource type="Script" uid="uid://vqti75yd87dr" path="res://ui/inventory/inventory_ui.gd" id="1_t68fq"]
+[ext_resource type="PackedScene" uid="uid://xtfj7565v6v4" path="res://ui/inventory/inventory_slot.tscn" id="2_s83yu"]
 
 [node name="Inventory" type="Control" unique_id=1753442306]
 layout_mode = 3
@@ -27,16 +28,25 @@ theme_override_constants/margin_right = 400
 [node name="PanelContainer" type="Panel" parent="MarginContainer" unique_id=554923517]
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="MarginContainer/PanelContainer" unique_id=2110797133]
+[node name="InventorySlot_0" parent="MarginContainer/PanelContainer" unique_id=1493361272 instance=ExtResource("2_s83yu")]
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -50.0
-offset_top = -150.0
-offset_right = 50.0
-offset_bottom = -50.0
-grow_horizontal = 2
-grow_vertical = 0
+offset_left = -320.0
+offset_right = -320.0
+
+[node name="InventorySlot_1" parent="MarginContainer/PanelContainer" unique_id=92212709 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+offset_left = -160.0
+offset_right = -160.0
+
+[node name="InventorySlot_2" parent="MarginContainer/PanelContainer" unique_id=2109016855 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+
+[node name="InventorySlot_3" parent="MarginContainer/PanelContainer" unique_id=1071416769 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+offset_left = 160.0
+offset_right = 160.0
+
+[node name="InventorySlot_4" parent="MarginContainer/PanelContainer" unique_id=976170593 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+offset_left = 320.0
+offset_right = 320.0
