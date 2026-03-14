@@ -20,6 +20,8 @@ signal move_order_issued(target_world_position: Vector2, summon_count: int)
 @export var selection_box_fill_color: Color = Color(1.0, 0.95, 0.45, 0.14)
 @export var selection_box_border_color: Color = Color(1.0, 0.95, 0.45, 0.9)
 @export var drag_selection_threshold: float = 6.0
+@export var redraw_interval: float = 0.1
+@export var world_bounds_refresh_interval: float = 0.5
 
 var _world_bounds: Rect2 = Rect2()
 var _has_world_bounds: bool = false
@@ -30,6 +32,8 @@ var _drag_started_inside_map: bool = false
 var _drag_additive_selection: bool = false
 var _drag_start_position: Vector2 = Vector2.ZERO
 var _drag_current_position: Vector2 = Vector2.ZERO
+var _time_to_redraw: float = 0.0
+var _time_to_world_bounds_refresh: float = 0.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -37,9 +41,21 @@ func _ready() -> void:
 	_refresh_world_bounds()
 	queue_redraw()
 
-func _process(_delta: float) -> void:
-	if not _has_world_bounds:
+func _process(delta: float) -> void:
+	if not is_visible_in_tree():
+		return
+
+	_time_to_redraw = maxf(_time_to_redraw - delta, 0.0)
+	_time_to_world_bounds_refresh = maxf(_time_to_world_bounds_refresh - delta, 0.0)
+
+	if _time_to_world_bounds_refresh <= 0.0:
 		_refresh_world_bounds()
+		_time_to_world_bounds_refresh = maxf(world_bounds_refresh_interval, 0.05)
+
+	if _time_to_redraw > 0.0:
+		return
+
+	_time_to_redraw = maxf(redraw_interval, 0.03)
 	_prune_selected_summons()
 	queue_redraw()
 
