@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const CombatText = preload("res://scripts/floating_combat_text.gd")
+
 @export var summon_identity: StringName = &"mushroom_knight"
 @export var move_speed: float = 110.0
 @export var repath_interval: float = 0.15
@@ -652,11 +654,30 @@ func take_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return
 
+	var previous_health: float = _current_health
 	_current_health = clampf(_current_health - amount, 0.0, max_health)
+	var applied_damage: float = previous_health - _current_health
+	if applied_damage > 0.0:
+		CombatText.spawn_damage(self, applied_damage)
 	_update_health_bar()
 
 	if _current_health <= 0.0:
 		_die()
+
+func heal(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	if _current_health <= 0.0:
+		return
+
+	var previous_health: float = _current_health
+	_current_health = clampf(_current_health + amount, 0.0, max_health)
+	var healed_amount: float = _current_health - previous_health
+	if healed_amount <= 0.0:
+		return
+
+	CombatText.spawn_heal(self, healed_amount)
+	_update_health_bar()
 
 func _die() -> void:
 	if _should_split_on_death():

@@ -1,10 +1,12 @@
 extends CharacterBody2D
 
+const CombatText = preload("res://scripts/floating_combat_text.gd")
+
 @export var move_speed: float = 90.0
 @export var repath_interval: float = 0.3
 @export var target_reach_distance: float = 32.0
 @export var target_stop_padding: float = 2.0
-@export var nearby_target_groups: PackedStringArray = ["summons"]
+@export var nearby_target_groups: PackedStringArray = ["summons", "players"]
 @export var fallback_target_group: StringName = &"house"
 @export var nearby_target_radius: float = 270.0
 @export var melee_damage: float = 15.0
@@ -289,11 +291,30 @@ func _apply_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return
 
+	var previous_health: float = _current_health
 	_current_health = clampf(_current_health - amount, 0.0, max_health)
+	var applied_damage: float = previous_health - _current_health
+	if applied_damage > 0.0:
+		CombatText.spawn_damage(self, applied_damage)
 	_update_health_bar()
 
 	if _current_health <= 0.0:
 		_die()
+
+func heal(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	if _current_health <= 0.0:
+		return
+
+	var previous_health: float = _current_health
+	_current_health = clampf(_current_health + amount, 0.0, max_health)
+	var healed_amount: float = _current_health - previous_health
+	if healed_amount <= 0.0:
+		return
+
+	CombatText.spawn_heal(self, healed_amount)
+	_update_health_bar()
 
 func _update_status_effects(delta: float) -> void:
 	_burn_time_left = maxf(_burn_time_left - delta, 0.0)
