@@ -22,6 +22,8 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 @export var status_tick_interval: float = 0.2
 @export var max_sting_stacks: int = 8
 @export var knockback_decay: float = 900.0
+@export var health_bar_show_duration: float = 2.0
+@export var always_show_health_bar: bool = false
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_ENEMY: int = 1 << 2
@@ -48,6 +50,7 @@ var _sting_hits_toward_burst: int = 0
 var _root_time_left: float = 0.0
 var _status_tick_time_left: float = 0.0
 var _external_push_velocity: Vector2 = Vector2.ZERO
+var _health_bar_visible_time_left: float = 0.0
 var _burn_vfx_sprite: Sprite2D
 var _root_vfx_sprite: Sprite2D
 var _vfx_burn_effect: Texture2D
@@ -69,6 +72,7 @@ func _ready() -> void:
 		_navigation_agent.target_desired_distance = maxf(nav_target_desired_distance, 6.0)
 		_navigation_agent.set_navigation_map(get_world_2d().navigation_map)
 	_current_health = max_health
+	_health_bar_visible_time_left = 0.0
 	_update_health_bar()
 	_setup_status_vfx()
 
@@ -77,8 +81,12 @@ func _physics_process(delta: float) -> void:
 	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
 	_time_to_visibility_refresh = maxf(_time_to_visibility_refresh - delta, 0.0)
 	_time_to_next_melee_hit = maxf(_time_to_next_melee_hit - delta, 0.0)
+	var previous_health_bar_visible_time_left: float = _health_bar_visible_time_left
+	_health_bar_visible_time_left = maxf(_health_bar_visible_time_left - delta, 0.0)
 	_update_status_effects(delta)
 	_external_push_velocity = _external_push_velocity.move_toward(Vector2.ZERO, maxf(knockback_decay, 0.0) * delta)
+	if previous_health_bar_visible_time_left > 0.0 and _health_bar_visible_time_left <= 0.0:
+		_refresh_health_bar_visibility()
 	var is_rooted: bool = _root_time_left > 0.0
 	if _time_to_repath <= 0.0:
 		var nearby_target := _find_closest_target_in_groups(nearby_target_groups, nearby_target_radius)
@@ -296,6 +304,7 @@ func _apply_damage(amount: float) -> void:
 	var applied_damage: float = previous_health - _current_health
 	if applied_damage > 0.0:
 		CombatText.spawn_damage(self, applied_damage)
+		_request_health_bar_visibility()
 	_update_health_bar()
 
 	if _current_health <= 0.0:
@@ -314,6 +323,7 @@ func heal(amount: float) -> void:
 		return
 
 	CombatText.spawn_heal(self, healed_amount)
+	_request_health_bar_visibility(0.75)
 	_update_health_bar()
 
 func _update_status_effects(delta: float) -> void:
@@ -413,7 +423,26 @@ func _update_health_bar() -> void:
 
 	_health_bar.max_value = max_health
 	_health_bar.value = _current_health
-	_health_bar.visible = true
+	_refresh_health_bar_visibility()
+
+func _request_health_bar_visibility(duration: float = -1.0) -> void:
+	if _health_bar == null:
+		return
+
+	var resolved_duration: float = duration
+	if resolved_duration < 0.0:
+		resolved_duration = health_bar_show_duration
+	_health_bar_visible_time_left = maxf(_health_bar_visible_time_left, maxf(resolved_duration, 0.0))
+	_refresh_health_bar_visibility()
+
+func _refresh_health_bar_visibility() -> void:
+	if _health_bar == null:
+		return
+
+	var should_show: bool = always_show_health_bar or _health_bar_visible_time_left > 0.0
+	if _current_health <= 0.0:
+		should_show = false
+	_health_bar.visible = should_show
 
 func _find_closest_target_in_groups(group_names: PackedStringArray, radius: float) -> Node2D:
 	var closest_target: Node2D
