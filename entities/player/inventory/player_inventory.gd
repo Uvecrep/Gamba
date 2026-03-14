@@ -3,6 +3,8 @@ class_name PlayerInventory
 
 signal inventory_changed()
 signal inventory_became_full()
+signal selection_index_changed(new_index : int)
+signal slot_contents_changed(index : int, item_id : StringName, count : int)
 
 var selected_index : int = 0
 var num_slots : int = 5 # TODO implement changing number of slots? Static rn
@@ -56,8 +58,10 @@ func add_items(item_id: StringName, num_items: int) -> bool:
 		inventory_items[target_slot_index] = item_id
 		filled_new_slot = true
 	
-	inventory_item_counts[target_slot_index] += num_items
+	var new_count = inventory_item_counts[target_slot_index] + num_items
+	inventory_item_counts[target_slot_index] = new_count
 	inventory_changed.emit()
+	slot_contents_changed.emit(target_slot_index, item_id, new_count)
 	if filled_new_slot and _get_empty_slots().size() == 0: 
 		inventory_became_full.emit()
 	return true

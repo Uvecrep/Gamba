@@ -19,6 +19,7 @@
 script = ExtResource("9_main")
 navigation_obstacle_padding = 16.0
 navigation_grid_clearance_pixels = 16.0
+metadata/_edit_horizontal_guides_ = [-958.0]
 
 [node name="World" parent="." unique_id=32232329 instance=ExtResource("2_wdj6m")]
 
@@ -83,8 +84,8 @@ horizontal_alignment = 1
 [node name="DebugInventory" parent="UI" unique_id=1649588140 node_paths=PackedStringArray("player_ref") instance=ExtResource("11_c7dyn")]
 player_ref = NodePath("../../player")
 
-[node name="Inventory" parent="UI" unique_id=1753442306 instance=ExtResource("12_1fput")]
-visible = false
+[node name="Inventory" parent="UI" unique_id=1753442306 node_paths=PackedStringArray("player_ref") instance=ExtResource("12_1fput")]
+player_ref = NodePath("../../player")
 
 [node name="FPSCounterLabel" type="Label" parent="UI" unique_id=1988605126]
 anchors_preset = 1
@@ -169,7 +170,7 @@ item_id = &"pear"
 
 [node name="Pickup3" parent="." unique_id=1233044806 instance=ExtResource("13_1fput")]
 position = Vector2(631, 787)
-item_id = &"peach"
+item_id = &"pear"
 
 [node name="Pickup4" parent="." unique_id=1657756741 instance=ExtResource("13_1fput")]
 position = Vector2(523, 747)

@@ -81,6 +81,7 @@ func _physics_process(_delta: float) -> void:
 	
 	if mouse_scroll_delta != 0:
 		player_inventory.selected_index = posmod(player_inventory.selected_index + mouse_scroll_delta,player_inventory.num_slots)
+		player_inventory.selection_index_changed.emit(player_inventory.selected_index)
 		player_inventory.inventory_changed.emit()
 	
 	var mouse_pos = get_viewport().get_mouse_position() - (get_viewport().get_visible_rect().size/2)

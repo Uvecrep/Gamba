@@ -11,6 +11,7 @@ extends CanvasLayer
 @onready var _sapling_debug_label: Label = get_node_or_null("SaplingPlantDebugLabel") as Label
 @onready var _summon_command_hint_label: Label = get_node_or_null("SummonCommandHintLabel") as Label
 
+
 var _interact_hint_text: String = "E"
 var _summon_hold_hint_text: String = "H"
 var _summon_follow_hint_text: String = "F"
