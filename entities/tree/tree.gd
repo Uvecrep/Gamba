@@ -7,6 +7,7 @@ signal fruit_count_changed(current: int, maximum: int)
 @export var starting_fruit: int = 0
 @export var harvest_prompt_action: StringName = &"interact"
 @export var default_harvest_range: float = 96.0
+@export var pause_growth_at_night: bool = true
 var box_pickup_scene : PackedScene = preload("res://entities/pickups/box_pickup.tscn")
 
 @export var produced_lootbox_id: StringName
@@ -15,6 +16,7 @@ var _fruit_count: int = 0
 var _shown_fruit_indices: Array[int] = []
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _harvest_hint_text: String = "E"
+var _is_growth_paused: bool = false
 
 
 @onready var _growth_timer: Timer = $GrowthTimer
@@ -40,6 +42,7 @@ func _ready() -> void:
 
 	_set_fruit_count(starting_fruit)
 	_refresh_growth_timer()
+	_sync_growth_pause_from_day_night_cycle()
 	_update_harvest_prompt()
 
 func _process(_delta: float) -> void:
@@ -70,6 +73,10 @@ func harvest_fruit(amount: int = 1) -> int:
 	return harvested
 
 func _on_growth_timer_timeout() -> void:
+	if _is_growth_paused:
+		_refresh_growth_timer()
+		return
+
 	if _fruit_count >= max_fruit:
 		_refresh_growth_timer()
 		return
@@ -85,12 +92,37 @@ func _set_fruit_count(value: int) -> void:
 	fruit_count_changed.emit(_fruit_count, max_fruit)
 
 func _refresh_growth_timer() -> void:
-	if max_fruit <= 0 or _fruit_count >= max_fruit:
+	if _is_growth_paused or max_fruit <= 0 or _fruit_count >= max_fruit:
 		_growth_timer.stop()
 		return
 
 	if _growth_timer.is_stopped():
 		_growth_timer.start()
+
+func set_growth_paused(is_paused: bool) -> void:
+	if not pause_growth_at_night:
+		is_paused = false
+
+	if _is_growth_paused == is_paused:
+		return
+
+	_is_growth_paused = is_paused
+	_refresh_growth_timer()
+
+func is_growth_paused() -> bool:
+	return _is_growth_paused
+
+func _sync_growth_pause_from_day_night_cycle() -> void:
+	if not pause_growth_at_night:
+		set_growth_paused(false)
+		return
+
+	var current_scene: Node = get_tree().current_scene
+	if current_scene == null or not current_scene.has_method("is_night_time"):
+		set_growth_paused(false)
+		return
+
+	set_growth_paused(bool(current_scene.call("is_night_time")))
 
 func _update_fruit_visuals() -> void:
 	var target_visible_count := mini(_fruit_count, _fruit_sprites.size())

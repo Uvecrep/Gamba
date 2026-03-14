@@ -4,6 +4,21 @@ extends Node2D
 @export var navigation_rebuild_delay_seconds: float = 0.15
 @export var navigation_block_full_collision_cells: bool = true
 @export var navigation_grid_clearance_pixels: float = 18.0
+@export_group("Day/Night Cycle")
+@export var enable_day_night_cycle: bool = true
+@export var day_duration_seconds: float = 60.0
+@export var night_duration_seconds: float = 36.0
+@export var first_night_starts_immediately: bool = false
+@export var night_waves_per_cycle: int = 3
+@export var night_wave_base_size: int = 6
+@export var night_wave_size_growth_per_night: int = 2
+@export var night_wave_spacing_seconds: float = 10.0
+@export_group("Day/Night Visuals")
+@export var day_night_transition_seconds: float = 1.8
+@export var day_overlay_color: Color = Color(0.06, 0.09, 0.15, 0.0)
+@export var night_overlay_color: Color = Color(0.06, 0.09, 0.15, 0.48)
+@export var day_label_color: Color = Color(0.94, 0.96, 1.0, 1.0)
+@export var night_label_color: Color = Color(0.65, 0.78, 1.0, 1.0)
 
 var _is_game_over: bool = false
 
@@ -12,13 +27,22 @@ var _is_game_over: bool = false
 @onready var _game_over_layer: CanvasLayer = get_node_or_null("GameOverLayer") as CanvasLayer
 @onready var _restart_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/RestartButton") as Button
 @onready var _quit_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/QuitButton") as Button
+@onready var _day_night_label: Label = get_node_or_null("UI/DayNightLabel") as Label
+@onready var _day_night_overlay: ColorRect = get_node_or_null("UI/DayNightOverlay") as ColorRect
 
 var _navigation_rebuild_timer: Timer
 var _world_navigation_region: NavigationRegion2D
+var _day_night_phase_timer: Timer
+var _night_wave_timer: Timer
 var _is_exiting_tree: bool = false
+var _is_night_phase: bool = false
+var _night_index: int = 0
+var _waves_spawned_this_night: int = 0
+var _day_night_overlay_tween: Tween
 
 func _ready() -> void:
 	_is_exiting_tree = false
+	add_to_group("day_night_cycle_controllers")
 	if is_instance_valid(_house) and _house.has_signal("destroyed"):
 		_house.connect("destroyed", _on_house_destroyed)
 
@@ -36,11 +60,18 @@ func _ready() -> void:
 		_quit_button.pressed.connect(_on_quit_pressed)
 
 	_set_game_over_visible(false)
+	_initialize_day_night_cycle()
 
 func _exit_tree() -> void:
 	_is_exiting_tree = true
 	if is_instance_valid(_navigation_rebuild_timer):
 		_navigation_rebuild_timer.stop()
+	if is_instance_valid(_day_night_phase_timer):
+		_day_night_phase_timer.stop()
+	if is_instance_valid(_night_wave_timer):
+		_night_wave_timer.stop()
+	if is_instance_valid(_day_night_overlay_tween):
+		_day_night_overlay_tween.kill()
 
 	if get_tree() == null:
 		return
@@ -57,6 +88,10 @@ func _on_house_destroyed() -> void:
 	_is_game_over = true
 	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
 		_enemy_spawner.call("stop_spawning")
+	if is_instance_valid(_day_night_phase_timer):
+		_day_night_phase_timer.stop()
+	if is_instance_valid(_night_wave_timer):
+		_night_wave_timer.stop()
 	_set_game_over_visible(true)
 	get_tree().paused = true
 
@@ -75,6 +110,175 @@ func _set_game_over_visible(should_show: bool) -> void:
 	_game_over_layer.visible = should_show
 	if should_show and is_instance_valid(_restart_button):
 		_restart_button.grab_focus()
+
+func _initialize_day_night_cycle() -> void:
+	if not enable_day_night_cycle:
+		if _day_night_label != null:
+			_day_night_label.visible = false
+		_apply_day_night_visual_state(false, true)
+		_set_tree_growth_paused(false)
+		if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("start_spawning"):
+			_enemy_spawner.call("start_spawning")
+		return
+
+	_ensure_day_night_runtime_nodes()
+	if first_night_starts_immediately:
+		_start_night_phase()
+	else:
+		_start_day_phase()
+
+func _ensure_day_night_runtime_nodes() -> void:
+	if _day_night_phase_timer == null:
+		_day_night_phase_timer = Timer.new()
+		_day_night_phase_timer.name = "DayNightPhaseTimer"
+		_day_night_phase_timer.one_shot = true
+		_day_night_phase_timer.timeout.connect(_on_day_night_phase_timer_timeout)
+		add_child(_day_night_phase_timer)
+
+	if _night_wave_timer == null:
+		_night_wave_timer = Timer.new()
+		_night_wave_timer.name = "NightWaveTimer"
+		_night_wave_timer.one_shot = true
+		_night_wave_timer.timeout.connect(_on_night_wave_timer_timeout)
+		add_child(_night_wave_timer)
+
+	if _day_night_label != null:
+		_day_night_label.visible = true
+
+func _start_day_night_phase_timer(duration_seconds: float) -> void:
+	if _day_night_phase_timer == null or not is_instance_valid(_day_night_phase_timer):
+		return
+	if not _day_night_phase_timer.is_inside_tree():
+		return
+
+	_day_night_phase_timer.start(maxf(duration_seconds, 0.1))
+
+func _start_day_phase() -> void:
+	_is_night_phase = false
+	_waves_spawned_this_night = 0
+
+	if is_instance_valid(_night_wave_timer):
+		_night_wave_timer.stop()
+
+	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
+		_enemy_spawner.call("stop_spawning")
+
+	_set_tree_growth_paused(false)
+	_apply_day_night_visual_state(false, false)
+	_update_day_night_label("Day")
+	_start_day_night_phase_timer(day_duration_seconds)
+
+func _start_night_phase() -> void:
+	_is_night_phase = true
+	_night_index += 1
+	_waves_spawned_this_night = 0
+
+	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
+		_enemy_spawner.call("stop_spawning")
+
+	_set_tree_growth_paused(true)
+	_apply_day_night_visual_state(true, false)
+	_update_day_night_label("Night %d" % _night_index)
+	_spawn_next_night_wave()
+	_start_day_night_phase_timer(night_duration_seconds)
+
+func is_night_time() -> bool:
+	return enable_day_night_cycle and _is_night_phase
+
+func _set_tree_growth_paused(is_paused: bool) -> void:
+	for tree in get_tree().get_nodes_in_group("trees"):
+		if not is_instance_valid(tree):
+			continue
+		if tree.has_method("set_growth_paused"):
+			tree.call("set_growth_paused", is_paused)
+
+func _apply_day_night_visual_state(is_night: bool, immediate: bool) -> void:
+	if _day_night_overlay == null:
+		return
+
+	var target_overlay_color: Color = day_overlay_color
+	var target_label_color: Color = day_label_color
+	if is_night:
+		target_overlay_color = night_overlay_color
+		target_label_color = night_label_color
+
+	if is_instance_valid(_day_night_overlay_tween):
+		_day_night_overlay_tween.kill()
+
+	if immediate or day_night_transition_seconds <= 0.0:
+		_day_night_overlay.color = target_overlay_color
+		if _day_night_label != null:
+			_day_night_label.modulate = target_label_color
+		return
+
+	_day_night_overlay_tween = create_tween().set_parallel(true)
+	_day_night_overlay_tween.tween_property(_day_night_overlay, "color", target_overlay_color, day_night_transition_seconds)
+	if _day_night_label != null:
+		_day_night_overlay_tween.tween_property(_day_night_label, "modulate", target_label_color, day_night_transition_seconds)
+
+func _on_day_night_phase_timer_timeout() -> void:
+	if _is_game_over or _is_exiting_tree or not enable_day_night_cycle:
+		return
+
+	if _is_night_phase:
+		_start_day_phase()
+	else:
+		_start_night_phase()
+
+func _on_night_wave_timer_timeout() -> void:
+	if _is_game_over or _is_exiting_tree or not _is_night_phase:
+		return
+
+	_spawn_next_night_wave()
+
+func _spawn_next_night_wave() -> void:
+	if not _is_night_phase:
+		return
+
+	var total_waves: int = maxi(night_waves_per_cycle, 1)
+	if _waves_spawned_this_night >= total_waves:
+		return
+
+	var wave_size: int = _compute_night_wave_size()
+	if is_instance_valid(_enemy_spawner):
+		if _enemy_spawner.has_method("spawn_wave"):
+			_enemy_spawner.call("spawn_wave", wave_size, true)
+		elif _enemy_spawner.has_method("start_spawning"):
+			_enemy_spawner.call("start_spawning")
+
+	_waves_spawned_this_night += 1
+	_update_day_night_label("Night %d  Wave %d/%d" % [_night_index, _waves_spawned_this_night, total_waves])
+
+	if _waves_spawned_this_night >= total_waves:
+		return
+
+	if _night_wave_timer == null or not is_instance_valid(_night_wave_timer):
+		return
+	if not _night_wave_timer.is_inside_tree():
+		return
+
+	_night_wave_timer.start(_get_night_wave_spacing_seconds(total_waves))
+
+func _compute_night_wave_size() -> int:
+	var growth_steps: int = maxi(_night_index - 1, 0)
+	return maxi(night_wave_base_size + (growth_steps * night_wave_size_growth_per_night), 1)
+
+func _get_night_wave_spacing_seconds(total_waves: int) -> float:
+	if total_waves <= 1:
+		return maxf(night_duration_seconds, 0.1)
+
+	var max_spacing: float = maxf(night_duration_seconds / float(total_waves - 1), 0.1)
+	if night_wave_spacing_seconds <= 0.0:
+		return max_spacing
+
+	return clampf(night_wave_spacing_seconds, 0.1, max_spacing)
+
+func _update_day_night_label(phase_text: String) -> void:
+	if _day_night_label == null:
+		return
+
+	_day_night_label.visible = true
+	_day_night_label.text = phase_text
 
 func _ensure_navigation_runtime_nodes() -> void:
 	if _world_navigation_region == null:
