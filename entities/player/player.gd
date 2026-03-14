@@ -3,6 +3,9 @@ class_name Player
 
 signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
 
+const CombatText = preload("res://scripts/floating_combat_text.gd")
+const DEATH_INDICATOR_COLOR: Color = Color(1.0, 0.42, 0.42, 1.0)
+
 
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
@@ -22,23 +25,35 @@ signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_k
 @export var scroll_down_action: StringName = &"scroll_down"
 @export var sapling_plant_range: float = 640.0
 @export var sapling_tree_scene: PackedScene = preload("res://entities/tree/tree.tscn")
+@export var max_health: float = 180.0
+@export var respawn_delay_seconds: float = 1.05
+@export var respawn_invulnerability_seconds: float = 1.5
+@export var respawn_distance_from_house: float = 92.0
+@export var house_regen_radius: float = 180.0
+@export var house_regen_per_second: float = 2.0
+@export var house_regen_tick_interval: float = 0.5
 
 @onready var camera: Camera2D = $Camera2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
 @onready var health_bar: ProgressBar = $HealthBar
 
-var max_health: float = 100
-var current_health: float
+var current_health: float = 0.0
 
 var player_inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
+var _spawn_position: Vector2 = Vector2.ZERO
+var _is_dead: bool = false
+var _invulnerability_time_left: float = 0.0
+var _house_regen_time_left: float = 0.0
 var _is_middle_mouse_selecting: bool = false
 var _middle_select_last_world_point: Vector2 = Vector2.ZERO
 var _middle_select_found_summon: bool = false
 var _middle_select_preview_world_point: Vector2 = Vector2.ZERO
 var _summon_selection_controller: Node
+var _death_indicator_layer: CanvasLayer
+var _death_indicator_label: Label
 var pickups_following_me: Array[Pickup] = []
 
 func _ready() -> void:
@@ -46,6 +61,10 @@ func _ready() -> void:
 	collision_layer = Const.COLLISION_LAYERS.PLAYER
 	collision_mask = Const.COLLISION_LAYERS.WORLD
 	add_to_group("players")
+	_spawn_position = global_position
+	current_health = max_health
+	_setup_death_indicator()
+	_update_health_bar()
 	player_bounds_padding = _get_player_bounds_padding()
 	_configure_world_bounds()
 	player_inventory.inventory_changed.connect(_on_inventory_changed)
@@ -54,13 +73,18 @@ func get_input() -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
 	velocity = input_direction * speed
 
-func _process(_delta: float) -> void:
-	if health_bar == null: return
-	
-	health_bar.max_value = max_health
-	health_bar.value = current_health
+func _process(delta: float) -> void:
+	if _invulnerability_time_left > 0.0:
+		_invulnerability_time_left = maxf(_invulnerability_time_left - delta, 0.0)
+	_update_house_regen(delta)
+
+	_update_health_bar()
 
 func _physics_process(_delta: float) -> void:
+	if _is_dead:
+		velocity = Vector2.ZERO
+		return
+
 	if _is_middle_mouse_selecting:
 		_middle_select_preview_world_point = get_global_mouse_position()
 		queue_redraw()
@@ -88,6 +112,9 @@ func _physics_process(_delta: float) -> void:
 	camera.offset = mouse_pos * .1 # this is goofy, should plug into a better feeling damp function
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _is_dead:
+		return
+
 	if _is_map_open():
 		if event is InputEventMouseButton:
 			var map_mouse_button: InputEventMouseButton = event as InputEventMouseButton
@@ -123,6 +150,187 @@ func get_forest_lootbox_count() -> int:
 
 func _emit_lootbox_inventory_changed() -> void:
 	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), 0)
+
+func take_hit(amount: float, _source: Node2D = null, _options: Dictionary = {}) -> void:
+	take_damage(amount)
+
+func take_damage(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	if _is_dead:
+		return
+	if _invulnerability_time_left > 0.0:
+		return
+
+	var previous_health: float = current_health
+	current_health = clampf(current_health - amount, 0.0, max_health)
+	var applied_damage: float = previous_health - current_health
+	if applied_damage <= 0.0:
+		return
+
+	CombatText.spawn_damage(self, applied_damage)
+	_update_health_bar()
+
+	if current_health <= 0.0:
+		_begin_respawn_flow()
+
+func heal(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	if _is_dead:
+		return
+
+	var previous_health: float = current_health
+	current_health = clampf(current_health + amount, 0.0, max_health)
+	var healed_amount: float = current_health - previous_health
+	if healed_amount <= 0.0:
+		return
+
+	CombatText.spawn_heal(self, healed_amount)
+	_update_health_bar()
+
+func _update_house_regen(delta: float) -> void:
+	if _is_dead:
+		_house_regen_time_left = 0.0
+		return
+	if house_regen_per_second <= 0.0 or house_regen_radius <= 0.0:
+		_house_regen_time_left = 0.0
+		return
+	if current_health >= max_health:
+		_house_regen_time_left = 0.0
+		return
+
+	var nearest_house: Node2D = _find_nearest_house_anywhere()
+	if nearest_house == null:
+		_house_regen_time_left = 0.0
+		return
+
+	var regen_radius_sq: float = house_regen_radius * house_regen_radius
+	if global_position.distance_squared_to(nearest_house.global_position) > regen_radius_sq:
+		_house_regen_time_left = 0.0
+		return
+
+	_house_regen_time_left = maxf(_house_regen_time_left - delta, 0.0)
+	if _house_regen_time_left > 0.0:
+		return
+
+	var tick_interval: float = maxf(house_regen_tick_interval, 0.1)
+	_house_regen_time_left = tick_interval
+	heal(house_regen_per_second * tick_interval)
+
+func _begin_respawn_flow() -> void:
+	if _is_dead:
+		return
+
+	_is_dead = true
+	velocity = Vector2.ZERO
+	_reset_middle_mouse_selection_state()
+	_show_death_indicator()
+	_run_respawn_timer()
+
+func _run_respawn_timer() -> void:
+	var wait_time: float = maxf(respawn_delay_seconds, 0.25)
+	await get_tree().create_timer(wait_time).timeout
+	if not is_inside_tree():
+		return
+
+	_respawn_player()
+
+func _respawn_player() -> void:
+	global_position = _get_respawn_position()
+	_clamp_player_to_world_bounds()
+	current_health = max_health
+	_is_dead = false
+	_invulnerability_time_left = maxf(respawn_invulnerability_seconds, 0.0)
+	_hide_death_indicator()
+	_update_health_bar()
+
+func _get_respawn_position() -> Vector2:
+	var nearest_house: Node2D = _find_nearest_house_anywhere()
+	if nearest_house == null:
+		return _spawn_position
+
+	var from_house: Vector2 = global_position - nearest_house.global_position
+	if from_house == Vector2.ZERO:
+		from_house = Vector2.DOWN
+
+	return nearest_house.global_position + (from_house.normalized() * maxf(respawn_distance_from_house, 48.0))
+
+func _find_nearest_house_anywhere() -> Node2D:
+	var nearest_house: Node2D
+	var nearest_distance_sq: float = INF
+
+	for house in get_tree().get_nodes_in_group("house"):
+		if not (house is Node2D):
+			continue
+
+		var house_node: Node2D = house as Node2D
+		var distance_sq: float = global_position.distance_squared_to(house_node.global_position)
+		if distance_sq >= nearest_distance_sq:
+			continue
+
+		nearest_distance_sq = distance_sq
+		nearest_house = house_node
+
+	return nearest_house
+
+func _setup_death_indicator() -> void:
+	_death_indicator_layer = CanvasLayer.new()
+	_death_indicator_layer.name = "DeathIndicatorLayer"
+	_death_indicator_layer.layer = 24
+	_death_indicator_layer.visible = false
+	add_child(_death_indicator_layer)
+
+	_death_indicator_label = Label.new()
+	_death_indicator_label.name = "DeathIndicatorLabel"
+	_death_indicator_label.anchors_preset = Control.PRESET_CENTER
+	_death_indicator_label.anchor_left = 0.5
+	_death_indicator_label.anchor_top = 0.5
+	_death_indicator_label.anchor_right = 0.5
+	_death_indicator_label.anchor_bottom = 0.5
+	_death_indicator_label.offset_left = -240.0
+	_death_indicator_label.offset_top = -80.0
+	_death_indicator_label.offset_right = 240.0
+	_death_indicator_label.offset_bottom = 80.0
+	_death_indicator_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_death_indicator_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_death_indicator_label.text = "YOU DIED"
+	_death_indicator_label.add_theme_font_size_override("font_size", 58)
+	_death_indicator_label.add_theme_color_override("font_color", DEATH_INDICATOR_COLOR)
+	_death_indicator_label.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_death_indicator_layer.add_child(_death_indicator_label)
+
+func _show_death_indicator() -> void:
+	if _death_indicator_layer == null or _death_indicator_label == null:
+		return
+
+	_death_indicator_layer.visible = true
+	_death_indicator_label.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	var fade_tween: Tween = create_tween()
+	fade_tween.tween_property(_death_indicator_label, "modulate:a", 1.0, 0.12)
+	fade_tween.tween_interval(maxf(respawn_delay_seconds - 0.32, 0.05))
+	fade_tween.tween_property(_death_indicator_label, "modulate:a", 0.0, 0.18)
+
+func _hide_death_indicator() -> void:
+	if _death_indicator_layer == null or _death_indicator_label == null:
+		return
+
+	_death_indicator_label.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	_death_indicator_layer.visible = false
+
+func _update_health_bar() -> void:
+	if health_bar == null:
+		return
+
+	health_bar.max_value = max_health
+	health_bar.value = current_health
+	health_bar.visible = true
+
+	if _invulnerability_time_left > 0.0 and not _is_dead:
+		var pulse: float = 0.65 + (0.35 * sin(Time.get_ticks_msec() / 90.0))
+		health_bar.modulate = Color(1.0, 1.0, 1.0, pulse)
+	else:
+		health_bar.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func _handle_interaction_input() -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree()
@@ -182,6 +390,9 @@ func _handle_interaction_input() -> void:
 	_try_use_item()
 
 func _try_use_item() -> bool:
+	if _is_dead:
+		return false
+
 	var selected_item = player_inventory.inventory_items[player_inventory.selected_index]
 	if selected_item == &"":
 		return false

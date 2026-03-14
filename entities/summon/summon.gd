@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const CombatText = preload("res://scripts/floating_combat_text.gd")
+
 @export var summon_identity: StringName = &"mushroom_knight"
 @export var move_speed: float = 110.0
 @export var repath_interval: float = 0.15
@@ -17,7 +19,10 @@ extends CharacterBody2D
 @export var nav_goal_update_interval: float = 0.45
 @export var follow_nav_target_update_interval: float = 0.2
 @export var follow_nav_target_min_shift: float = 20.0
+@export var ai_update_bucket_count: int = 4
 @export var command_follow_distance: float = 56.0
+@export var health_bar_show_duration: float = 2.0
+@export var always_show_health_bar: bool = false
 @export var selected_marker_radius: float = 40.0
 @export var selected_marker_line_width: float = 3.0
 @export var selected_marker_fill_color: Color = Color(1.0, 0.94, 0.45, 0.16)
@@ -77,6 +82,7 @@ var _last_nav_goal_target: Node2D
 var _time_to_follow_nav_refresh: float = 0.0
 var _last_follow_nav_target: Vector2 = Vector2.INF
 var _is_command_selected: bool = false
+var _health_bar_visible_time_left: float = 0.0
 var _behavior_tick_time_left: float = 0.0
 var _attack_lock_time_left: float = 0.0
 var _has_split_once: bool = false
@@ -108,6 +114,11 @@ func _ready() -> void:
 		_navigation_agent.set_navigation_map(get_world_2d().navigation_map)
 	_player_target = _find_player()
 	_current_health = max_health
+	_time_to_repath = randf_range(0.0, maxf(repath_interval, 0.05))
+	_time_to_nav_goal_refresh = randf_range(0.0, maxf(nav_goal_update_interval, 0.05))
+	_time_to_follow_nav_refresh = randf_range(0.0, maxf(follow_nav_target_update_interval, 0.05))
+	_time_to_next_attack = randf_range(0.0, maxf(attack_cooldown, 0.05) * 0.3)
+	_health_bar_visible_time_left = 0.0
 	_update_health_bar()
 
 func set_summon_identity(identity: StringName) -> void:
@@ -186,13 +197,17 @@ func _physics_process(delta: float) -> void:
 	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
 	_time_to_follow_nav_refresh = maxf(_time_to_follow_nav_refresh - delta, 0.0)
 	_time_to_next_attack = maxf(_time_to_next_attack - delta, 0.0)
+	var previous_health_bar_visible_time_left: float = _health_bar_visible_time_left
+	_health_bar_visible_time_left = maxf(_health_bar_visible_time_left - delta, 0.0)
 	_behavior_tick_time_left = maxf(_behavior_tick_time_left - delta, 0.0)
 	_attack_lock_time_left = maxf(_attack_lock_time_left - delta, 0.0)
 	_external_push_velocity = _external_push_velocity.move_toward(Vector2.ZERO, 900.0 * delta)
+	if previous_health_bar_visible_time_left > 0.0 and _health_bar_visible_time_left <= 0.0:
+		_refresh_health_bar_visibility()
 
 	_update_passive_archetype_behavior()
 
-	if _time_to_repath <= 0.0:
+	if _time_to_repath <= 0.0 and _is_ai_bucket_turn():
 		if summon_identity == ID_SPARK_GOBLIN:
 			_enemy_target = _find_random_enemy_nearby(attack_range * 1.4)
 		else:
@@ -217,7 +232,7 @@ func _physics_process(delta: float) -> void:
 		else:
 			_last_nav_goal_target = null
 			_time_to_nav_goal_refresh = 0.0
-		_time_to_repath = repath_interval
+		_time_to_repath = maxf(repath_interval, 0.05)
 
 	if _command_mode == CommandMode.MOVE:
 		_handle_move_command()
@@ -293,6 +308,7 @@ func set_selected_for_command(is_selected: bool) -> void:
 		return
 
 	_is_command_selected = is_selected
+	_refresh_health_bar_visibility()
 	queue_redraw()
 
 func is_holding_position() -> bool:
@@ -652,11 +668,32 @@ func take_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return
 
+	var previous_health: float = _current_health
 	_current_health = clampf(_current_health - amount, 0.0, max_health)
+	var applied_damage: float = previous_health - _current_health
+	if applied_damage > 0.0:
+		CombatText.spawn_damage(self, applied_damage)
+		_request_health_bar_visibility()
 	_update_health_bar()
 
 	if _current_health <= 0.0:
 		_die()
+
+func heal(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	if _current_health <= 0.0:
+		return
+
+	var previous_health: float = _current_health
+	_current_health = clampf(_current_health + amount, 0.0, max_health)
+	var healed_amount: float = _current_health - previous_health
+	if healed_amount <= 0.0:
+		return
+
+	CombatText.spawn_heal(self, healed_amount)
+	_request_health_bar_visibility(0.75)
+	_update_health_bar()
 
 func _die() -> void:
 	if _should_split_on_death():
@@ -716,7 +753,35 @@ func _update_health_bar() -> void:
 
 	_health_bar.max_value = max_health
 	_health_bar.value = _current_health
-	_health_bar.visible = true
+	_refresh_health_bar_visibility()
+
+func _request_health_bar_visibility(duration: float = -1.0) -> void:
+	if _health_bar == null:
+		return
+
+	var resolved_duration: float = duration
+	if resolved_duration < 0.0:
+		resolved_duration = health_bar_show_duration
+	_health_bar_visible_time_left = maxf(_health_bar_visible_time_left, maxf(resolved_duration, 0.0))
+	_refresh_health_bar_visibility()
+
+func _refresh_health_bar_visibility() -> void:
+	if _health_bar == null:
+		return
+
+	var should_show: bool = always_show_health_bar or _is_command_selected or _health_bar_visible_time_left > 0.0
+	if _current_health <= 0.0:
+		should_show = false
+	_health_bar.visible = should_show
+
+func _is_ai_bucket_turn() -> bool:
+	var bucket_count: int = maxi(ai_update_bucket_count, 1)
+	if bucket_count <= 1:
+		return true
+
+	var frame_bucket: int = Engine.get_physics_frames() % bucket_count
+	var summon_bucket: int = int(get_instance_id() % bucket_count)
+	return frame_bucket == summon_bucket
 
 func _launch_projectile_attack(target: Node2D, hit_options: Dictionary = {}) -> void:
 	if attack_projectile_scene == null:
