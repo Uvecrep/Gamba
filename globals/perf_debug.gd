@@ -1,7 +1,7 @@
 extends Node
 class_name PerfDebugService
 
-@export var enabled: bool = true
+@export var enabled: bool = false
 @export var summary_interval_seconds: float = 1.5
 @export var frame_spike_ms_threshold: float = 24.0
 @export var scope_spike_ms_threshold: float = 6.0
