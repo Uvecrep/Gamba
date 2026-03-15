@@ -4,13 +4,6 @@ class_name Player
 signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
 signal sapling_carried_changed(is_carrying: bool)
 
-const PlayerMovementComponent = preload("res://entities/player/components/player_movement_component.gd")
-const PlayerWorldBoundsComponent = preload("res://entities/player/components/player_world_bounds_component.gd")
-const PlayerPickupMagnetComponent = preload("res://entities/player/components/player_pickup_magnet_component.gd")
-const PlayerSummonCommandComponent = preload("res://entities/player/components/player_summon_command_component.gd")
-const PlayerHealthComponent = preload("res://entities/player/components/player_health_component.gd")
-const PlayerInteractionComponent = preload("res://entities/player/components/player_interaction_component.gd")
-
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
 @export var harvest_amount_per_interaction: int = 1
@@ -115,6 +108,9 @@ func get_forest_lootbox_count() -> int:
 
 func _emit_lootbox_inventory_changed() -> void:
 	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), 0)
+
+func _emit_sapling_carried_changed(is_carrying: bool) -> void:
+	sapling_carried_changed.emit(is_carrying)
 
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
 	_health_component.take_hit(self, amount, source, options)

@@ -5,7 +5,7 @@ var _last_reported_carrying_sapling: bool = false
 
 func initialize(player: Player) -> void:
 	_last_reported_carrying_sapling = is_carrying_sapling(player)
-	player.sapling_carried_changed.emit(_last_reported_carrying_sapling)
+	player._emit_sapling_carried_changed(_last_reported_carrying_sapling)
 
 func handle_interaction_input(player: Player) -> void:
 	var nearest_tree: Node = _find_nearest_harvestable_tree(player)
@@ -158,7 +158,7 @@ func emit_sapling_carried_changed_if_needed(player: Player) -> void:
 		return
 
 	_last_reported_carrying_sapling = is_carrying
-	player.sapling_carried_changed.emit(is_carrying)
+	player._emit_sapling_carried_changed(is_carrying)
 
 func open_lootbox(player: Player, lootbox: Lootbox) -> bool:
 	if lootbox == null:
