@@ -17,6 +17,7 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 @export var nav_target_desired_distance: float = 16.0
 @export var nav_probe_ring_points: int = 8
 @export var nav_probe_ring_step: float = 16.0
+@export var nav_probe_ring_max_per_frame: int = 3
 @export var nav_goal_update_interval: float = 0.45
 @export var follow_player_retarget_interval: float = 10.0
 @export var retarget_min_interval: float = 2.0
@@ -25,6 +26,7 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 @export var retarget_far_interval_bonus: float = 2.5
 @export var follow_nav_target_update_interval: float = 0.32
 @export var follow_nav_target_min_shift: float = 34.0
+@export var nav_velocity_refresh_interval: float = 0.08
 @export var follow_enemy_scan_interval: float = 0.75
 @export var enemy_target_search_radius: float = 700.0
 @export var ai_update_bucket_count: int = 4
@@ -32,6 +34,7 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 @export var far_lod_repath_multiplier: float = 2.0
 @export var far_lod_nav_refresh_multiplier: float = 2.2
 @export var far_lod_follow_refresh_multiplier: float = 3.0
+@export var far_lod_velocity_refresh_multiplier: float = 2.0
 @export var stuck_detection_enabled: bool = true
 @export var stuck_check_window_seconds: float = 0.45
 @export var stuck_min_distance_per_window: float = 8.0
@@ -40,6 +43,8 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 @export var stuck_recovery_probe_points: int = 12
 @export var stuck_recovery_probe_rings: int = 3
 @export var stuck_recovery_probe_step: float = 52.0
+@export var stuck_recovery_max_per_frame: int = 1
+@export var stuck_recovery_max_samples: int = 12
 @export var command_follow_distance: float = 72.0
 @export var follow_formation_radius: float = 26.0
 @export var health_bar_show_duration: float = 2.0
@@ -105,6 +110,8 @@ var _last_nav_goal_target: Node2D
 var _time_to_follow_nav_refresh: float = 0.0
 var _last_follow_nav_target: Vector2 = Vector2.INF
 var _follow_snapshot_target: Vector2 = Vector2.INF
+var _time_to_nav_velocity_refresh: float = 0.0
+var _cached_nav_velocity: Vector2 = Vector2.ZERO
 var _time_to_follow_enemy_scan: float = 0.0
 var _follow_formation_angle: float = 0.0
 var _is_command_selected: bool = false
@@ -130,6 +137,10 @@ static var _world_vfx_spawn_frame: int = -1
 static var _world_vfx_spawn_count: int = 0
 static var _projectile_spawn_frame: int = -1
 static var _projectile_spawn_count: int = 0
+static var _nav_probe_frame: int = -1
+static var _nav_probe_count: int = 0
+static var _stuck_recovery_frame: int = -1
+static var _stuck_recovery_count: int = 0
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 @onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
@@ -159,6 +170,7 @@ func _ready() -> void:
 	_time_to_repath = randf_range(0.0, maxf(repath_interval, 0.05))
 	_time_to_nav_goal_refresh = randf_range(0.0, maxf(nav_goal_update_interval, 0.05))
 	_time_to_follow_nav_refresh = randf_range(0.0, maxf(follow_nav_target_update_interval, 0.05))
+	_time_to_nav_velocity_refresh = randf_range(0.0, maxf(nav_velocity_refresh_interval, 0.01))
 	_time_to_follow_enemy_scan = randf_range(0.0, maxf(follow_enemy_scan_interval, 0.1))
 	_time_to_next_attack = randf_range(0.0, maxf(attack_cooldown, 0.05) * 0.3)
 	_health_bar_visible_time_left = 0.0
@@ -245,6 +257,7 @@ func _physics_process(delta: float) -> void:
 	_time_to_repath -= delta
 	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
 	_time_to_follow_nav_refresh = maxf(_time_to_follow_nav_refresh - delta, 0.0)
+	_time_to_nav_velocity_refresh = maxf(_time_to_nav_velocity_refresh - delta, 0.0)
 	_time_to_follow_enemy_scan = maxf(_time_to_follow_enemy_scan - delta, 0.0)
 	_time_to_next_attack = maxf(_time_to_next_attack - delta, 0.0)
 	_stuck_recovery_cooldown_time_left = maxf(_stuck_recovery_cooldown_time_left - delta, 0.0)
@@ -330,13 +343,12 @@ func _physics_process(delta: float) -> void:
 	velocity += _external_push_velocity
 	move_and_slide()
 	_update_stuck_recovery(delta, pre_move_position)
-	_perf_mark_physics_scope(&"summon.physics_total", physics_start_us, {
-		"mode": get_command_mode_name(),
-	})
+	_perf_mark_physics_scope(&"summon.physics_total", physics_start_us)
 
 func set_move_target(target_position: Vector2) -> void:
 	_move_target_position = target_position
 	_command_mode = CommandMode.MOVE
+	_set_navigation_target(target_position)
 
 func set_hold_position(should_hold: bool) -> void:
 	_hold_toggle_enabled = should_hold
@@ -1021,8 +1033,13 @@ func _move_towards(target_position: Vector2) -> void:
 		return
 
 	if global_position.distance_to(target_position) > target_reach_distance:
-		_set_navigation_target(target_position)
-		velocity = _get_navigation_velocity(target_position)
+		if _uses_navigation_agent():
+			# AUTO/FOLLOW already update nav goals on their own timers; avoid per-frame target resets.
+			if _command_mode == CommandMode.MOVE:
+				_set_navigation_target(target_position)
+			velocity = _get_navigation_velocity(target_position)
+		else:
+			velocity = global_position.direction_to(target_position) * move_speed
 	else:
 		velocity = Vector2.ZERO
 		_clear_navigation_target()
@@ -1085,6 +1102,8 @@ func _update_stuck_recovery(delta: float, pre_move_position: Vector2) -> void:
 		return
 	if _stuck_recovery_cooldown_time_left > 0.0:
 		return
+	if not _try_consume_stuck_recovery_budget():
+		return
 
 	_trigger_stuck_recovery(current_goal)
 	_stuck_window_failures = 0
@@ -1144,17 +1163,22 @@ func _choose_stuck_recovery_waypoint(goal_position: Vector2) -> Vector2:
 	if base_direction == Vector2.ZERO:
 		base_direction = Vector2.RIGHT
 
-	var probe_points: int = maxi(stuck_recovery_probe_points, 6)
-	var ring_count: int = maxi(stuck_recovery_probe_rings, 1)
+	var probe_points: int = mini(maxi(stuck_recovery_probe_points, 4), 8)
+	var ring_count: int = mini(maxi(stuck_recovery_probe_rings, 1), 2)
 	var ring_step: float = maxf(stuck_recovery_probe_step, 12.0)
+	var max_samples: int = maxi(stuck_recovery_max_samples, 4)
+	var sampled: int = 0
 
 	for ring_index in range(1, ring_count + 1):
 		var probe_radius: float = ring_step * float(ring_index)
 		for point_index in range(probe_points):
+			if sampled >= max_samples:
+				break
 			var angle: float = TAU * float(point_index) / float(probe_points)
 			var probe_direction: Vector2 = base_direction.rotated(angle)
 			var sample_position: Vector2 = global_position + (probe_direction * probe_radius)
 			var projected_sample: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, sample_position)
+			sampled += 1
 			if projected_sample.distance_to(global_position) < 12.0:
 				continue
 
@@ -1162,6 +1186,9 @@ func _choose_stuck_recovery_waypoint(goal_position: Vector2) -> Vector2:
 			if score < best_score:
 				best_score = score
 				best_candidate = projected_sample
+
+		if sampled >= max_samples:
+			break
 
 	return best_candidate
 
@@ -1173,13 +1200,28 @@ func _get_navigation_velocity(target_position: Vector2) -> Vector2:
 		return global_position.direction_to(target_position) * move_speed
 
 	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
-		return Vector2.ZERO
+		return global_position.direction_to(target_position) * move_speed
+
+	if _time_to_nav_velocity_refresh > 0.0:
+		return _cached_nav_velocity
+
+	_time_to_nav_velocity_refresh = _get_nav_velocity_refresh_wait()
 
 	if _navigation_agent.is_navigation_finished():
-		return Vector2.ZERO
+		_cached_nav_velocity = Vector2.ZERO
+		return _cached_nav_velocity
 
 	var next_path_position: Vector2 = _navigation_agent.get_next_path_position()
-	return global_position.direction_to(next_path_position) * move_speed
+	_cached_nav_velocity = global_position.direction_to(next_path_position) * move_speed
+	return _cached_nav_velocity
+
+func _get_nav_velocity_refresh_wait() -> float:
+	var wait_time: float = maxf(nav_velocity_refresh_interval, 0.01)
+	if _command_mode == CommandMode.FOLLOW:
+		wait_time = minf(wait_time, maxf(follow_nav_target_update_interval * 0.5, 0.02))
+	if _is_far_from_player():
+		wait_time *= maxf(far_lod_velocity_refresh_multiplier, 1.0)
+	return wait_time
 
 func _set_navigation_target(target_position: Vector2) -> void:
 	if not _uses_navigation_agent():
@@ -1191,6 +1233,7 @@ func _set_navigation_target(target_position: Vector2) -> void:
 		return
 
 	_navigation_agent.target_position = target_position
+	_time_to_nav_velocity_refresh = 0.0
 
 func _set_navigation_target_for_target(target: Node2D) -> void:
 	var nav_target_start_us: int = Time.get_ticks_usec()
@@ -1214,7 +1257,7 @@ func _set_navigation_target_for_target(target: Node2D) -> void:
 		return
 
 	var desired_distance: float = attack_range if target == _enemy_target else target_reach_distance
-	var should_probe_ring: bool = target == _enemy_target and not _is_far_from_player()
+	var should_probe_ring: bool = target == _enemy_target and not _is_far_from_player() and _try_consume_nav_probe_budget()
 	var best_target: Vector2 = _choose_best_navigation_target(target.global_position, desired_distance, should_probe_ring)
 	_set_navigation_target(best_target)
 	_perf_mark_scope(&"summon.set_nav_target_for_target", nav_target_start_us, {
@@ -1240,8 +1283,8 @@ func _choose_best_navigation_target(target_position: Vector2, desired_distance: 
 	var desired_ring_distance: float = maxf(desired_distance, 8.0)
 	var best_candidate: Vector2 = projected_center
 	var best_score: float = projected_center.distance_to(target_position)
-	var ring_points: int = maxi(nav_probe_ring_points, 4)
-	var ring_distances: Array[float] = [desired_ring_distance, desired_ring_distance + maxf(nav_probe_ring_step, 4.0)]
+	var ring_points: int = mini(maxi(nav_probe_ring_points, 4), 6)
+	var ring_distances: Array[float] = [desired_ring_distance]
 
 	for ring_distance in ring_distances:
 		for i in range(ring_points):
@@ -1255,6 +1298,32 @@ func _choose_best_navigation_target(target_position: Vector2, desired_distance: 
 
 	return best_candidate
 
+func _try_consume_nav_probe_budget() -> bool:
+	var frame: int = Engine.get_physics_frames()
+	if frame != _nav_probe_frame:
+		_nav_probe_frame = frame
+		_nav_probe_count = 0
+
+	var max_per_frame: int = maxi(nav_probe_ring_max_per_frame, 1)
+	if _nav_probe_count >= max_per_frame:
+		return false
+
+	_nav_probe_count += 1
+	return true
+
+func _try_consume_stuck_recovery_budget() -> bool:
+	var frame: int = Engine.get_physics_frames()
+	if frame != _stuck_recovery_frame:
+		_stuck_recovery_frame = frame
+		_stuck_recovery_count = 0
+
+	var max_per_frame: int = maxi(stuck_recovery_max_per_frame, 1)
+	if _stuck_recovery_count >= max_per_frame:
+		return false
+
+	_stuck_recovery_count += 1
+	return true
+
 func _clear_navigation_target() -> void:
 	if not _uses_navigation_agent():
 		return
@@ -1262,6 +1331,8 @@ func _clear_navigation_target() -> void:
 		return
 
 	_navigation_agent.target_position = global_position
+	_cached_nav_velocity = Vector2.ZERO
+	_time_to_nav_velocity_refresh = 0.0
 
 func _find_player() -> Node2D:
 	var spatial_index := _resolve_spatial_index()

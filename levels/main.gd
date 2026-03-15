@@ -6,6 +6,7 @@ extends Node2D
 @export var navigation_grid_clearance_pixels: float = 18.0
 @export var navigation_use_tile_grid_builder: bool = true
 @export var navigation_grid_merge_walkable_rectangles: bool = false
+@export var navigation_rebuild_on_tree_changes: bool = false
 @export_group("Day/Night Cycle")
 @export var enable_day_night_cycle: bool = true
 @export var day_duration_seconds: float = 60.0
@@ -313,6 +314,9 @@ func _on_scene_node_added(node: Node) -> void:
 		_perf_mark_event("navigation_obstacle_added_tree", {
 			"node": node.name,
 		})
+		if not navigation_rebuild_on_tree_changes:
+			_perf_inc(&"main.navigation_rebuild_skipped_tree")
+			return
 
 	_schedule_navigation_rebuild()
 
@@ -324,6 +328,9 @@ func _on_scene_node_removed(node: Node) -> void:
 		return
 
 	_perf_inc(&"main.navigation_obstacle_removed")
+	if _is_probable_tree_node(node) and not navigation_rebuild_on_tree_changes:
+		_perf_inc(&"main.navigation_rebuild_skipped_tree")
+		return
 
 	_schedule_navigation_rebuild()
 
@@ -624,10 +631,21 @@ func _build_tile_rect_polygon(tile_map_layer: TileMapLayer, cell_rect: Rect2i, t
 func _is_probable_tree_node(node: Node) -> bool:
 	if node == null:
 		return false
-	if node.is_in_group("trees"):
-		return true
 
-	return String(node.name).to_lower().contains("tree")
+	var current: Node = node
+	var visited: int = 0
+	while current != null and visited < 12:
+		if current.is_in_group("trees") or current.is_in_group("saplings"):
+			return true
+
+		var lowered_name: String = String(current.name).to_lower()
+		if lowered_name.contains("tree") or lowered_name.contains("sapling"):
+			return true
+
+		current = current.get_parent()
+		visited += 1
+
+	return false
 
 func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
 	if not is_instance_valid(_perf_debug):

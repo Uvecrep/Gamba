@@ -18,6 +18,7 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 @export var nav_target_desired_distance: float = 16.0
 @export var nav_probe_ring_points: int = 8
 @export var nav_probe_ring_step: float = 16.0
+@export var nav_probe_ring_max_per_frame: int = 3
 @export var nav_goal_update_interval: float = 0.45
 @export var visibility_check_interval: float = 0.2
 @export var ai_update_bucket_count: int = 4
@@ -68,6 +69,8 @@ var _perf_debug: PerfDebugService
 
 static var _vfx_spawn_frame: int = -1
 static var _vfx_spawn_count: int = 0
+static var _nav_probe_frame: int = -1
+static var _nav_probe_count: int = 0
 const MAX_VFX_SPAWNS_PER_FRAME: int = 24
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
@@ -212,7 +215,7 @@ func _set_navigation_target_for_target(target: Node2D) -> void:
 		return
 
 	var desired_stop_distance: float = _get_stop_distance(target)
-	var use_ring_probe: bool = target.is_in_group("house") and not _is_far_from_player()
+	var use_ring_probe: bool = target.is_in_group("house") and not _is_far_from_player() and _try_consume_nav_probe_budget()
 	var best_target: Vector2 = _choose_best_navigation_target(target.global_position, desired_stop_distance, use_ring_probe)
 	_set_navigation_target(best_target)
 	_perf_mark_scope(&"enemy.set_nav_target_for_target", nav_target_start_us, {
@@ -238,7 +241,7 @@ func _choose_best_navigation_target(target_position: Vector2, desired_distance: 
 	var desired_ring_distance: float = maxf(desired_distance, 8.0)
 	var best_candidate: Vector2 = projected_center
 	var best_score: float = projected_center.distance_to(target_position)
-	var ring_points: int = maxi(nav_probe_ring_points, 4)
+	var ring_points: int = mini(maxi(nav_probe_ring_points, 4), 6)
 
 	for i in range(ring_points):
 		var angle_offset: float = TAU * float(i) / float(ring_points)
@@ -250,6 +253,19 @@ func _choose_best_navigation_target(target_position: Vector2, desired_distance: 
 			best_candidate = projected_ring
 
 	return best_candidate
+
+func _try_consume_nav_probe_budget() -> bool:
+	var frame: int = Engine.get_physics_frames()
+	if frame != _nav_probe_frame:
+		_nav_probe_frame = frame
+		_nav_probe_count = 0
+
+	var max_per_frame: int = maxi(nav_probe_ring_max_per_frame, 1)
+	if _nav_probe_count >= max_per_frame:
+		return false
+
+	_nav_probe_count += 1
+	return true
 
 func _clear_navigation_target() -> void:
 	if _navigation_agent == null:

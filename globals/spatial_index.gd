@@ -188,12 +188,9 @@ func _rebuild_index() -> void:
 		var grid: Dictionary = {}
 
 		for candidate in get_tree().get_nodes_in_group(group_name):
-			if not (candidate is Node2D):
+			var node: Node2D = _as_valid_node2d(candidate)
+			if node == null:
 				continue
-			if not is_instance_valid(candidate):
-				continue
-
-			var node: Node2D = candidate as Node2D
 			nodes.append(node)
 
 			var key: Vector2i = _cell_for_position(node.global_position)
@@ -233,18 +230,12 @@ func _cell_for_position(position: Vector2) -> Vector2i:
 	)
 
 func _as_valid_node2d(candidate: Variant) -> Node2D:
-	if typeof(candidate) != TYPE_OBJECT:
+	if not is_instance_valid(candidate):
+		return null
+	if not (candidate is Node2D):
 		return null
 
-	var candidate_object: Object = candidate as Object
-	if candidate_object == null:
-		return null
-	if not is_instance_valid(candidate_object):
-		return null
-	if not (candidate_object is Node2D):
-		return null
-
-	return candidate_object as Node2D
+	return candidate as Node2D
 
 func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
 	if not is_instance_valid(_perf_debug):
