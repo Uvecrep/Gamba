@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://2x60pl2xk3d2" path="res://ui/inventory/inventory_slot.gd" id="1_huu8b"]
 [ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="2_nktrt"]
 
-[node name="InventorySlot" type="Control" unique_id=1493361272 node_paths=PackedStringArray("item_image_texture_rect", "item_name_label", "item_count_label")]
+[node name="InventorySlot" type="Control" unique_id=1493361272 node_paths=PackedStringArray("item_image_texture_rect", "item_name_label", "item_count_label", "click_detection_box", "item_portrait_border")]
 layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
@@ -13,58 +13,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("1_huu8b")
-item_image_texture_rect = NodePath("Panel/ItemImageTextureRect")
+item_image_texture_rect = NodePath("Control/Panel/ItemImageTextureRect")
 item_name_label = NodePath("Control/ItemNameLabel")
-item_count_label = NodePath("Panel/ItemCountLabel")
-
-[node name="Panel" type="Panel" parent="." unique_id=1898750635]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -50.0
-offset_top = -150.0
-offset_right = 50.0
-offset_bottom = -50.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="ItemImageTextureRect" type="TextureRect" parent="Panel" unique_id=1949687734]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 5.0
-offset_top = 5.0
-offset_right = -5.0
-offset_bottom = -5.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("2_nktrt")
-expand_mode = 1
-
-[node name="ItemCountLabel" type="Label" parent="Panel" unique_id=1910027162]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -15.0
-offset_top = -28.0
-offset_right = -5.0
-offset_bottom = -5.0
-grow_horizontal = 0
-grow_vertical = 0
-text = "0"
-horizontal_alignment = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="Panel" unique_id=1898394841]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+item_count_label = NodePath("Control/Panel/ItemCountLabel")
+click_detection_box = NodePath("Control/Panel")
+item_portrait_border = NodePath("Control/Panel")
 
 [node name="Control" type="Control" parent="." unique_id=829845943]
 anchors_preset = 0
@@ -84,3 +37,54 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "Lorem Ipsum"
 horizontal_alignment = 1
+
+[node name="Panel" type="Panel" parent="Control" unique_id=1898750635]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -150.0
+offset_right = 50.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ItemImageTextureRect" type="TextureRect" parent="Control/Panel" unique_id=1949687734]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_nktrt")
+expand_mode = 1
+
+[node name="ItemCountLabel" type="Label" parent="Control/Panel" unique_id=1910027162]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = -28.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "0"
+horizontal_alignment = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/Panel" unique_id=1898394841]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[connection signal="gui_input" from="Control/Panel" to="." method="_on_panel_gui_input"]

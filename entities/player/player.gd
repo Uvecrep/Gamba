@@ -56,6 +56,11 @@ var _death_indicator_layer: CanvasLayer
 var _death_indicator_label: Label
 var pickups_following_me: Array[Pickup] = []
 
+@export var pickup_packed_scene: PackedScene
+@export var toss_reticle: Node2D
+@export var toss_line: Line2D
+var _is_tossing = false
+
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = Const.COLLISION_LAYERS.PLAYER
@@ -77,8 +82,12 @@ func _process(delta: float) -> void:
 	if _invulnerability_time_left > 0.0:
 		_invulnerability_time_left = maxf(_invulnerability_time_left - delta, 0.0)
 	_update_house_regen(delta)
-
+	
 	_update_health_bar()
+	
+	if _is_tossing:
+		toss_reticle.position = get_local_mouse_position()
+		toss_line.points[1] = get_local_mouse_position()
 
 func _physics_process(_delta: float) -> void:
 	if _is_dead:
@@ -103,10 +112,8 @@ func _physics_process(_delta: float) -> void:
 	if Input.is_action_just_released(scroll_down_action):
 		mouse_scroll_delta -= 1
 	
-	if mouse_scroll_delta != 0:
-		player_inventory.selected_index = posmod(player_inventory.selected_index + mouse_scroll_delta,player_inventory.num_slots)
-		player_inventory.selection_index_changed.emit(player_inventory.selected_index)
-		player_inventory.inventory_changed.emit()
+	if mouse_scroll_delta != 0 && _is_tossing == false:
+		player_inventory.set_selected_index(posmod(player_inventory.selected_index + mouse_scroll_delta,player_inventory.num_slots))
 	
 	var mouse_pos = get_viewport().get_mouse_position() - (get_viewport().get_visible_rect().size/2)
 	camera.offset = mouse_pos * .1 # this is goofy, should plug into a better feeling damp function
@@ -852,3 +859,33 @@ func _on_inventory_changed() -> void:
 			pickups_following_me.remove_at(index)
 
 	_emit_lootbox_inventory_changed()
+
+func _try_perform_item_action(is_left : bool) -> void:
+	if player_inventory.inventory_item_counts[player_inventory.selected_index] == 0: return
+	
+	# TODO Do something with left and right click actions here
+	
+	_begin_tossing()
+
+func _begin_tossing() -> void:
+	if _is_tossing: return
+	
+	toss_reticle.visible = true
+	toss_line.visible = true
+	_is_tossing = true
+
+func _stop_tossing() -> void:
+	if not _is_tossing: return
+	var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
+	if not player_inventory.remove_items(player_inventory.selected_index,1): return
+	
+	# If we're dropping, place the item down. Need to have support for more actions
+	var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
+	get_parent().add_child(dropped_pickup)
+	dropped_pickup.global_position = get_global_mouse_position()
+	dropped_pickup.set_data(held_item_id)
+	
+	
+	toss_reticle.visible = false
+	toss_line.visible = false
+	_is_tossing = false
