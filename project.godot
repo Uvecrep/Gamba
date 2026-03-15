@@ -22,6 +22,7 @@ ItemGlobals="*uid://bc05npn0mt456"
 Const="*uid://3wrj6qajgox6"
 SpatialIndex="*res://globals/spatial_index.gd"
 VfxPool="*res://globals/vfx_pool.gd"
+PerfDebug="*res://globals/perf_debug.gd"
 
 [display]
 

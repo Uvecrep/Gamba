@@ -64,6 +64,7 @@ var _vfx_hit_marker: Texture2D
 var _vfx_knockback: Texture2D
 var _spatial_index: SpatialIndex2D
 var _vfx_pool: VfxPool2D
+var _perf_debug: PerfDebugService
 
 static var _vfx_spawn_frame: int = -1
 static var _vfx_spawn_count: int = 0
@@ -73,6 +74,7 @@ const MAX_VFX_SPAWNS_PER_FRAME: int = 24
 @onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
 
 func _ready() -> void:
+	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	_load_vfx_assets()
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = PHYSICS_LAYER_ENEMY
@@ -94,6 +96,9 @@ func _ready() -> void:
 	_setup_status_vfx()
 
 func _physics_process(delta: float) -> void:
+	var physics_start_us: int = Time.get_ticks_usec()
+	_perf_inc(&"enemy.physics_ticks")
+
 	_time_to_repath -= delta
 	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
 	_time_to_visibility_refresh = maxf(_time_to_visibility_refresh - delta, 0.0)
@@ -112,6 +117,7 @@ func _physics_process(delta: float) -> void:
 		repath_wait *= maxf(far_lod_repath_multiplier, 1.0)
 		visibility_wait *= maxf(far_lod_visibility_multiplier, 1.0)
 	if _time_to_repath <= 0.0 and _is_ai_bucket_turn():
+		var repath_start_us: int = Time.get_ticks_usec()
 		var nearby_target := _find_closest_target_in_groups(nearby_target_groups, nearby_target_radius)
 		if is_instance_valid(nearby_target):
 			_current_target = nearby_target
@@ -132,6 +138,7 @@ func _physics_process(delta: float) -> void:
 			_cached_has_clear_path = false
 			_clear_navigation_target()
 		_time_to_repath = repath_wait
+		_perf_mark_scope(&"enemy.repath_block", repath_start_us)
 
 	if is_instance_valid(_current_target):
 		if _time_to_visibility_refresh <= 0.0:
@@ -159,6 +166,7 @@ func _physics_process(delta: float) -> void:
 
 	velocity += _external_push_velocity
 	move_and_slide()
+	_perf_mark_physics_scope(&"enemy.physics_total", physics_start_us)
 
 func _is_ai_bucket_turn() -> bool:
 	var bucket_count: int = maxi(ai_update_bucket_count, 1)
@@ -189,17 +197,27 @@ func _set_navigation_target(target_position: Vector2) -> void:
 	_navigation_agent.target_position = target_position
 
 func _set_navigation_target_for_target(target: Node2D) -> void:
+	var nav_target_start_us: int = Time.get_ticks_usec()
 	if target == null:
+		_perf_mark_scope(&"enemy.set_nav_target_for_target", nav_target_start_us, {
+			"status": "missing_target",
+		})
 		return
 
 	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
 		_set_navigation_target(target.global_position)
+		_perf_mark_scope(&"enemy.set_nav_target_for_target", nav_target_start_us, {
+			"status": "fallback_direct_target",
+		})
 		return
 
 	var desired_stop_distance: float = _get_stop_distance(target)
 	var use_ring_probe: bool = target.is_in_group("house") and not _is_far_from_player()
 	var best_target: Vector2 = _choose_best_navigation_target(target.global_position, desired_stop_distance, use_ring_probe)
 	_set_navigation_target(best_target)
+	_perf_mark_scope(&"enemy.set_nav_target_for_target", nav_target_start_us, {
+		"probe_ring": use_ring_probe,
+	})
 
 func _choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
 	if _navigation_agent == null:
@@ -263,11 +281,18 @@ func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: fl
 		target.call("take_damage", melee_damage)
 
 func _has_clear_path_to_target(target: Node2D) -> bool:
+	var los_start_us: int = Time.get_ticks_usec()
 	if target == null:
+		_perf_mark_scope(&"enemy.has_clear_path", los_start_us, {
+			"status": "missing_target",
+		})
 		return false
 
 	var world_state: PhysicsDirectSpaceState2D = get_world_2d().direct_space_state
 	if world_state == null:
+		_perf_mark_scope(&"enemy.has_clear_path", los_start_us, {
+			"status": "no_world_state",
+		})
 		return true
 
 	var query := PhysicsRayQueryParameters2D.create(global_position, target.global_position)
@@ -276,10 +301,18 @@ func _has_clear_path_to_target(target: Node2D) -> bool:
 
 	var hit: Dictionary = world_state.intersect_ray(query)
 	if hit.is_empty():
+		_perf_mark_scope(&"enemy.has_clear_path", los_start_us, {
+			"result": "clear",
+		})
 		return true
 
 	var collider: Variant = hit.get("collider")
-	return collider == target
+	var has_clear_path: bool = collider == target
+	_perf_mark_scope(&"enemy.has_clear_path", los_start_us, {
+		"result": "hit",
+		"clear": has_clear_path,
+	})
+	return has_clear_path
 
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
 	_apply_damage(amount)
@@ -500,9 +533,15 @@ func _refresh_health_bar_visibility() -> void:
 	_health_bar.visible = should_show
 
 func _find_closest_target_in_groups(group_names: PackedStringArray, radius: float) -> Node2D:
+	var find_start_us: int = Time.get_ticks_usec()
 	var spatial_index := _resolve_spatial_index()
 	if spatial_index != null:
-		return spatial_index.find_closest_in_groups(global_position, group_names, radius, self)
+		var nearest: Node2D = spatial_index.find_closest_in_groups(global_position, group_names, radius, self)
+		_perf_mark_scope(&"enemy.find_target_in_groups", find_start_us, {
+			"path": "spatial_index",
+			"radius": radius,
+		})
+		return nearest
 
 	var closest_target: Node2D
 	var closest_distance_sq: float = INF
@@ -525,15 +564,28 @@ func _find_closest_target_in_groups(group_names: PackedStringArray, radius: floa
 				closest_distance_sq = distance_sq
 				closest_target = candidate_2d
 
+	_perf_mark_scope(&"enemy.find_target_in_groups", find_start_us, {
+		"path": "group_scan",
+		"radius": radius,
+	})
 	return closest_target
 
 func _find_closest_target_in_group(group_name: StringName) -> Node2D:
+	var find_start_us: int = Time.get_ticks_usec()
 	if group_name == StringName():
+		_perf_mark_scope(&"enemy.find_target_in_group", find_start_us, {
+			"status": "empty_group",
+		})
 		return null
 
 	var spatial_index := _resolve_spatial_index()
 	if spatial_index != null:
-		return spatial_index.find_closest_in_group(global_position, group_name, -1.0, self)
+		var nearest: Node2D = spatial_index.find_closest_in_group(global_position, group_name, -1.0, self)
+		_perf_mark_scope(&"enemy.find_target_in_group", find_start_us, {
+			"path": "spatial_index",
+			"group": String(group_name),
+		})
+		return nearest
 
 	var closest_target: Node2D
 	var closest_distance_sq: float = INF
@@ -550,7 +602,29 @@ func _find_closest_target_in_group(group_name: StringName) -> Node2D:
 			closest_distance_sq = distance_sq
 			closest_target = candidate_2d
 
+	_perf_mark_scope(&"enemy.find_target_in_group", find_start_us, {
+		"path": "group_scan",
+		"group": String(group_name),
+	})
 	return closest_target
+
+func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.add_scope_time_us(scope_name, Time.get_ticks_usec() - start_us, metadata)
+
+func _perf_mark_physics_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.add_physics_scope_time_us(scope_name, Time.get_ticks_usec() - start_us, metadata)
+
+func _perf_inc(counter_name: StringName, amount: int = 1) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.increment_counter(counter_name, amount)
 
 func _resolve_spatial_index() -> SpatialIndex2D:
 	if is_instance_valid(_spatial_index):

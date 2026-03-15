@@ -79,9 +79,10 @@ func _acquire_sprite() -> Sprite2D:
 		if not is_instance_valid(pooled):
 			continue
 
-		var previous_tween_variant: Variant = pooled.get_meta("vfx_tween", null)
-		if previous_tween_variant is Tween and is_instance_valid(previous_tween_variant):
-			(previous_tween_variant as Tween).kill()
+		if pooled.has_meta("vfx_tween"):
+			var previous_tween_variant: Variant = pooled.get_meta("vfx_tween")
+			if previous_tween_variant is Tween and is_instance_valid(previous_tween_variant):
+				(previous_tween_variant as Tween).kill()
 		pooled.set_meta("vfx_tween", null)
 		return pooled
 
@@ -91,9 +92,10 @@ func _recycle_sprite(sprite: Sprite2D) -> void:
 	if not is_instance_valid(sprite):
 		return
 
-	var existing_tween_variant: Variant = sprite.get_meta("vfx_tween", null)
-	if existing_tween_variant is Tween and is_instance_valid(existing_tween_variant):
-		(existing_tween_variant as Tween).kill()
+	if sprite.has_meta("vfx_tween"):
+		var existing_tween_variant: Variant = sprite.get_meta("vfx_tween")
+		if existing_tween_variant is Tween and is_instance_valid(existing_tween_variant):
+			(existing_tween_variant as Tween).kill()
 	sprite.set_meta("vfx_tween", null)
 
 	sprite.visible = false
