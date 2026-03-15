@@ -13,3 +13,6 @@
 
 # Asset library addons (local)
 /addons/
+
+# Local refactor planning notes
+/REFACTOR_TARGETS.md

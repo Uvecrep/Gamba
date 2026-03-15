@@ -4,10 +4,6 @@ class_name Player
 signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
 signal sapling_carried_changed(is_carrying: bool)
 
-const CombatText = preload("res://scripts/floating_combat_text.gd")
-const DEATH_INDICATOR_COLOR: Color = Color(1.0, 0.42, 0.42, 1.0)
-
-
 @export var speed: float = 400.0
 @export var harvest_range: float = 96.0
 @export var harvest_amount_per_interaction: int = 1
@@ -44,19 +40,15 @@ var player_inventory: PlayerInventory = PlayerInventory.new()
 var world_bounds: Rect2 = Rect2()
 var has_world_bounds: bool = false
 var player_bounds_padding: Vector2 = Vector2.ZERO
-var _spawn_position: Vector2 = Vector2.ZERO
-var _is_dead: bool = false
-var _invulnerability_time_left: float = 0.0
-var _house_regen_time_left: float = 0.0
-var _is_middle_mouse_selecting: bool = false
-var _middle_select_last_world_point: Vector2 = Vector2.ZERO
-var _middle_select_found_summon: bool = false
-var _middle_select_preview_world_point: Vector2 = Vector2.ZERO
-var _summon_selection_controller: Node
-var _death_indicator_layer: CanvasLayer
-var _death_indicator_label: Label
-var _perf_debug: PerfDebugService
 var pickups_following_me: Array[Pickup] = []
+var _perf_debug: PerfDebugService
+
+var _movement_component: PlayerMovementComponent = PlayerMovementComponent.new()
+var _world_bounds_component: PlayerWorldBoundsComponent = PlayerWorldBoundsComponent.new()
+var _pickup_magnet_component: PlayerPickupMagnetComponent = PlayerPickupMagnetComponent.new()
+var _summon_command_component: PlayerSummonCommandComponent = PlayerSummonCommandComponent.new()
+var _health_component: PlayerHealthComponent = PlayerHealthComponent.new()
+var _interaction_component: PlayerInteractionComponent = PlayerInteractionComponent.new()
 var _last_reported_carrying_sapling: bool = false
 
 @export var pickup_packed_scene: PackedScene
@@ -70,23 +62,20 @@ func _ready() -> void:
 	collision_layer = Const.COLLISION_LAYERS.PLAYER
 	collision_mask = Const.COLLISION_LAYERS.WORLD
 	add_to_group("players")
-	_spawn_position = global_position
-	current_health = max_health
-	_setup_death_indicator()
-	_update_health_bar()
-	player_bounds_padding = _get_player_bounds_padding()
-	_configure_world_bounds()
+
+	_world_bounds_component.initialize(self)
+	_health_component.initialize(self)
+	_interaction_component.initialize(self)
+
 	player_inventory.inventory_changed.connect(_on_inventory_changed)
-	_last_reported_carrying_sapling = is_carrying_sapling()
-	sapling_carried_changed.emit(_last_reported_carrying_sapling)
 
 func get_input() -> void:
-	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
-	velocity = input_direction * speed
+	_movement_component.get_input(self)
 
 func _process(delta: float) -> void:
-	if _invulnerability_time_left > 0.0:
-		_invulnerability_time_left = maxf(_invulnerability_time_left - delta, 0.0)
+	_health_component.process(self, delta)
+	if _health_component._invulnerability_time_left > 0.0:
+		_health_component._invulnerability_time_left = maxf(_health_component._invulnerability_time_left - delta, 0.0)
 	_update_house_regen(delta)
 	
 	_update_health_bar()
@@ -96,58 +85,29 @@ func _process(delta: float) -> void:
 		toss_line.points[1] = get_local_mouse_position()
 
 func _physics_process(_delta: float) -> void:
-	if _is_dead:
+	if _health_component.is_dead():
 		velocity = Vector2.ZERO
 		return
 
-	if _is_middle_mouse_selecting:
-		_middle_select_preview_world_point = get_global_mouse_position()
-		queue_redraw()
-
+	_summon_command_component.physics_update(self)
 	get_input()
 	move_and_slide()
 	_clamp_player_to_world_bounds()
 	_handle_summon_command_shortcuts()
-	
+
 	if Input.is_action_just_pressed(interact_action):
 		_handle_interaction_input()
 
-	var mouse_scroll_delta = 0;
-	if Input.is_action_just_released(scroll_up_action):
-		mouse_scroll_delta += 1
-	if Input.is_action_just_released(scroll_down_action):
-		mouse_scroll_delta -= 1
-	
-	if mouse_scroll_delta != 0 && _is_tossing == false:
-		player_inventory.set_selected_index(posmod(player_inventory.selected_index + mouse_scroll_delta,player_inventory.num_slots))
-	
-	var mouse_pos = get_viewport().get_mouse_position() - (get_viewport().get_visible_rect().size/2)
-	camera.offset = mouse_pos * .1 # this is goofy, should plug into a better feeling damp function
+	_movement_component.handle_scroll_and_camera(self)
 
 func _input(event: InputEvent) -> void:
-	if _is_dead:
+	if _health_component.is_dead():
 		return
 
-	if _is_map_open():
-		if event is InputEventMouseButton:
-			var map_mouse_button: InputEventMouseButton = event as InputEventMouseButton
-			if map_mouse_button.button_index == MOUSE_BUTTON_MIDDLE and not map_mouse_button.pressed:
-				_reset_middle_mouse_selection_state()
-		return
+	_summon_command_component.handle_input(self, event)
 
-	if event is InputEventMouseButton:
-		var mouse_button: InputEventMouseButton = event as InputEventMouseButton
-		if mouse_button.button_index != MOUSE_BUTTON_MIDDLE:
-			return
-
-		if mouse_button.pressed:
-			_begin_middle_mouse_selection()
-		else:
-			_end_middle_mouse_selection()
-		return
-
-	if event is InputEventMouseMotion:
-		_update_middle_mouse_drag_selection()
+func is_dead() -> bool:
+	return _health_component.is_dead()
 
 func get_chaos_lootbox_count() -> int:
 	if chaos_lootbox == null:
@@ -164,614 +124,83 @@ func get_forest_lootbox_count() -> int:
 func _emit_lootbox_inventory_changed() -> void:
 	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), 0)
 
-func take_hit(amount: float, _source: Node2D = null, _options: Dictionary = {}) -> void:
-	take_damage(amount)
-
-func take_damage(amount: float) -> void:
-	if amount <= 0.0:
-		return
-	if _is_dead:
-		return
-	if _invulnerability_time_left > 0.0:
-		return
-
-	var previous_health: float = current_health
-	current_health = clampf(current_health - amount, 0.0, max_health)
-	var applied_damage: float = previous_health - current_health
-	if applied_damage <= 0.0:
-		return
-
-	CombatText.spawn_damage(self, applied_damage)
-	_update_health_bar()
-
-	if current_health <= 0.0:
-		_begin_respawn_flow()
-
-func heal(amount: float) -> void:
-	if amount <= 0.0:
-		return
-	if _is_dead:
-		return
-
-	var previous_health: float = current_health
-	current_health = clampf(current_health + amount, 0.0, max_health)
-	var healed_amount: float = current_health - previous_health
-	if healed_amount <= 0.0:
-		return
-
-	CombatText.spawn_heal(self, healed_amount)
-	_update_health_bar()
-
-func _update_house_regen(delta: float) -> void:
-	if _is_dead:
-		_house_regen_time_left = 0.0
-		return
-	if house_regen_per_second <= 0.0 or house_regen_radius <= 0.0:
-		_house_regen_time_left = 0.0
-		return
-	if current_health >= max_health:
-		_house_regen_time_left = 0.0
-		return
-
-	var nearest_house: Node2D = _find_nearest_house_anywhere()
-	if nearest_house == null:
-		_house_regen_time_left = 0.0
-		return
-
-	var regen_radius_sq: float = house_regen_radius * house_regen_radius
-	if global_position.distance_squared_to(nearest_house.global_position) > regen_radius_sq:
-		_house_regen_time_left = 0.0
-		return
-
-	_house_regen_time_left = maxf(_house_regen_time_left - delta, 0.0)
-	if _house_regen_time_left > 0.0:
-		return
-
-	var tick_interval: float = maxf(house_regen_tick_interval, 0.1)
-	_house_regen_time_left = tick_interval
-	heal(house_regen_per_second * tick_interval)
-
-func _begin_respawn_flow() -> void:
-	if _is_dead:
-		return
-
-	_is_dead = true
-	velocity = Vector2.ZERO
-	_reset_middle_mouse_selection_state()
-	_show_death_indicator()
-	_run_respawn_timer()
-
-func _run_respawn_timer() -> void:
-	var wait_time: float = maxf(respawn_delay_seconds, 0.25)
-	await get_tree().create_timer(wait_time).timeout
-	if not is_inside_tree():
-		return
-
-	_respawn_player()
-
-func _respawn_player() -> void:
-	global_position = _get_respawn_position()
-	_clamp_player_to_world_bounds()
-	current_health = max_health
-	_is_dead = false
-	_invulnerability_time_left = maxf(respawn_invulnerability_seconds, 0.0)
-	_hide_death_indicator()
-	_update_health_bar()
-
-func _get_respawn_position() -> Vector2:
-	var nearest_house: Node2D = _find_nearest_house_anywhere()
-	if nearest_house == null:
-		return _spawn_position
-
-	var from_house: Vector2 = global_position - nearest_house.global_position
-	if from_house == Vector2.ZERO:
-		from_house = Vector2.DOWN
-
-	return nearest_house.global_position + (from_house.normalized() * maxf(respawn_distance_from_house, 48.0))
-
-func _find_nearest_house_anywhere() -> Node2D:
-	var nearest_house: Node2D
-	var nearest_distance_sq: float = INF
-
-	for house in get_tree().get_nodes_in_group("house"):
-		if not (house is Node2D):
-			continue
-
-		var house_node: Node2D = house as Node2D
-		var distance_sq: float = global_position.distance_squared_to(house_node.global_position)
-		if distance_sq >= nearest_distance_sq:
-			continue
-
-		nearest_distance_sq = distance_sq
-		nearest_house = house_node
-
-	return nearest_house
-
-func _setup_death_indicator() -> void:
-	_death_indicator_layer = CanvasLayer.new()
-	_death_indicator_layer.name = "DeathIndicatorLayer"
-	_death_indicator_layer.layer = 24
-	_death_indicator_layer.visible = false
-	add_child(_death_indicator_layer)
-
-	_death_indicator_label = Label.new()
-	_death_indicator_label.name = "DeathIndicatorLabel"
-	_death_indicator_label.anchors_preset = Control.PRESET_CENTER
-	_death_indicator_label.anchor_left = 0.5
-	_death_indicator_label.anchor_top = 0.5
-	_death_indicator_label.anchor_right = 0.5
-	_death_indicator_label.anchor_bottom = 0.5
-	_death_indicator_label.offset_left = -240.0
-	_death_indicator_label.offset_top = -80.0
-	_death_indicator_label.offset_right = 240.0
-	_death_indicator_label.offset_bottom = 80.0
-	_death_indicator_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_death_indicator_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_death_indicator_label.text = "YOU DIED"
-	_death_indicator_label.add_theme_font_size_override("font_size", 58)
-	_death_indicator_label.add_theme_color_override("font_color", DEATH_INDICATOR_COLOR)
-	_death_indicator_label.modulate = Color(1.0, 1.0, 1.0, 0.0)
-	_death_indicator_layer.add_child(_death_indicator_label)
-
-func _show_death_indicator() -> void:
-	if _death_indicator_layer == null or _death_indicator_label == null:
-		return
-
-	_death_indicator_layer.visible = true
-	_death_indicator_label.modulate = Color(1.0, 1.0, 1.0, 0.0)
-	var fade_tween: Tween = create_tween()
-	fade_tween.tween_property(_death_indicator_label, "modulate:a", 1.0, 0.12)
-	fade_tween.tween_interval(maxf(respawn_delay_seconds - 0.32, 0.05))
-	fade_tween.tween_property(_death_indicator_label, "modulate:a", 0.0, 0.18)
-
-func _hide_death_indicator() -> void:
-	if _death_indicator_layer == null or _death_indicator_label == null:
-		return
-
-	_death_indicator_label.modulate = Color(1.0, 1.0, 1.0, 0.0)
-	_death_indicator_layer.visible = false
-
-func _update_health_bar() -> void:
-	if health_bar == null:
-		return
-
-	health_bar.max_value = max_health
-	health_bar.value = current_health
-	health_bar.visible = true
-
-	if _invulnerability_time_left > 0.0 and not _is_dead:
-		var pulse: float = 0.65 + (0.35 * sin(Time.get_ticks_msec() / 90.0))
-		health_bar.modulate = Color(1.0, 1.0, 1.0, pulse)
-	else:
-		health_bar.modulate = Color(1.0, 1.0, 1.0, 1.0)
-
-func _handle_interaction_input() -> void:
-	var nearest_tree: Node = _find_nearest_harvestable_tree()
-	var nearest_crystal: Node = _find_nearest_harvestable_crystal()
-	var nearest_phone: Node = _find_nearest_phone()
-	var nearest_map: Node = _find_nearest_map()
-
-	var nearest_tree_distance_sq: float = INF
-	if nearest_tree is Node2D:
-		nearest_tree_distance_sq = global_position.distance_squared_to((nearest_tree as Node2D).global_position)
-
-	var nearest_crystal_distance_sq: float = INF
-	if nearest_crystal is Node2D:
-		nearest_crystal_distance_sq = global_position.distance_squared_to((nearest_crystal as Node2D).global_position)
-
-	var nearest_phone_distance_sq: float = INF
-	if nearest_phone is Node2D:
-		nearest_phone_distance_sq = global_position.distance_squared_to((nearest_phone as Node2D).global_position)
-
-	var nearest_map_distance_sq: float = INF
-	if nearest_map is Node2D:
-		nearest_map_distance_sq = global_position.distance_squared_to((nearest_map as Node2D).global_position)
-
-	var nearest_interactable: Node = null
-	var nearest_distance_sq: float = INF
-
-	if nearest_tree != null and nearest_tree_distance_sq < nearest_distance_sq:
-		nearest_interactable = nearest_tree
-		nearest_distance_sq = nearest_tree_distance_sq
-
-	if nearest_crystal != null and nearest_crystal_distance_sq < nearest_distance_sq:
-		nearest_interactable = nearest_crystal
-		nearest_distance_sq = nearest_crystal_distance_sq
-
-	if nearest_phone != null and nearest_phone_distance_sq < nearest_distance_sq:
-		nearest_interactable = nearest_phone
-		nearest_distance_sq = nearest_phone_distance_sq
-
-	if nearest_map != null and nearest_map_distance_sq < nearest_distance_sq:
-		nearest_interactable = nearest_map
-		nearest_distance_sq = nearest_map_distance_sq
-
-	if nearest_tree != null and nearest_interactable == nearest_tree:
-		var _harvested: int = int(nearest_tree.call("harvest_fruit", harvest_amount_per_interaction))
-		# if harvested > 0:
-			# player_inventory.add_lootboxes(forest_lootbox, harvested)
-		return
-
-	if nearest_crystal != null and nearest_interactable == nearest_crystal:
-		nearest_crystal.harvest_fruit()
-		return
-
-	if nearest_interactable != null and nearest_interactable.has_method("interact"):
-		nearest_interactable.call("interact", self)
-		return
-	
-	_try_use_item()
-
-func _try_use_item() -> bool:
-	if _is_dead:
-		return false
-
-	var selected_item = player_inventory.inventory_items[player_inventory.selected_index]
-	if selected_item == &"":
-		return false
-	
-	if selected_item == &"sapling":
-		if not _try_plant_sapling_near_house():
-			return false
-		player_inventory.remove_items(player_inventory.selected_index,1)
-		return true
-	
-	if selected_item.begins_with("lootbox_"):
-		var box_id = StringName(selected_item.split("_")[1])
-		if not LootboxGlobals.lootboxes.has(box_id):
-			push_warning("Player: Tried to open a lootbox '" + box_id + "' which is not present in the global array")
-			return false
-		if not _open_lootbox(LootboxGlobals.lootboxes[box_id]):
-			return false
-		player_inventory.remove_items(player_inventory.selected_index,1)
-		return true
-	
-	return false
-
-func _try_plant_sapling_near_house() -> bool:
-	var plant_start_us: int = Time.get_ticks_usec()
-
-	var target_house: Node = _find_nearest_house_for_planting()
-	if target_house == null:
-		_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
-			"status": "no_house",
-		})
-		return false
-	if sapling_tree_scene == null:
-		push_warning("Player: sapling_tree_scene is not configured; cannot plant sapling.")
-		_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
-			"status": "missing_scene",
-		})
-		return false
-
-	var new_tree: Node = sapling_tree_scene.instantiate()
-	if not (new_tree is Node2D):
-		push_warning("Player: sapling_tree_scene root must inherit from Node2D.")
-		new_tree.queue_free()
-		_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
-			"status": "invalid_tree_root",
-		})
-		return false
-
-	var new_tree_2d: Node2D = new_tree as Node2D
-	var plant_position: Vector2 = _get_plant_position(target_house as Node2D, new_tree_2d)
-
-	var parent_node: Node = get_tree().current_scene
-	if parent_node == null:
-		parent_node = get_parent()
-	if parent_node == null:
-		push_warning("Player: could not determine parent scene for planted tree.")
-		new_tree_2d.queue_free()
-		_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
-			"status": "missing_parent",
-		})
-		return false
-
-	parent_node.add_child(new_tree_2d)
-	new_tree_2d.global_position = plant_position
-	_perf_inc(&"player.tree_placements")
-	_perf_mark_event("player_tree_placed", {
-		"x": snappedf(plant_position.x, 1.0),
-		"y": snappedf(plant_position.y, 1.0),
-	})
-	_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
-		"status": "success",
-	})
-	return true
-
-func is_carrying_sapling() -> bool:
-	return _get_sapling_inventory_count() > 0
-
-func can_plant_sapling_here() -> bool:
-	if _is_dead:
-		return false
-	if sapling_tree_scene == null:
-		return false
-	if not is_carrying_sapling():
-		return false
-
-	return _find_nearest_house_for_planting() != null
-
-func _get_sapling_inventory_count() -> int:
-	if player_inventory == null:
-		return 0
-
-	var sapling_item_id: StringName = &"sapling"
-	if not player_inventory.inventory_items.has(sapling_item_id):
-		return 0
-
-	var slot_index: int = player_inventory.inventory_items.find(sapling_item_id)
-	if slot_index < 0 or slot_index >= player_inventory.inventory_item_counts.size():
-		return 0
-
-	return maxi(player_inventory.inventory_item_counts[slot_index], 0)
-
-func _emit_sapling_carried_changed_if_needed() -> void:
-	var is_carrying: bool = is_carrying_sapling()
-	if is_carrying == _last_reported_carrying_sapling:
-		return
-
-	_last_reported_carrying_sapling = is_carrying
+func _emit_sapling_carried_changed(is_carrying: bool) -> void:
 	sapling_carried_changed.emit(is_carrying)
 
-func _find_nearest_house_for_planting() -> Node:
-	var houses: Array = get_tree().get_nodes_in_group("house")
-	var nearest_house: Node = null
-	var nearest_distance_sq: float = sapling_plant_range * sapling_plant_range
+func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
+	_health_component.take_hit(self, amount, source, options)
 
-	for house in houses:
-		if not (house is Node2D):
-			continue
+func take_damage(amount: float) -> void:
+	_health_component.take_damage(self, amount)
 
-		var house_node: Node2D = house as Node2D
-		var distance_sq: float = global_position.distance_squared_to(house_node.global_position)
-		if distance_sq > nearest_distance_sq:
-			continue
+func heal(amount: float) -> void:
+	_health_component.heal(self, amount)
 
-		nearest_distance_sq = distance_sq
-		nearest_house = house
+func _update_house_regen(delta: float) -> void:
+	_health_component.update_house_regen(self, delta)
 
-	return nearest_house
+func _begin_respawn_flow() -> void:
+	_health_component.begin_respawn_flow(self)
 
-func _get_plant_position(target_house: Node2D, tree_node: Node2D) -> Vector2:
-	var from_house: Vector2 = global_position - target_house.global_position
-	var outward_direction: Vector2 = from_house.normalized()
-	if outward_direction == Vector2.ZERO:
-		outward_direction = Vector2.DOWN
+func _run_respawn_timer() -> void:
+	_health_component.run_respawn_timer(self)
 
-	var player_radius: float = maxf(player_bounds_padding.x, player_bounds_padding.y)
-	var tree_padding: Vector2 = _get_node_bounds_padding(tree_node)
-	var tree_radius: float = maxf(tree_padding.x, tree_padding.y)
+func _respawn_player() -> void:
+	_health_component.respawn_player(self)
 
-	var adjacent_distance: float = maxf(player_radius + tree_radius + 8.0, 48.0)
-	var plant_position: Vector2 = global_position + (outward_direction * adjacent_distance)
+func _get_respawn_position() -> Vector2:
+	return _health_component.get_respawn_position(self)
 
-	var minimum_house_clearance: float = 72.0
-	var from_house_to_plant: Vector2 = plant_position - target_house.global_position
-	if from_house_to_plant.length() < minimum_house_clearance:
-		var clearance_direction: Vector2 = from_house_to_plant.normalized()
-		if clearance_direction == Vector2.ZERO:
-			clearance_direction = outward_direction
-		plant_position = target_house.global_position + (clearance_direction * minimum_house_clearance)
+func _find_nearest_house_anywhere() -> Node2D:
+	return _health_component.find_nearest_house_anywhere(self)
 
-	return plant_position
+func _setup_death_indicator() -> void:
+	_health_component.setup_death_indicator(self)
 
-func _find_nearest_harvestable_tree() -> Node:
-	var trees: Array = get_tree().get_nodes_in_group("trees")
-	var nearest_tree: Node = null
-	var nearest_distance_sq: float = harvest_range * harvest_range
+func _show_death_indicator() -> void:
+	_health_component.show_death_indicator(self)
 
-	for tree in trees:
-		if not (tree is Node2D):
-			continue
-		if not tree.has_method("can_harvest") or not tree.has_method("harvest_fruit"):
-			continue
-		if not bool(tree.call("can_harvest")):
-			continue
+func _hide_death_indicator() -> void:
+	_health_component.hide_death_indicator()
 
-		var tree_node: Node2D = tree as Node2D
-		var distance_sq: float = global_position.distance_squared_to(tree_node.global_position)
-		if distance_sq > nearest_distance_sq:
-			continue
+func _update_health_bar() -> void:
+	_health_component.update_health_bar(self)
 
-		nearest_distance_sq = distance_sq
-		nearest_tree = tree
+func _handle_interaction_input() -> void:
+	_interaction_component.handle_interaction_input(self)
 
-	return nearest_tree
+func _try_use_item() -> bool:
+	return _interaction_component.try_use_item(self)
 
-func _find_nearest_harvestable_crystal() -> Node:
-	var crystals: Array = get_tree().get_nodes_in_group("crystals")
-	var nearest_crystal: Node = null
-	var nearest_distance_sq: float = harvest_range * harvest_range
+func _try_plant_sapling_near_house() -> bool:
+	return _interaction_component.try_plant_sapling_near_house(self)
 
-	for crystal in crystals:
-		if not (crystal is Node2D):
-			continue
-		if not crystal.has_method("can_harvest") or not crystal.has_method("harvest_fruit"):
-			continue
-		if not bool(crystal.call("can_harvest")):
-			continue
+func is_carrying_sapling() -> bool:
+	return _interaction_component.is_carrying_sapling(self)
 
-		var crystal_node: Node2D = crystal as Node2D
-		var distance_sq: float = global_position.distance_squared_to(crystal_node.global_position)
-		if distance_sq > nearest_distance_sq:
-			continue
+func can_plant_sapling_here() -> bool:
+	return _interaction_component.can_plant_sapling_here(self)
 
-		nearest_distance_sq = distance_sq
-		nearest_crystal = crystal
-
-	return nearest_crystal
-
-func _find_nearest_phone() -> Node:
-	var phones: Array = get_tree().get_nodes_in_group("phones")
-	var nearest_phone: Node = null
-	var nearest_distance_sq: float = INF
-
-	for phone in phones:
-		if not (phone is Node2D):
-			continue
-		if not phone.has_method("interact"):
-			continue
-		if phone.has_method("can_interact_with_player") and not bool(phone.call("can_interact_with_player", self)):
-			continue
-
-		var phone_node: Node2D = phone as Node2D
-		var distance_sq: float = global_position.distance_squared_to(phone_node.global_position)
-		if distance_sq >= nearest_distance_sq:
-			continue
-
-		nearest_distance_sq = distance_sq
-		nearest_phone = phone
-
-	return nearest_phone
-
-func _find_nearest_map() -> Node:
-	var maps: Array = get_tree().get_nodes_in_group("maps")
-	var nearest_map: Node = null
-	var nearest_distance_sq: float = INF
-
-	for map_interactable in maps:
-		if not (map_interactable is Node2D):
-			continue
-		if not map_interactable.has_method("interact"):
-			continue
-		if map_interactable.has_method("can_interact_with_player") and not bool(map_interactable.call("can_interact_with_player", self)):
-			continue
-
-		var map_node: Node2D = map_interactable as Node2D
-		var distance_sq: float = global_position.distance_squared_to(map_node.global_position)
-		if distance_sq >= nearest_distance_sq:
-			continue
-
-		nearest_distance_sq = distance_sq
-		nearest_map = map_interactable
-
-	return nearest_map
+func _emit_sapling_carried_changed_if_needed() -> void:
+	_interaction_component.emit_sapling_carried_changed_if_needed(self)
 
 func _open_lootbox(lootbox: Lootbox) -> bool:
-	if lootbox == null:
-		push_warning("Player: lootbox resource is not configured; cannot open lootbox.")
-		return false
-
-	var rolled_entry: LootEntry = lootbox.roll()
-	if rolled_entry == null:
-		push_warning("Player: lootbox returned no LootEntry.")
-		return false
-	if rolled_entry.outcome == null:
-		push_warning("Player: rolled LootEntry has no outcome.")
-		return false
-
-	var context: Dictionary = {
-		"opener": self,
-		"player": self,
-		"current_scene": get_tree().current_scene,
-	}
-
-	return bool(rolled_entry.outcome.execute(context))
+	return _interaction_component.open_lootbox(self, lootbox)
 
 func _configure_world_bounds() -> void:
-	var tile_map_layer: Node = _find_world_tile_map_layer()
-	if tile_map_layer == null:
-		return
-	if not tile_map_layer.has_method("get_used_rect") or not tile_map_layer.has_method("map_to_local"):
-		push_warning("Player: world TileMapGround is missing required bounds methods.")
-		return
-
-	var used_rect: Rect2i = tile_map_layer.call("get_used_rect")
-	if used_rect.size == Vector2i.ZERO:
-		push_warning("Player: world TileMapGround has no used cells; bounds not applied.")
-		return
-
-	var tile_size: Vector2 = Vector2(32.0, 32.0)
-	var tile_set: Variant = tile_map_layer.get("tile_set")
-	if tile_set is TileSet:
-		tile_size = Vector2((tile_set as TileSet).tile_size)
-
-	var top_left_local: Vector2 = tile_map_layer.call("map_to_local", used_rect.position) - (tile_size * 0.5)
-	var bottom_right_local: Vector2 = top_left_local + (Vector2(used_rect.size) * tile_size)
-
-	var top_left_global: Vector2 = tile_map_layer.to_global(top_left_local)
-	var bottom_right_global: Vector2 = tile_map_layer.to_global(bottom_right_local)
-	var min_point: Vector2 = Vector2(min(top_left_global.x, bottom_right_global.x), min(top_left_global.y, bottom_right_global.y))
-	var max_point: Vector2 = Vector2(max(top_left_global.x, bottom_right_global.x), max(top_left_global.y, bottom_right_global.y))
-
-	world_bounds = Rect2(min_point, max_point - min_point)
-	has_world_bounds = true
-	_apply_camera_world_limits()
-	_clamp_player_to_world_bounds()
+	_world_bounds_component.configure_world_bounds(self)
 
 func _apply_camera_world_limits() -> void:
-	if camera == null or not has_world_bounds:
-		return
-
-	camera.limit_left = int(floor(world_bounds.position.x))
-	camera.limit_top = int(floor(world_bounds.position.y))
-	camera.limit_right = int(ceil(world_bounds.end.x))
-	camera.limit_bottom = int(ceil(world_bounds.end.y))
-	camera.limit_smoothed = true
-	camera.reset_smoothing()
+	_world_bounds_component.apply_camera_world_limits(self)
 
 func _clamp_player_to_world_bounds() -> void:
-	if not has_world_bounds:
-		return
-
-	var min_position: Vector2 = world_bounds.position + player_bounds_padding
-	var max_position: Vector2 = world_bounds.end - player_bounds_padding
-
-	if min_position.x > max_position.x:
-		var center_x: float = (world_bounds.position.x + world_bounds.end.x) * 0.5
-		min_position.x = center_x
-		max_position.x = center_x
-	if min_position.y > max_position.y:
-		var center_y: float = (world_bounds.position.y + world_bounds.end.y) * 0.5
-		min_position.y = center_y
-		max_position.y = center_y
-
-	var clamped_position: Vector2 = global_position.clamp(min_position, max_position)
-	if clamped_position.is_equal_approx(global_position):
-		return
-
-	if not is_equal_approx(clamped_position.x, global_position.x):
-		velocity.x = 0.0
-	if not is_equal_approx(clamped_position.y, global_position.y):
-		velocity.y = 0.0
-	global_position = clamped_position
-
-func _get_player_bounds_padding() -> Vector2:
-	if collision_shape_2d == null or collision_shape_2d.shape == null:
-		return Vector2.ZERO
-
-	var shape: Shape2D = collision_shape_2d.shape
-	if shape is RectangleShape2D:
-		return (shape as RectangleShape2D).size * 0.5
-	if shape is CircleShape2D:
-		var radius: float = (shape as CircleShape2D).radius
-		return Vector2(radius, radius)
-	if shape is CapsuleShape2D:
-		var capsule: CapsuleShape2D = shape as CapsuleShape2D
-		return Vector2(capsule.radius, capsule.height * 0.5)
-
-	return Vector2.ZERO
+	_world_bounds_component.clamp_player_to_world_bounds(self)
 
 func _get_node_bounds_padding(node_2d: Node2D) -> Vector2:
-	if node_2d == null:
-		return Vector2(24.0, 24.0)
+	return _world_bounds_component.get_node_bounds_padding(node_2d)
 
-	var collision_shape: CollisionShape2D = node_2d.get_node_or_null("CollisionShape2D") as CollisionShape2D
-	if collision_shape == null or collision_shape.shape == null:
-		return Vector2(24.0, 24.0)
-
-	var shape: Shape2D = collision_shape.shape
-	if shape is RectangleShape2D:
-		return (shape as RectangleShape2D).size * 0.5
-	if shape is CircleShape2D:
-		var radius: float = (shape as CircleShape2D).radius
-		return Vector2(radius, radius)
-	if shape is CapsuleShape2D:
-		var capsule: CapsuleShape2D = shape as CapsuleShape2D
-		return Vector2(capsule.radius, capsule.height * 0.5)
-
-	return Vector2(24.0, 24.0)
+func _get_player_bounds_padding() -> Vector2:
+	return player_bounds_padding
 
 func _find_world_tile_map_layer() -> Node:
 	var current_scene: Node = get_tree().current_scene
@@ -784,174 +213,40 @@ func _find_world_tile_map_layer() -> Node:
 		if world_tile_map != null:
 			return world_tile_map
 
-	var fallback: Node = current_scene.find_child("TileMapGround", true, false)
-	if fallback != null:
-		return fallback
-
-	return null
+	return current_scene.find_child("TileMapGround", true, false)
 
 func _begin_middle_mouse_selection() -> void:
-	if _is_map_open():
-		return
-
-	_is_middle_mouse_selecting = true
-	_middle_select_found_summon = false
-	_middle_select_last_world_point = get_global_mouse_position()
-	_middle_select_preview_world_point = _middle_select_last_world_point
-	queue_redraw()
-	if _select_summons_in_world_radius(_middle_select_last_world_point):
-		_middle_select_found_summon = true
+	_summon_command_component.begin_middle_mouse_selection(self)
 
 func _end_middle_mouse_selection() -> void:
-	if not _is_middle_mouse_selecting:
-		return
-
-	if not _middle_select_found_summon:
-		_clear_selected_summons()
-
-	_reset_middle_mouse_selection_state()
+	_summon_command_component.end_middle_mouse_selection(self)
 
 func _update_middle_mouse_drag_selection() -> void:
-	if not _is_middle_mouse_selecting:
-		return
-	if _is_map_open():
-		return
-
-	var mouse_world_position: Vector2 = get_global_mouse_position()
-	if _middle_select_last_world_point.distance_to(mouse_world_position) < maxf(summon_selection_drag_step, 1.0):
-		return
-
-	_middle_select_last_world_point = mouse_world_position
-	_middle_select_preview_world_point = mouse_world_position
-	if _select_summons_in_world_radius(mouse_world_position):
-		_middle_select_found_summon = true
+	_summon_command_component.update_middle_mouse_drag_selection(self)
 
 func _reset_middle_mouse_selection_state() -> void:
-	_is_middle_mouse_selecting = false
-	_middle_select_found_summon = false
-	queue_redraw()
-
-func _select_summons_in_world_radius(world_position: Vector2) -> bool:
-	var selection_controller: Node = _get_summon_selection_controller()
-	if selection_controller == null:
-		return false
-	if not selection_controller.has_method("select_summons_in_world_circle"):
-		return false
-
-	var matched_count: int = int(selection_controller.call("select_summons_in_world_circle", world_position, summon_selection_radius, true))
-	return matched_count > 0
+	_summon_command_component.reset_middle_mouse_selection_state(self)
 
 func _clear_selected_summons() -> void:
-	var selection_controller: Node = _get_summon_selection_controller()
-	if selection_controller == null:
-		return
-	if not selection_controller.has_method("clear_selection"):
-		return
-
-	selection_controller.call("clear_selection")
+	_summon_command_component.clear_selected_summons(self)
 
 func _handle_summon_command_shortcuts() -> void:
-	if _is_map_open():
-		return
-
-	var selection_controller: Node = _get_summon_selection_controller()
-	if selection_controller == null:
-		return
-
-	if Input.is_action_just_pressed(summon_command_hold_action) and selection_controller.has_method("hold_selected_summons"):
-		selection_controller.call("hold_selected_summons")
-
-	if Input.is_action_just_pressed(summon_command_follow_action) and selection_controller.has_method("follow_selected_summons"):
-		selection_controller.call("follow_selected_summons")
-
-	if Input.is_action_just_pressed(summon_command_auto_action) and selection_controller.has_method("auto_selected_summons"):
-		selection_controller.call("auto_selected_summons")
-
-func _get_summon_selection_controller() -> Node:
-	if is_instance_valid(_summon_selection_controller):
-		return _summon_selection_controller
-
-	var controllers: Array = get_tree().get_nodes_in_group("summon_selection_controllers")
-	for controller in controllers:
-		if is_instance_valid(controller):
-			_summon_selection_controller = controller
-			return _summon_selection_controller
-
-	for map_node in get_tree().get_nodes_in_group("maps"):
-		if not is_instance_valid(map_node):
-			continue
-		if not map_node.has_method("get_minimap_control"):
-			continue
-
-		var minimap_control: Variant = map_node.call("get_minimap_control")
-		if minimap_control is Node:
-			_summon_selection_controller = minimap_control as Node
-			return _summon_selection_controller
-
-	return null
+	_summon_command_component.handle_summon_command_shortcuts(self)
 
 func _is_map_open() -> bool:
-	for map_node in get_tree().get_nodes_in_group("maps"):
-		if not is_instance_valid(map_node):
-			continue
-		if map_node.has_method("is_map_open") and bool(map_node.call("is_map_open")):
-			return true
-
-	return false
+	return _summon_command_component.is_map_open(self)
 
 func _draw() -> void:
-	if not _is_middle_mouse_selecting:
-		return
-
-	var local_center: Vector2 = to_local(_middle_select_preview_world_point)
-	draw_circle(local_center, summon_selection_radius, summon_selection_preview_fill_color)
-	draw_arc(local_center, summon_selection_radius, 0.0, TAU, 48, summon_selection_preview_line_color, summon_selection_preview_line_width, true)
+	_summon_command_component.draw(self)
 
 func _on_pickup_touched_radius(area: Area2D) -> void:
-	var pickup = area.get_parent()
-	if pickup == null: return
-	if pickup is not Pickup: return
-	if not is_instance_valid(pickup): return
-	if pickups_following_me.has(pickup): return
-	
-	if not player_inventory.would_item_fit(pickup.item_id):
-		return
-	
-	pickup.floating_towards = self
-	pickups_following_me.append(pickup)
+	_pickup_magnet_component.on_pickup_touched_radius(self, area, pickups_following_me)
 
 func _on_pickup_touched_me(area: Area2D) -> void:
-	var pickup = area.get_parent()
-	if pickup == null: return
-	if pickup is not Pickup: return
-	if not is_instance_valid(pickup): return
-	if player_inventory.add_items(pickup.item_id,1):
-		pickup.floating_towards = null
-		pickup.queue_free()
-		var index = pickups_following_me.find(pickup)
-		if index >= 0:
-			pickups_following_me.remove_at(index)
+	_pickup_magnet_component.on_pickup_touched_me(self, area, pickups_following_me)
 
 func _on_inventory_changed() -> void:
-	# Pickups that were following me should stop if they would no longer fit in my inventory
-	var invalid_pickups : Array[Pickup] = []
-	var pickups_no_longer_following : Array[Pickup] = []
-	for p in pickups_following_me:
-		if not is_instance_valid(p):
-			invalid_pickups.append(p)
-			continue
-		if !player_inventory.would_item_fit(p.item_id):
-			p.floating_towards = null
-			pickups_no_longer_following.append(p)
-	for p in invalid_pickups:
-		var invalid_index = pickups_following_me.find(p)
-		if invalid_index >= 0:
-			pickups_following_me.remove_at(invalid_index)
-	for p in pickups_no_longer_following:
-		var index = pickups_following_me.find(p)
-		if index >= 0:
-			pickups_following_me.remove_at(index)
-
+	_pickup_magnet_component.on_inventory_changed(self, pickups_following_me)
 	_emit_lootbox_inventory_changed()
 	_emit_sapling_carried_changed_if_needed()
 
