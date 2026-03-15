@@ -3,9 +3,12 @@ extends StaticBody2D
 @export var interact_action: StringName = &"interact"
 @export var interact_range: float = 96.0
 @export_multiline var dialog_message: String = "Calling the enemy summoner...\n\nEnemy Summoner: The wave timer feed is down right now.\nTry again in a bit for a real ETA."
+@export var prompt_refresh_interval: float = 0.2
 
 var _action_hint_text: String = "E"
 var _dialog_open: bool = false
+var _prompt_refresh_time_left: float = 0.0
+var _spatial_index: SpatialIndex2D
 
 @onready var _prompt_label: Label = get_node_or_null("InteractPrompt") as Label
 @onready var _dialog_layer: CanvasLayer = get_node_or_null("DialogLayer") as CanvasLayer
@@ -16,11 +19,18 @@ var _dialog_open: bool = false
 func _ready() -> void:
 	add_to_group("phones")
 	_action_hint_text = _resolve_action_hint(interact_action)
+	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
 	_set_dialog_open(false)
 	_update_prompt()
+	_schedule_prompt_refresh(0.0)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_prompt_refresh_time_left = maxf(_prompt_refresh_time_left - delta, 0.0)
+	if _prompt_refresh_time_left > 0.0:
+		return
+
 	_update_prompt()
+	_schedule_prompt_refresh()
 
 func interact(_player: Node2D) -> void:
 	if _dialog_open:
@@ -59,6 +69,10 @@ func _update_prompt() -> void:
 	_prompt_label.text = "Press %s to use phone" % _action_hint_text
 
 func _is_any_player_in_range() -> bool:
+	if is_instance_valid(_spatial_index):
+		var nearby_players: Array[Node2D] = _spatial_index.get_nodes_in_radius(global_position, &"players", interact_range)
+		return not nearby_players.is_empty()
+
 	var players: Array = get_tree().get_nodes_in_group("players")
 	for player in players:
 		if not (player is Node2D):
@@ -69,6 +83,15 @@ func _is_any_player_in_range() -> bool:
 			return true
 
 	return false
+
+func _schedule_prompt_refresh(initial_delay: float = -1.0) -> void:
+	if initial_delay >= 0.0:
+		_prompt_refresh_time_left = initial_delay
+		return
+
+	var base_interval: float = maxf(prompt_refresh_interval, 0.05)
+	var jitter: float = randf_range(0.0, base_interval * 0.3)
+	_prompt_refresh_time_left = base_interval + jitter
 
 func _resolve_action_hint(action: StringName) -> String:
 	if not InputMap.has_action(action):

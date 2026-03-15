@@ -5,6 +5,7 @@ extends CanvasLayer
 @export var summon_command_hold_action: StringName = &"summon_command_hold"
 @export var summon_command_follow_action: StringName = &"summon_command_follow"
 @export var summon_command_auto_action: StringName = &"summon_command_auto"
+@export var sapling_debug_refresh_interval: float = 0.2
 
 @onready var _lootbox_count_label: Label = $LootboxCountLabel
 @onready var _lootbox_prompt_label: Label = $LootboxPromptLabel
@@ -16,7 +17,8 @@ var _interact_hint_text: String = "E"
 var _summon_hold_hint_text: String = "H"
 var _summon_follow_hint_text: String = "F"
 var _summon_auto_hint_text: String = "R"
-var _player: Node = null
+var _player: Player = null
+var _sapling_debug_time_to_refresh: float = 0.0
 
 # TODO: I, Kyle, have borked most of this functionality. It still compiles though, so leaving for the time being
 
@@ -29,34 +31,44 @@ func _ready() -> void:
 	_update_label(0, 0)
 	_update_prompt(0, 0)
 
-	var player: Node = get_node_or_null(player_path)
-	if player == null:
+	var player_node: Node = get_node_or_null(player_path)
+	if player_node == null:
 		_update_label(0, 0)
 		_update_sapling_plant_debug_label()
 		push_warning("LootboxCounterHUD: player node was not found at player_path")
 		return
+	if not (player_node is Player):
+		_update_label(0, 0)
+		_update_sapling_plant_debug_label()
+		push_warning("LootboxCounterHUD: player is not a Player instance")
+		return
 
-	_player = player
+	_player = player_node as Player
 
-	if not player.has_signal("lootbox_inventory_changed"):
+	if not _player.has_signal("lootbox_inventory_changed"):
 		_update_label(0, 0)
 		_update_sapling_plant_debug_label()
 		push_warning("LootboxCounterHUD: player does not expose lootbox_inventory_changed")
 		return
 
 	var inventory_changed_callable: Callable = Callable(self, "_on_lootbox_inventory_changed")
-	if not player.is_connected("lootbox_inventory_changed", inventory_changed_callable):
-		player.connect("lootbox_inventory_changed", inventory_changed_callable)
+	if not _player.is_connected("lootbox_inventory_changed", inventory_changed_callable):
+		_player.connect("lootbox_inventory_changed", inventory_changed_callable)
 
-	if player.has_signal("sapling_carried_changed"):
+	if _player.has_signal("sapling_carried_changed"):
 		var sapling_changed_callable: Callable = Callable(self, "_on_sapling_carried_changed")
-		if not player.is_connected("sapling_carried_changed", sapling_changed_callable):
-			player.connect("sapling_carried_changed", sapling_changed_callable)
+		if not _player.is_connected("sapling_carried_changed", sapling_changed_callable):
+			_player.connect("sapling_carried_changed", sapling_changed_callable)
 
 	_refresh_lootbox_state_from_player()
 	_update_sapling_plant_debug_label()
 
 func _process(_delta: float) -> void:
+	_sapling_debug_time_to_refresh = maxf(_sapling_debug_time_to_refresh - _delta, 0.0)
+	if _sapling_debug_time_to_refresh > 0.0:
+		return
+
+	_sapling_debug_time_to_refresh = maxf(sapling_debug_refresh_interval, 0.05)
 	_update_sapling_plant_debug_label()
 
 	#var initial_count_variant: Variant = player.call("get_lootbox_count")
@@ -87,13 +99,8 @@ func _refresh_lootbox_state_from_player() -> void:
 	if _player == null:
 		return
 
-	var chaos_count: int = 0
-	if _player.has_method("get_chaos_lootbox_count"):
-		chaos_count = int(_player.call("get_chaos_lootbox_count"))
-
-	var forest_count: int = 0
-	if _player.has_method("get_forest_lootbox_count"):
-		forest_count = int(_player.call("get_forest_lootbox_count"))
+	var chaos_count: int = _player.get_chaos_lootbox_count()
+	var forest_count: int = _player.get_forest_lootbox_count()
 
 	_update_label(chaos_count, forest_count)
 	_update_prompt(chaos_count, forest_count)
@@ -107,18 +114,13 @@ func _update_sapling_plant_debug_label() -> void:
 	if _player == null:
 		_sapling_debug_label.visible = false
 		return
-	if not _player.has_method("is_carrying_sapling"):
-		_sapling_debug_label.visible = false
-		return
 
-	var is_carrying: bool = bool(_player.call("is_carrying_sapling"))
+	var is_carrying: bool = _player.is_carrying_sapling()
 	_sapling_debug_label.visible = is_carrying
 	if not is_carrying:
 		return
 
-	var can_plant: bool = false
-	if _player.has_method("can_plant_sapling_here"):
-		can_plant = bool(_player.call("can_plant_sapling_here"))
+	var can_plant: bool = _player.can_plant_sapling_here()
 
 	var status_text: String = "No"
 	if can_plant:

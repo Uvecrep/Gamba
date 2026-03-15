@@ -40,6 +40,17 @@ func set_slot_item_count(index : int, new_value: int) -> bool:
 	inventory_changed.emit()
 	return true
 
+func set_selected_index(new_index: int) -> bool:
+	if new_index < 0 or new_index >= num_slots:
+		return false
+	if new_index == selected_index:
+		return false
+
+	selected_index = new_index
+	selection_index_changed.emit(selected_index)
+	inventory_changed.emit()
+	return true
+
 func add_items(item_id: StringName, num_items: int) -> bool:
 	if item_id == &"": return false;
 	if num_items <= 0: return false

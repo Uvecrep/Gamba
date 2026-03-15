@@ -2,6 +2,7 @@ extends CharacterBody2D
 class_name Player
 
 signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
+signal sapling_carried_changed(is_carrying: bool)
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
 const DEATH_INDICATOR_COLOR: Color = Color(1.0, 0.42, 0.42, 1.0)
@@ -55,6 +56,7 @@ var _summon_selection_controller: Node
 var _death_indicator_layer: CanvasLayer
 var _death_indicator_label: Label
 var pickups_following_me: Array[Pickup] = []
+var _last_reported_carrying_sapling: bool = false
 
 func _ready() -> void:
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
@@ -68,6 +70,8 @@ func _ready() -> void:
 	player_bounds_padding = _get_player_bounds_padding()
 	_configure_world_bounds()
 	player_inventory.inventory_changed.connect(_on_inventory_changed)
+	_last_reported_carrying_sapling = is_carrying_sapling()
+	sapling_carried_changed.emit(_last_reported_carrying_sapling)
 
 func get_input() -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
@@ -104,14 +108,13 @@ func _physics_process(_delta: float) -> void:
 		mouse_scroll_delta -= 1
 	
 	if mouse_scroll_delta != 0:
-		player_inventory.selected_index = posmod(player_inventory.selected_index + mouse_scroll_delta,player_inventory.num_slots)
-		player_inventory.selection_index_changed.emit(player_inventory.selected_index)
-		player_inventory.inventory_changed.emit()
+		var next_index: int = posmod(player_inventory.selected_index + mouse_scroll_delta, player_inventory.num_slots)
+		player_inventory.set_selected_index(next_index)
 	
 	var mouse_pos = get_viewport().get_mouse_position() - (get_viewport().get_visible_rect().size/2)
 	camera.offset = mouse_pos * .1 # this is goofy, should plug into a better feeling damp function
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if _is_dead:
 		return
 
@@ -430,17 +433,55 @@ func _try_plant_sapling_near_house() -> bool:
 		new_tree.queue_free()
 		return false
 
+	var new_tree_2d: Node2D = new_tree as Node2D
+	var plant_position: Vector2 = _get_plant_position(target_house as Node2D, new_tree_2d)
+
 	var parent_node: Node = get_tree().current_scene
 	if parent_node == null:
 		parent_node = get_parent()
 	if parent_node == null:
 		push_warning("Player: could not determine parent scene for planted tree.")
-		new_tree.queue_free()
+		new_tree_2d.queue_free()
 		return false
 
-	parent_node.add_child(new_tree)
-	(new_tree as Node2D).global_position = _get_plant_position(target_house as Node2D)
+	parent_node.add_child(new_tree_2d)
+	new_tree_2d.global_position = plant_position
 	return true
+
+func is_carrying_sapling() -> bool:
+	return _get_sapling_inventory_count() > 0
+
+func can_plant_sapling_here() -> bool:
+	if _is_dead:
+		return false
+	if sapling_tree_scene == null:
+		return false
+	if not is_carrying_sapling():
+		return false
+
+	return _find_nearest_house_for_planting() != null
+
+func _get_sapling_inventory_count() -> int:
+	if player_inventory == null:
+		return 0
+
+	var sapling_item_id: StringName = &"sapling"
+	if not player_inventory.inventory_items.has(sapling_item_id):
+		return 0
+
+	var slot_index: int = player_inventory.inventory_items.find(sapling_item_id)
+	if slot_index < 0 or slot_index >= player_inventory.inventory_item_counts.size():
+		return 0
+
+	return maxi(player_inventory.inventory_item_counts[slot_index], 0)
+
+func _emit_sapling_carried_changed_if_needed() -> void:
+	var is_carrying: bool = is_carrying_sapling()
+	if is_carrying == _last_reported_carrying_sapling:
+		return
+
+	_last_reported_carrying_sapling = is_carrying
+	sapling_carried_changed.emit(is_carrying)
 
 func _find_nearest_house_for_planting() -> Node:
 	var houses: Array = get_tree().get_nodes_in_group("house")
@@ -461,19 +502,28 @@ func _find_nearest_house_for_planting() -> Node:
 
 	return nearest_house
 
-func _get_plant_position(target_house: Node2D) -> Vector2:
-	var plant_position: Vector2 = global_position
-	var from_house: Vector2 = plant_position - target_house.global_position
+func _get_plant_position(target_house: Node2D, tree_node: Node2D) -> Vector2:
+	var from_house: Vector2 = global_position - target_house.global_position
+	var outward_direction: Vector2 = from_house.normalized()
+	if outward_direction == Vector2.ZERO:
+		outward_direction = Vector2.DOWN
+
+	var player_radius: float = maxf(player_bounds_padding.x, player_bounds_padding.y)
+	var tree_padding: Vector2 = _get_node_bounds_padding(tree_node)
+	var tree_radius: float = maxf(tree_padding.x, tree_padding.y)
+
+	var adjacent_distance: float = maxf(player_radius + tree_radius + 8.0, 48.0)
+	var plant_position: Vector2 = global_position + (outward_direction * adjacent_distance)
+
 	var minimum_house_clearance: float = 72.0
+	var from_house_to_plant: Vector2 = plant_position - target_house.global_position
+	if from_house_to_plant.length() < minimum_house_clearance:
+		var clearance_direction: Vector2 = from_house_to_plant.normalized()
+		if clearance_direction == Vector2.ZERO:
+			clearance_direction = outward_direction
+		plant_position = target_house.global_position + (clearance_direction * minimum_house_clearance)
 
-	if from_house.length() >= minimum_house_clearance:
-		return plant_position
-
-	var direction: Vector2 = from_house.normalized()
-	if direction == Vector2.ZERO:
-		direction = Vector2.DOWN
-
-	return target_house.global_position + (direction * minimum_house_clearance)
+	return plant_position
 
 func _find_nearest_harvestable_tree() -> Node:
 	var trees: Array = get_tree().get_nodes_in_group("trees")
@@ -672,6 +722,26 @@ func _get_player_bounds_padding() -> Vector2:
 
 	return Vector2.ZERO
 
+func _get_node_bounds_padding(node_2d: Node2D) -> Vector2:
+	if node_2d == null:
+		return Vector2(24.0, 24.0)
+
+	var collision_shape: CollisionShape2D = node_2d.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if collision_shape == null or collision_shape.shape == null:
+		return Vector2(24.0, 24.0)
+
+	var shape: Shape2D = collision_shape.shape
+	if shape is RectangleShape2D:
+		return (shape as RectangleShape2D).size * 0.5
+	if shape is CircleShape2D:
+		var radius: float = (shape as CircleShape2D).radius
+		return Vector2(radius, radius)
+	if shape is CapsuleShape2D:
+		var capsule: CapsuleShape2D = shape as CapsuleShape2D
+		return Vector2(capsule.radius, capsule.height * 0.5)
+
+	return Vector2(24.0, 24.0)
+
 func _find_world_tile_map_layer() -> Node:
 	var current_scene: Node = get_tree().current_scene
 	if current_scene == null:
@@ -852,3 +922,4 @@ func _on_inventory_changed() -> void:
 			pickups_following_me.remove_at(index)
 
 	_emit_lootbox_inventory_changed()
+	_emit_sapling_carried_changed_if_needed()
