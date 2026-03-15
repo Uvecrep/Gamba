@@ -1,0 +1,12 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/summon/summon_identity_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+summon_identity = &"jack_in_the_box"
+move_speed = 120.0
+attack_range = 190.0
+attack_damage = 20.0
+attack_cooldown = 1.05
+max_health = 96.0
