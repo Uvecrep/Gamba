@@ -19,6 +19,7 @@
 script = ExtResource("9_main")
 navigation_obstacle_padding = 16.0
 navigation_grid_clearance_pixels = 16.0
+navigation_grid_merge_walkable_rectangles = false
 metadata/_edit_horizontal_guides_ = [-958.0]
 
 [node name="World" parent="." unique_id=32232329 instance=ExtResource("2_wdj6m")]

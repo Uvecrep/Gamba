@@ -14,8 +14,10 @@ class_name SpatialIndex2D
 var _time_to_rebuild: float = 0.0
 var _grid_by_group: Dictionary = {}
 var _nodes_by_group: Dictionary = {}
+var _perf_debug: PerfDebugService
 
 func _ready() -> void:
+	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	force_rebuild()
 
 func _process(delta: float) -> void:
@@ -31,6 +33,7 @@ func force_rebuild() -> void:
 	_rebuild_index()
 
 func find_closest_in_group(from_position: Vector2, group_name: StringName, radius: float = -1.0, exclude: Node2D = null) -> Node2D:
+	var find_start_us: int = Time.get_ticks_usec()
 	var best_node: Node2D = null
 	var best_distance_sq: float = INF
 	var has_radius_limit: bool = radius > 0.0
@@ -57,9 +60,15 @@ func find_closest_in_group(from_position: Vector2, group_name: StringName, radiu
 		best_distance_sq = distance_sq
 		best_node = candidate
 
+	_perf_mark_scope(&"spatial.find_closest_in_group", find_start_us, {
+		"group": String(group_name),
+		"radius": radius,
+		"candidates": candidates.size(),
+	})
 	return best_node
 
 func find_closest_in_groups(from_position: Vector2, group_names: PackedStringArray, radius: float = -1.0, exclude: Node2D = null) -> Node2D:
+	var find_start_us: int = Time.get_ticks_usec()
 	var best_node: Node2D = null
 	var best_distance_sq: float = INF
 	var has_radius_limit: bool = radius > 0.0
@@ -87,11 +96,22 @@ func find_closest_in_groups(from_position: Vector2, group_names: PackedStringArr
 			best_distance_sq = distance_sq
 			best_node = candidate
 
+	_perf_mark_scope(&"spatial.find_closest_in_groups", find_start_us, {
+		"group_count": group_names.size(),
+		"radius": radius,
+	})
 	return best_node
 
 func get_nodes_in_radius(from_position: Vector2, group_name: StringName, radius: float, exclude: Node2D = null) -> Array[Node2D]:
+	var query_start_us: int = Time.get_ticks_usec()
 	var results: Array[Node2D] = []
 	if radius <= 0.0:
+		_perf_mark_scope(&"spatial.get_nodes_in_radius", query_start_us, {
+			"group": String(group_name),
+			"radius": radius,
+			"results": 0,
+			"status": "invalid_radius",
+		})
 		return results
 
 	var grid: Dictionary = _grid_by_group.get(group_name, {})
@@ -101,17 +121,20 @@ func get_nodes_in_radius(from_position: Vector2, group_name: StringName, radius:
 
 		var radius_sq_fallback: float = radius * radius
 		for candidate in get_tree().get_nodes_in_group(group_name):
-			if not (candidate is Node2D):
+			var node: Node2D = _as_valid_node2d(candidate)
+			if node == null:
 				continue
-			if not is_instance_valid(candidate):
-				continue
-
-			var node: Node2D = candidate as Node2D
 			if exclude != null and node == exclude:
 				continue
 			if from_position.distance_squared_to(node.global_position) <= radius_sq_fallback:
 				results.append(node)
 
+		_perf_mark_scope(&"spatial.get_nodes_in_radius", query_start_us, {
+			"group": String(group_name),
+			"radius": radius,
+			"results": results.size(),
+			"status": "fallback_group_scan",
+		})
 		return results
 
 	var clamped_cell_size: float = maxf(cell_size, 1.0)
@@ -127,10 +150,8 @@ func get_nodes_in_radius(from_position: Vector2, group_name: StringName, radius:
 
 			var bucket: Array = grid[key]
 			for candidate_variant in bucket:
-				if not (candidate_variant is Node2D):
-					continue
-				var candidate: Node2D = candidate_variant as Node2D
-				if not is_instance_valid(candidate):
+				var candidate: Node2D = _as_valid_node2d(candidate_variant)
+				if candidate == null:
 					continue
 				if exclude != null and candidate == exclude:
 					continue
@@ -138,6 +159,11 @@ func get_nodes_in_radius(from_position: Vector2, group_name: StringName, radius:
 				if from_position.distance_squared_to(candidate.global_position) <= radius_sq:
 					results.append(candidate)
 
+	_perf_mark_scope(&"spatial.get_nodes_in_radius", query_start_us, {
+		"group": String(group_name),
+		"radius": radius,
+		"results": results.size(),
+	})
 	return results
 
 func get_first_in_group(group_name: StringName) -> Node2D:
@@ -148,9 +174,13 @@ func get_first_in_group(group_name: StringName) -> Node2D:
 	return null
 
 func _rebuild_index() -> void:
+	var rebuild_start_us: int = Time.get_ticks_usec()
 	_grid_by_group.clear()
 	_nodes_by_group.clear()
 	if get_tree() == null:
+		_perf_mark_scope(&"spatial.rebuild_index", rebuild_start_us, {
+			"status": "no_tree",
+		})
 		return
 
 	for group_name in tracked_groups:
@@ -158,12 +188,9 @@ func _rebuild_index() -> void:
 		var grid: Dictionary = {}
 
 		for candidate in get_tree().get_nodes_in_group(group_name):
-			if not (candidate is Node2D):
+			var node: Node2D = _as_valid_node2d(candidate)
+			if node == null:
 				continue
-			if not is_instance_valid(candidate):
-				continue
-
-			var node: Node2D = candidate as Node2D
 			nodes.append(node)
 
 			var key: Vector2i = _cell_for_position(node.global_position)
@@ -173,6 +200,12 @@ func _rebuild_index() -> void:
 
 		_nodes_by_group[group_name] = nodes
 		_grid_by_group[group_name] = grid
+		_perf_inc(&"spatial.rebuild_nodes_total", nodes.size())
+		_perf_inc(&"spatial.rebuild_groups", 1)
+
+	_perf_mark_scope(&"spatial.rebuild_index", rebuild_start_us, {
+		"groups": tracked_groups.size(),
+	})
 
 func _get_group_nodes(group_name: StringName) -> Array[Node2D]:
 	if _nodes_by_group.has(group_name):
@@ -183,8 +216,9 @@ func _get_group_nodes(group_name: StringName) -> Array[Node2D]:
 		return nodes
 
 	for candidate in get_tree().get_nodes_in_group(group_name):
-		if candidate is Node2D and is_instance_valid(candidate):
-			nodes.append(candidate as Node2D)
+		var node: Node2D = _as_valid_node2d(candidate)
+		if node != null:
+			nodes.append(node)
 
 	return nodes
 
@@ -194,3 +228,23 @@ func _cell_for_position(position: Vector2) -> Vector2i:
 		int(floor(position.x / clamped_cell_size)),
 		int(floor(position.y / clamped_cell_size))
 	)
+
+func _as_valid_node2d(candidate: Variant) -> Node2D:
+	if not is_instance_valid(candidate):
+		return null
+	if not (candidate is Node2D):
+		return null
+
+	return candidate as Node2D
+
+func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.add_scope_time_us(scope_name, Time.get_ticks_usec() - start_us, metadata)
+
+func _perf_inc(counter_name: StringName, amount: int = 1) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.increment_counter(counter_name, amount)

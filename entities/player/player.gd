@@ -55,10 +55,12 @@ var _middle_select_preview_world_point: Vector2 = Vector2.ZERO
 var _summon_selection_controller: Node
 var _death_indicator_layer: CanvasLayer
 var _death_indicator_label: Label
+var _perf_debug: PerfDebugService
 var pickups_following_me: Array[Pickup] = []
 var _last_reported_carrying_sapling: bool = false
 
 func _ready() -> void:
+	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = Const.COLLISION_LAYERS.PLAYER
 	collision_mask = Const.COLLISION_LAYERS.WORLD
@@ -419,18 +421,28 @@ func _try_use_item() -> bool:
 	return false
 
 func _try_plant_sapling_near_house() -> bool:
+	var plant_start_us: int = Time.get_ticks_usec()
 
 	var target_house: Node = _find_nearest_house_for_planting()
 	if target_house == null:
+		_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
+			"status": "no_house",
+		})
 		return false
 	if sapling_tree_scene == null:
 		push_warning("Player: sapling_tree_scene is not configured; cannot plant sapling.")
+		_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
+			"status": "missing_scene",
+		})
 		return false
 
 	var new_tree: Node = sapling_tree_scene.instantiate()
 	if not (new_tree is Node2D):
 		push_warning("Player: sapling_tree_scene root must inherit from Node2D.")
 		new_tree.queue_free()
+		_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
+			"status": "invalid_tree_root",
+		})
 		return false
 
 	var new_tree_2d: Node2D = new_tree as Node2D
@@ -442,10 +454,21 @@ func _try_plant_sapling_near_house() -> bool:
 	if parent_node == null:
 		push_warning("Player: could not determine parent scene for planted tree.")
 		new_tree_2d.queue_free()
+		_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
+			"status": "missing_parent",
+		})
 		return false
 
 	parent_node.add_child(new_tree_2d)
 	new_tree_2d.global_position = plant_position
+	_perf_inc(&"player.tree_placements")
+	_perf_mark_event("player_tree_placed", {
+		"x": snappedf(plant_position.x, 1.0),
+		"y": snappedf(plant_position.y, 1.0),
+	})
+	_perf_mark_scope(&"player.try_plant_sapling", plant_start_us, {
+		"status": "success",
+	})
 	return true
 
 func is_carrying_sapling() -> bool:
@@ -923,3 +946,21 @@ func _on_inventory_changed() -> void:
 
 	_emit_lootbox_inventory_changed()
 	_emit_sapling_carried_changed_if_needed()
+
+func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.add_scope_time_us(scope_name, Time.get_ticks_usec() - start_us, metadata)
+
+func _perf_inc(counter_name: StringName, amount: int = 1) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.increment_counter(counter_name, amount)
+
+func _perf_mark_event(event_name: String, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.mark_event(event_name, metadata)

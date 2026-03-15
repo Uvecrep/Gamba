@@ -128,22 +128,34 @@ func _process(delta: float) -> void:
 		_deactivate()
 		return
 
-	var to_target: Vector2 = _target.global_position - global_position
+	var target_node: Node2D = _target
+	if not is_instance_valid(target_node):
+		_deactivate()
+		return
+
+	var to_target: Vector2 = target_node.global_position - global_position
 	var distance: float = to_target.length()
 	if distance <= hit_distance:
-		if _target is EnemyUnit:
-			(_target as EnemyUnit).take_hit(_damage, _source, _hit_options)
-		elif _target is Player:
-			(_target as Player).take_hit(_damage, _source, _hit_options)
-		elif _target is SummonUnit:
-			(_target as SummonUnit).take_hit(_damage, _source, _hit_options)
-		elif _target.has_method("take_hit"):
-			_target.call("take_hit", _damage, _source, _hit_options)
-		elif _target.has_method("take_damage"):
-			_target.call("take_damage", _damage)
+		var source_node: Node2D = _resolve_valid_source()
+		if target_node is EnemyUnit:
+			(target_node as EnemyUnit).take_hit(_damage, source_node, _hit_options)
+		elif target_node is Player:
+			(target_node as Player).take_hit(_damage, source_node, _hit_options)
+		elif target_node is SummonUnit:
+			(target_node as SummonUnit).take_hit(_damage, source_node, _hit_options)
+		elif target_node.has_method("take_hit"):
+			target_node.call("take_hit", _damage, source_node, _hit_options)
+		elif target_node.has_method("take_damage"):
+			target_node.call("take_damage", _damage)
 		_deactivate()
 		return
 
 	if distance > 0.0:
 		global_position += to_target.normalized() * move_speed * delta
 		rotation = to_target.angle() + _rotation_offset_radians
+
+func _resolve_valid_source() -> Node2D:
+	if not is_instance_valid(_source):
+		return null
+
+	return _source
