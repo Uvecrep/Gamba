@@ -20,12 +20,14 @@ config/icon="uid://dh1jj6uvf68bk"
 LootboxGlobals="*uid://dxsypt4tjw8ks"
 ItemGlobals="*uid://bc05npn0mt456"
 Const="*uid://3wrj6qajgox6"
+SpatialIndex="*res://globals/spatial_index.gd"
+VfxPool="*res://globals/vfx_pool.gd"
+PerfDebug="*res://globals/perf_debug.gd"
 
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
-window/vsync/vsync_mode=0
 
 [editor_plugins]
 

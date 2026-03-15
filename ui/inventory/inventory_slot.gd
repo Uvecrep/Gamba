@@ -18,7 +18,7 @@ func set_is_selected(new_is_selected : bool) -> void:
 	is_selected = new_is_selected
 	if is_selected:
 		item_name_label.add_theme_color_override("font_color", Color.YELLOW)
-		var style = StyleBoxFlat.new()
+		var style = item_portrait_border.get_theme_stylebox("panel").duplicate()
 		style.bg_color = Color.YELLOW
 		item_portrait_border.add_theme_stylebox_override("panel", style)		
 	else:

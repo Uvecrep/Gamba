@@ -1,4 +1,5 @@
 extends CharacterBody2D
+class_name EnemyUnit
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
 
@@ -17,8 +18,13 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 @export var nav_target_desired_distance: float = 16.0
 @export var nav_probe_ring_points: int = 8
 @export var nav_probe_ring_step: float = 16.0
+@export var nav_probe_ring_max_per_frame: int = 3
 @export var nav_goal_update_interval: float = 0.45
 @export var visibility_check_interval: float = 0.2
+@export var ai_update_bucket_count: int = 4
+@export var far_lod_distance: float = 1300.0
+@export var far_lod_repath_multiplier: float = 2.0
+@export var far_lod_visibility_multiplier: float = 2.0
 @export var status_tick_interval: float = 0.2
 @export var max_sting_stacks: int = 8
 @export var knockback_decay: float = 900.0
@@ -57,11 +63,21 @@ var _vfx_burn_effect: Texture2D
 var _vfx_rooted: Texture2D
 var _vfx_hit_marker: Texture2D
 var _vfx_knockback: Texture2D
+var _spatial_index: SpatialIndex2D
+var _vfx_pool: VfxPool2D
+var _perf_debug: PerfDebugService
+
+static var _vfx_spawn_frame: int = -1
+static var _vfx_spawn_count: int = 0
+static var _nav_probe_frame: int = -1
+static var _nav_probe_count: int = 0
+const MAX_VFX_SPAWNS_PER_FRAME: int = 24
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 @onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
 
 func _ready() -> void:
+	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	_load_vfx_assets()
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = PHYSICS_LAYER_ENEMY
@@ -71,12 +87,21 @@ func _ready() -> void:
 		_navigation_agent.path_desired_distance = maxf(nav_path_desired_distance, 4.0)
 		_navigation_agent.target_desired_distance = maxf(nav_target_desired_distance, 6.0)
 		_navigation_agent.set_navigation_map(get_world_2d().navigation_map)
+	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
+	_vfx_pool = get_node_or_null("/root/VfxPool") as VfxPool2D
 	_current_health = max_health
+	_time_to_repath = randf_range(0.0, maxf(repath_interval, 0.05))
+	_time_to_nav_goal_refresh = randf_range(0.0, maxf(nav_goal_update_interval, 0.05))
+	_time_to_visibility_refresh = randf_range(0.0, maxf(visibility_check_interval, 0.05))
+	_time_to_next_melee_hit = randf_range(0.0, maxf(melee_attack_cooldown, 0.05) * 0.3)
 	_health_bar_visible_time_left = 0.0
 	_update_health_bar()
 	_setup_status_vfx()
 
 func _physics_process(delta: float) -> void:
+	var physics_start_us: int = Time.get_ticks_usec()
+	_perf_inc(&"enemy.physics_ticks")
+
 	_time_to_repath -= delta
 	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
 	_time_to_visibility_refresh = maxf(_time_to_visibility_refresh - delta, 0.0)
@@ -88,7 +113,14 @@ func _physics_process(delta: float) -> void:
 	if previous_health_bar_visible_time_left > 0.0 and _health_bar_visible_time_left <= 0.0:
 		_refresh_health_bar_visibility()
 	var is_rooted: bool = _root_time_left > 0.0
-	if _time_to_repath <= 0.0:
+	var is_far_lod: bool = _is_far_from_player()
+	var repath_wait: float = maxf(repath_interval, 0.05)
+	var visibility_wait: float = maxf(visibility_check_interval, 0.05)
+	if is_far_lod:
+		repath_wait *= maxf(far_lod_repath_multiplier, 1.0)
+		visibility_wait *= maxf(far_lod_visibility_multiplier, 1.0)
+	if _time_to_repath <= 0.0 and _is_ai_bucket_turn():
+		var repath_start_us: int = Time.get_ticks_usec()
 		var nearby_target := _find_closest_target_in_groups(nearby_target_groups, nearby_target_radius)
 		if is_instance_valid(nearby_target):
 			_current_target = nearby_target
@@ -101,19 +133,20 @@ func _physics_process(delta: float) -> void:
 				_last_nav_goal_target = _current_target
 				_time_to_nav_goal_refresh = maxf(nav_goal_update_interval, 0.05)
 			_cached_has_clear_path = _has_clear_path_to_target(_current_target)
-			_time_to_visibility_refresh = maxf(visibility_check_interval, 0.05)
+			_time_to_visibility_refresh = visibility_wait
 		else:
 			_last_nav_goal_target = null
 			_time_to_nav_goal_refresh = 0.0
 			_time_to_visibility_refresh = 0.0
 			_cached_has_clear_path = false
 			_clear_navigation_target()
-		_time_to_repath = repath_interval
+		_time_to_repath = repath_wait
+		_perf_mark_scope(&"enemy.repath_block", repath_start_us)
 
 	if is_instance_valid(_current_target):
 		if _time_to_visibility_refresh <= 0.0:
 			_cached_has_clear_path = _has_clear_path_to_target(_current_target)
-			_time_to_visibility_refresh = maxf(visibility_check_interval, 0.05)
+			_time_to_visibility_refresh = visibility_wait
 
 		var target_center_distance: float = global_position.distance_to(_current_target.global_position)
 		var target_distance: float = _get_target_surface_distance(_current_target, target_center_distance)
@@ -136,6 +169,16 @@ func _physics_process(delta: float) -> void:
 
 	velocity += _external_push_velocity
 	move_and_slide()
+	_perf_mark_physics_scope(&"enemy.physics_total", physics_start_us)
+
+func _is_ai_bucket_turn() -> bool:
+	var bucket_count: int = maxi(ai_update_bucket_count, 1)
+	if bucket_count <= 1:
+		return true
+
+	var frame_bucket: int = Engine.get_physics_frames() % bucket_count
+	var enemy_bucket: int = int(get_instance_id() % bucket_count)
+	return frame_bucket == enemy_bucket
 
 func _get_navigation_velocity(_target_position: Vector2) -> Vector2:
 	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
@@ -157,16 +200,27 @@ func _set_navigation_target(target_position: Vector2) -> void:
 	_navigation_agent.target_position = target_position
 
 func _set_navigation_target_for_target(target: Node2D) -> void:
+	var nav_target_start_us: int = Time.get_ticks_usec()
 	if target == null:
+		_perf_mark_scope(&"enemy.set_nav_target_for_target", nav_target_start_us, {
+			"status": "missing_target",
+		})
 		return
 
 	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
 		_set_navigation_target(target.global_position)
+		_perf_mark_scope(&"enemy.set_nav_target_for_target", nav_target_start_us, {
+			"status": "fallback_direct_target",
+		})
 		return
 
 	var desired_stop_distance: float = _get_stop_distance(target)
-	var best_target: Vector2 = _choose_best_navigation_target(target.global_position, desired_stop_distance, target.is_in_group("house"))
+	var use_ring_probe: bool = target.is_in_group("house") and not _is_far_from_player() and _try_consume_nav_probe_budget()
+	var best_target: Vector2 = _choose_best_navigation_target(target.global_position, desired_stop_distance, use_ring_probe)
 	_set_navigation_target(best_target)
+	_perf_mark_scope(&"enemy.set_nav_target_for_target", nav_target_start_us, {
+		"probe_ring": use_ring_probe,
+	})
 
 func _choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
 	if _navigation_agent == null:
@@ -187,7 +241,7 @@ func _choose_best_navigation_target(target_position: Vector2, desired_distance: 
 	var desired_ring_distance: float = maxf(desired_distance, 8.0)
 	var best_candidate: Vector2 = projected_center
 	var best_score: float = projected_center.distance_to(target_position)
-	var ring_points: int = maxi(nav_probe_ring_points, 4)
+	var ring_points: int = mini(maxi(nav_probe_ring_points, 4), 6)
 
 	for i in range(ring_points):
 		var angle_offset: float = TAU * float(i) / float(ring_points)
@@ -200,6 +254,19 @@ func _choose_best_navigation_target(target_position: Vector2, desired_distance: 
 
 	return best_candidate
 
+func _try_consume_nav_probe_budget() -> bool:
+	var frame: int = Engine.get_physics_frames()
+	if frame != _nav_probe_frame:
+		_nav_probe_frame = frame
+		_nav_probe_count = 0
+
+	var max_per_frame: int = maxi(nav_probe_ring_max_per_frame, 1)
+	if _nav_probe_count >= max_per_frame:
+		return false
+
+	_nav_probe_count += 1
+	return true
+
 func _clear_navigation_target() -> void:
 	if _navigation_agent == null:
 		return
@@ -208,8 +275,6 @@ func _clear_navigation_target() -> void:
 
 func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: float, has_clear_path: bool, allow_without_clear_path: bool) -> void:
 	if melee_damage <= 0.0 or melee_attack_cooldown <= 0.0:
-		return
-	if not target.has_method("take_damage"):
 		return
 	if _time_to_next_melee_hit > 0.0:
 		return
@@ -222,14 +287,28 @@ func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: fl
 		return
 
 	_time_to_next_melee_hit = melee_attack_cooldown
-	target.call("take_damage", melee_damage)
+	if target is Player:
+		(target as Player).take_damage(melee_damage)
+		return
+	if target is SummonUnit:
+		(target as SummonUnit).take_damage(melee_damage)
+		return
+	if target.has_method("take_damage"):
+		target.call("take_damage", melee_damage)
 
 func _has_clear_path_to_target(target: Node2D) -> bool:
+	var los_start_us: int = Time.get_ticks_usec()
 	if target == null:
+		_perf_mark_scope(&"enemy.has_clear_path", los_start_us, {
+			"status": "missing_target",
+		})
 		return false
 
 	var world_state: PhysicsDirectSpaceState2D = get_world_2d().direct_space_state
 	if world_state == null:
+		_perf_mark_scope(&"enemy.has_clear_path", los_start_us, {
+			"status": "no_world_state",
+		})
 		return true
 
 	var query := PhysicsRayQueryParameters2D.create(global_position, target.global_position)
@@ -238,10 +317,18 @@ func _has_clear_path_to_target(target: Node2D) -> bool:
 
 	var hit: Dictionary = world_state.intersect_ray(query)
 	if hit.is_empty():
+		_perf_mark_scope(&"enemy.has_clear_path", los_start_us, {
+			"result": "clear",
+		})
 		return true
 
 	var collider: Variant = hit.get("collider")
-	return collider == target
+	var has_clear_path: bool = collider == target
+	_perf_mark_scope(&"enemy.has_clear_path", los_start_us, {
+		"result": "hit",
+		"clear": has_clear_path,
+	})
+	return has_clear_path
 
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
 	_apply_damage(amount)
@@ -399,6 +486,11 @@ func _update_status_vfx() -> void:
 func _spawn_local_vfx(texture: Texture2D, local_offset: Vector2, lifetime: float, sprite_scale: Vector2 = Vector2.ONE, rotation_radians: float = 0.0) -> void:
 	if texture == null:
 		return
+	if not _can_spawn_vfx_this_frame():
+		return
+	if is_instance_valid(_vfx_pool):
+		_vfx_pool.spawn_local_fade(self, texture, local_offset, rotation_radians, sprite_scale, 7, lifetime, 0.95)
+		return
 
 	var vfx_sprite := Sprite2D.new()
 	vfx_sprite.texture = texture
@@ -413,6 +505,18 @@ func _spawn_local_vfx(texture: Texture2D, local_offset: Vector2, lifetime: float
 	var fade_tween: Tween = vfx_sprite.create_tween()
 	fade_tween.tween_property(vfx_sprite, "modulate:a", 0.0, maxf(lifetime, 0.05))
 	fade_tween.tween_callback(Callable(vfx_sprite, "queue_free"))
+
+func _can_spawn_vfx_this_frame() -> bool:
+	var frame: int = Engine.get_process_frames()
+	if frame != _vfx_spawn_frame:
+		_vfx_spawn_frame = frame
+		_vfx_spawn_count = 0
+
+	if _vfx_spawn_count >= MAX_VFX_SPAWNS_PER_FRAME:
+		return false
+
+	_vfx_spawn_count += 1
+	return true
 
 func _die() -> void:
 	queue_free()
@@ -445,6 +549,16 @@ func _refresh_health_bar_visibility() -> void:
 	_health_bar.visible = should_show
 
 func _find_closest_target_in_groups(group_names: PackedStringArray, radius: float) -> Node2D:
+	var find_start_us: int = Time.get_ticks_usec()
+	var spatial_index := _resolve_spatial_index()
+	if spatial_index != null:
+		var nearest: Node2D = spatial_index.find_closest_in_groups(global_position, group_names, radius, self)
+		_perf_mark_scope(&"enemy.find_target_in_groups", find_start_us, {
+			"path": "spatial_index",
+			"radius": radius,
+		})
+		return nearest
+
 	var closest_target: Node2D
 	var closest_distance_sq: float = INF
 	var has_radius_limit: bool = radius > 0.0
@@ -466,11 +580,28 @@ func _find_closest_target_in_groups(group_names: PackedStringArray, radius: floa
 				closest_distance_sq = distance_sq
 				closest_target = candidate_2d
 
+	_perf_mark_scope(&"enemy.find_target_in_groups", find_start_us, {
+		"path": "group_scan",
+		"radius": radius,
+	})
 	return closest_target
 
 func _find_closest_target_in_group(group_name: StringName) -> Node2D:
+	var find_start_us: int = Time.get_ticks_usec()
 	if group_name == StringName():
+		_perf_mark_scope(&"enemy.find_target_in_group", find_start_us, {
+			"status": "empty_group",
+		})
 		return null
+
+	var spatial_index := _resolve_spatial_index()
+	if spatial_index != null:
+		var nearest: Node2D = spatial_index.find_closest_in_group(global_position, group_name, -1.0, self)
+		_perf_mark_scope(&"enemy.find_target_in_group", find_start_us, {
+			"path": "spatial_index",
+			"group": String(group_name),
+		})
+		return nearest
 
 	var closest_target: Node2D
 	var closest_distance_sq: float = INF
@@ -487,7 +618,44 @@ func _find_closest_target_in_group(group_name: StringName) -> Node2D:
 			closest_distance_sq = distance_sq
 			closest_target = candidate_2d
 
+	_perf_mark_scope(&"enemy.find_target_in_group", find_start_us, {
+		"path": "group_scan",
+		"group": String(group_name),
+	})
 	return closest_target
+
+func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.add_scope_time_us(scope_name, Time.get_ticks_usec() - start_us, metadata)
+
+func _perf_mark_physics_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.add_physics_scope_time_us(scope_name, Time.get_ticks_usec() - start_us, metadata)
+
+func _perf_inc(counter_name: StringName, amount: int = 1) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.increment_counter(counter_name, amount)
+
+func _resolve_spatial_index() -> SpatialIndex2D:
+	if is_instance_valid(_spatial_index):
+		return _spatial_index
+
+	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
+	return _spatial_index
+
+func _is_far_from_player() -> bool:
+	var distance_threshold: float = maxf(far_lod_distance, 200.0)
+	var player_target: Node2D = _find_closest_target_in_group(&"players")
+	if player_target == null:
+		return false
+
+	return global_position.distance_squared_to(player_target.global_position) > distance_threshold * distance_threshold
 
 func _get_stop_distance(target: Node2D) -> float:
 	var self_radius := _estimate_collision_radius(self)

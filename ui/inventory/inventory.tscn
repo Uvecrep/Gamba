@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b815q8hl3sixl"]
 
-[ext_resource type="Script" uid="uid://vqti75yd87dr" path="res://ui/inventory/inventory_ui.gd" id="1_t68fq"]
+[ext_resource type="Script" path="res://ui/inventory/inventory_ui.gd" id="1_t68fq"]
 [ext_resource type="PackedScene" uid="uid://xtfj7565v6v4" path="res://ui/inventory/inventory_slot.tscn" id="2_s83yu"]
 
 [node name="Inventory" type="Control" unique_id=1753442306 node_paths=PackedStringArray("slot_0", "slot_1", "slot_2", "slot_3", "slot_4")]
@@ -16,7 +16,6 @@ slot_1 = NodePath("MarginContainer/PanelContainer/InventorySlot_1")
 slot_2 = NodePath("MarginContainer/PanelContainer/InventorySlot_2")
 slot_3 = NodePath("MarginContainer/PanelContainer/InventorySlot_3")
 slot_4 = NodePath("MarginContainer/PanelContainer/InventorySlot_4")
-metadata/_custom_type_script = "uid://vqti75yd87dr"
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=264400365]
 layout_mode = 1

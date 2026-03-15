@@ -4,6 +4,24 @@ extends Node2D
 @export var navigation_rebuild_delay_seconds: float = 0.15
 @export var navigation_block_full_collision_cells: bool = true
 @export var navigation_grid_clearance_pixels: float = 18.0
+@export var navigation_use_tile_grid_builder: bool = true
+@export var navigation_grid_merge_walkable_rectangles: bool = false
+@export var navigation_rebuild_on_tree_changes: bool = false
+@export_group("Day/Night Cycle")
+@export var enable_day_night_cycle: bool = true
+@export var day_duration_seconds: float = 60.0
+@export var night_duration_seconds: float = 36.0
+@export var first_night_starts_immediately: bool = false
+@export var night_waves_per_cycle: int = 3
+@export var night_wave_base_size: int = 6
+@export var night_wave_size_growth_per_night: int = 2
+@export var night_wave_spacing_seconds: float = 10.0
+@export_group("Day/Night Visuals")
+@export var day_night_transition_seconds: float = 1.8
+@export var day_overlay_color: Color = Color(0.06, 0.09, 0.15, 0.0)
+@export var night_overlay_color: Color = Color(0.06, 0.09, 0.15, 0.48)
+@export var day_label_color: Color = Color(0.94, 0.96, 1.0, 1.0)
+@export var night_label_color: Color = Color(0.65, 0.78, 1.0, 1.0)
 
 var _is_game_over: bool = false
 
@@ -12,13 +30,24 @@ var _is_game_over: bool = false
 @onready var _game_over_layer: CanvasLayer = get_node_or_null("GameOverLayer") as CanvasLayer
 @onready var _restart_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/RestartButton") as Button
 @onready var _quit_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/QuitButton") as Button
+@onready var _day_night_label: Label = get_node_or_null("UI/DayNightLabel") as Label
+@onready var _day_night_overlay: ColorRect = get_node_or_null("UI/DayNightOverlay") as ColorRect
 
 var _navigation_rebuild_timer: Timer
 var _world_navigation_region: NavigationRegion2D
+var _day_night_phase_timer: Timer
+var _night_wave_timer: Timer
 var _is_exiting_tree: bool = false
+var _is_night_phase: bool = false
+var _night_index: int = 0
+var _waves_spawned_this_night: int = 0
+var _day_night_overlay_tween: Tween
+var _perf_debug: PerfDebugService
 
 func _ready() -> void:
+	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	_is_exiting_tree = false
+	add_to_group("day_night_cycle_controllers")
 	if is_instance_valid(_house) and _house.has_signal("destroyed"):
 		_house.connect("destroyed", _on_house_destroyed)
 
@@ -36,11 +65,18 @@ func _ready() -> void:
 		_quit_button.pressed.connect(_on_quit_pressed)
 
 	_set_game_over_visible(false)
+	_initialize_day_night_cycle()
 
 func _exit_tree() -> void:
 	_is_exiting_tree = true
 	if is_instance_valid(_navigation_rebuild_timer):
 		_navigation_rebuild_timer.stop()
+	if is_instance_valid(_day_night_phase_timer):
+		_day_night_phase_timer.stop()
+	if is_instance_valid(_night_wave_timer):
+		_night_wave_timer.stop()
+	if is_instance_valid(_day_night_overlay_tween):
+		_day_night_overlay_tween.kill()
 
 	if get_tree() == null:
 		return
@@ -57,6 +93,10 @@ func _on_house_destroyed() -> void:
 	_is_game_over = true
 	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
 		_enemy_spawner.call("stop_spawning")
+	if is_instance_valid(_day_night_phase_timer):
+		_day_night_phase_timer.stop()
+	if is_instance_valid(_night_wave_timer):
+		_night_wave_timer.stop()
 	_set_game_over_visible(true)
 	get_tree().paused = true
 
@@ -75,6 +115,175 @@ func _set_game_over_visible(should_show: bool) -> void:
 	_game_over_layer.visible = should_show
 	if should_show and is_instance_valid(_restart_button):
 		_restart_button.grab_focus()
+
+func _initialize_day_night_cycle() -> void:
+	if not enable_day_night_cycle:
+		if _day_night_label != null:
+			_day_night_label.visible = false
+		_apply_day_night_visual_state(false, true)
+		_set_tree_growth_paused(false)
+		if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("start_spawning"):
+			_enemy_spawner.call("start_spawning")
+		return
+
+	_ensure_day_night_runtime_nodes()
+	if first_night_starts_immediately:
+		_start_night_phase()
+	else:
+		_start_day_phase()
+
+func _ensure_day_night_runtime_nodes() -> void:
+	if _day_night_phase_timer == null:
+		_day_night_phase_timer = Timer.new()
+		_day_night_phase_timer.name = "DayNightPhaseTimer"
+		_day_night_phase_timer.one_shot = true
+		_day_night_phase_timer.timeout.connect(_on_day_night_phase_timer_timeout)
+		add_child(_day_night_phase_timer)
+
+	if _night_wave_timer == null:
+		_night_wave_timer = Timer.new()
+		_night_wave_timer.name = "NightWaveTimer"
+		_night_wave_timer.one_shot = true
+		_night_wave_timer.timeout.connect(_on_night_wave_timer_timeout)
+		add_child(_night_wave_timer)
+
+	if _day_night_label != null:
+		_day_night_label.visible = true
+
+func _start_day_night_phase_timer(duration_seconds: float) -> void:
+	if _day_night_phase_timer == null or not is_instance_valid(_day_night_phase_timer):
+		return
+	if not _day_night_phase_timer.is_inside_tree():
+		return
+
+	_day_night_phase_timer.start(maxf(duration_seconds, 0.1))
+
+func _start_day_phase() -> void:
+	_is_night_phase = false
+	_waves_spawned_this_night = 0
+
+	if is_instance_valid(_night_wave_timer):
+		_night_wave_timer.stop()
+
+	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
+		_enemy_spawner.call("stop_spawning")
+
+	_set_tree_growth_paused(false)
+	_apply_day_night_visual_state(false, false)
+	_update_day_night_label("Day")
+	_start_day_night_phase_timer(day_duration_seconds)
+
+func _start_night_phase() -> void:
+	_is_night_phase = true
+	_night_index += 1
+	_waves_spawned_this_night = 0
+
+	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
+		_enemy_spawner.call("stop_spawning")
+
+	_set_tree_growth_paused(true)
+	_apply_day_night_visual_state(true, false)
+	_update_day_night_label("Night %d" % _night_index)
+	_spawn_next_night_wave()
+	_start_day_night_phase_timer(night_duration_seconds)
+
+func is_night_time() -> bool:
+	return enable_day_night_cycle and _is_night_phase
+
+func _set_tree_growth_paused(is_paused: bool) -> void:
+	for tree in get_tree().get_nodes_in_group("trees"):
+		if not is_instance_valid(tree):
+			continue
+		if tree.has_method("set_growth_paused"):
+			tree.call("set_growth_paused", is_paused)
+
+func _apply_day_night_visual_state(is_night: bool, immediate: bool) -> void:
+	if _day_night_overlay == null:
+		return
+
+	var target_overlay_color: Color = day_overlay_color
+	var target_label_color: Color = day_label_color
+	if is_night:
+		target_overlay_color = night_overlay_color
+		target_label_color = night_label_color
+
+	if is_instance_valid(_day_night_overlay_tween):
+		_day_night_overlay_tween.kill()
+
+	if immediate or day_night_transition_seconds <= 0.0:
+		_day_night_overlay.color = target_overlay_color
+		if _day_night_label != null:
+			_day_night_label.modulate = target_label_color
+		return
+
+	_day_night_overlay_tween = create_tween().set_parallel(true)
+	_day_night_overlay_tween.tween_property(_day_night_overlay, "color", target_overlay_color, day_night_transition_seconds)
+	if _day_night_label != null:
+		_day_night_overlay_tween.tween_property(_day_night_label, "modulate", target_label_color, day_night_transition_seconds)
+
+func _on_day_night_phase_timer_timeout() -> void:
+	if _is_game_over or _is_exiting_tree or not enable_day_night_cycle:
+		return
+
+	if _is_night_phase:
+		_start_day_phase()
+	else:
+		_start_night_phase()
+
+func _on_night_wave_timer_timeout() -> void:
+	if _is_game_over or _is_exiting_tree or not _is_night_phase:
+		return
+
+	_spawn_next_night_wave()
+
+func _spawn_next_night_wave() -> void:
+	if not _is_night_phase:
+		return
+
+	var total_waves: int = maxi(night_waves_per_cycle, 1)
+	if _waves_spawned_this_night >= total_waves:
+		return
+
+	var wave_size: int = _compute_night_wave_size()
+	if is_instance_valid(_enemy_spawner):
+		if _enemy_spawner.has_method("spawn_wave"):
+			_enemy_spawner.call("spawn_wave", wave_size, true)
+		elif _enemy_spawner.has_method("start_spawning"):
+			_enemy_spawner.call("start_spawning")
+
+	_waves_spawned_this_night += 1
+	_update_day_night_label("Night %d  Wave %d/%d" % [_night_index, _waves_spawned_this_night, total_waves])
+
+	if _waves_spawned_this_night >= total_waves:
+		return
+
+	if _night_wave_timer == null or not is_instance_valid(_night_wave_timer):
+		return
+	if not _night_wave_timer.is_inside_tree():
+		return
+
+	_night_wave_timer.start(_get_night_wave_spacing_seconds(total_waves))
+
+func _compute_night_wave_size() -> int:
+	var growth_steps: int = maxi(_night_index - 1, 0)
+	return maxi(night_wave_base_size + (growth_steps * night_wave_size_growth_per_night), 1)
+
+func _get_night_wave_spacing_seconds(total_waves: int) -> float:
+	if total_waves <= 1:
+		return maxf(night_duration_seconds, 0.1)
+
+	var max_spacing: float = maxf(night_duration_seconds / float(total_waves - 1), 0.1)
+	if night_wave_spacing_seconds <= 0.0:
+		return max_spacing
+
+	return clampf(night_wave_spacing_seconds, 0.1, max_spacing)
+
+func _update_day_night_label(phase_text: String) -> void:
+	if _day_night_label == null:
+		return
+
+	_day_night_label.visible = true
+	_day_night_label.text = phase_text
 
 func _ensure_navigation_runtime_nodes() -> void:
 	if _world_navigation_region == null:
@@ -100,6 +309,15 @@ func _on_scene_node_added(node: Node) -> void:
 	if not _is_navigation_obstacle_node(node):
 		return
 
+	_perf_inc(&"main.navigation_obstacle_added")
+	if _is_probable_tree_node(node):
+		_perf_mark_event("navigation_obstacle_added_tree", {
+			"node": node.name,
+		})
+		if not navigation_rebuild_on_tree_changes:
+			_perf_inc(&"main.navigation_rebuild_skipped_tree")
+			return
+
 	_schedule_navigation_rebuild()
 
 func _on_scene_node_removed(node: Node) -> void:
@@ -107,6 +325,11 @@ func _on_scene_node_removed(node: Node) -> void:
 		return
 
 	if not _is_navigation_obstacle_node(node):
+		return
+
+	_perf_inc(&"main.navigation_obstacle_removed")
+	if _is_probable_tree_node(node) and not navigation_rebuild_on_tree_changes:
+		_perf_inc(&"main.navigation_rebuild_skipped_tree")
 		return
 
 	_schedule_navigation_rebuild()
@@ -127,6 +350,7 @@ func _schedule_navigation_rebuild() -> void:
 	if not _navigation_rebuild_timer.is_inside_tree():
 		return
 
+	_perf_inc(&"main.navigation_rebuild_scheduled")
 	_navigation_rebuild_timer.start(maxf(navigation_rebuild_delay_seconds, 0.01))
 
 func _on_navigation_rebuild_timer_timeout() -> void:
@@ -136,31 +360,89 @@ func _on_navigation_rebuild_timer_timeout() -> void:
 	_rebuild_navigation_mesh()
 
 func _rebuild_navigation_mesh() -> void:
+	var rebuild_start_us: int = Time.get_ticks_usec()
+	_perf_inc(&"main.navigation_rebuild_runs")
+
 	if _world_navigation_region == null:
+		_perf_mark_scope(&"main.navigation_rebuild", rebuild_start_us, {
+			"status": "no_region",
+		})
 		return
 
+	var world_bounds_start_us: int = Time.get_ticks_usec()
 	var world_bounds: Rect2 = _get_world_bounds_from_tile_map()
+	_perf_mark_scope(&"main.navigation_world_bounds", world_bounds_start_us)
 	if world_bounds.size.x <= 0.0 or world_bounds.size.y <= 0.0:
+		_perf_mark_scope(&"main.navigation_rebuild", rebuild_start_us, {
+			"status": "no_world_bounds",
+		})
 		return
 
+	if navigation_use_tile_grid_builder:
+		var build_grid_start_us: int = Time.get_ticks_usec()
+		var grid_nav_polygon: NavigationPolygon = _build_navigation_polygon_from_tile_grid()
+		_perf_mark_scope(&"main.navigation_build_polygon", build_grid_start_us, {
+			"mode": "tile_grid",
+			"polygons": grid_nav_polygon.get_polygon_count(),
+		})
+
+		if grid_nav_polygon.get_polygon_count() <= 0:
+			push_warning("Main: tile-grid navigation build produced no polygons; enemies/summons may not path.")
+			_perf_inc(&"main.navigation_build_zero_polygons")
+
+		_world_navigation_region.navigation_polygon = grid_nav_polygon
+		_perf_inc(&"main.navigation_result_polygon_count", grid_nav_polygon.get_polygon_count())
+		_perf_mark_scope(&"main.navigation_rebuild", rebuild_start_us, {
+			"mode": "tile_grid",
+			"polygons": grid_nav_polygon.get_polygon_count(),
+		})
+		return
+
+	var obstacle_collect_start_us: int = Time.get_ticks_usec()
 	var obstacle_polygons: Array[PackedVector2Array] = _collect_obstacle_polygons(world_bounds, true)
+	_perf_mark_scope(&"main.navigation_collect_obstacles", obstacle_collect_start_us, {
+		"obstacles": obstacle_polygons.size(),
+	})
+	_perf_inc(&"main.navigation_obstacle_polygon_count", obstacle_polygons.size())
+
 	var final_obstacle_polygons: Array[PackedVector2Array] = obstacle_polygons
+	var build_nav_start_us: int = Time.get_ticks_usec()
 	var nav_polygon: NavigationPolygon = _build_navigation_polygon(world_bounds, final_obstacle_polygons)
+	_perf_mark_scope(&"main.navigation_build_polygon", build_nav_start_us, {
+		"polygons": nav_polygon.get_polygon_count(),
+	})
 
 	if nav_polygon.get_polygon_count() <= 0 and not obstacle_polygons.is_empty():
 		# Retry with coarse tile blocking (full-cell collision cutouts) while preserving TileMapCollision fences.
+		_perf_inc(&"main.navigation_build_retry")
+		var fallback_collect_start_us: int = Time.get_ticks_usec()
 		final_obstacle_polygons = _collect_obstacle_polygons(world_bounds, true, false)
+		_perf_mark_scope(&"main.navigation_collect_obstacles_fallback", fallback_collect_start_us, {
+			"obstacles": final_obstacle_polygons.size(),
+		})
+
+		var fallback_build_start_us: int = Time.get_ticks_usec()
 		nav_polygon = _build_navigation_polygon(world_bounds, final_obstacle_polygons)
+		_perf_mark_scope(&"main.navigation_build_polygon_fallback", fallback_build_start_us, {
+			"polygons": nav_polygon.get_polygon_count(),
+		})
 
 	if nav_polygon.get_polygon_count() <= 0 and not obstacle_polygons.is_empty():
 		push_warning("Main: navigation mesh build produced no polygons; enemies/summons may not path.")
+		_perf_inc(&"main.navigation_build_zero_polygons")
 
 	_world_navigation_region.navigation_polygon = nav_polygon
+	_perf_inc(&"main.navigation_result_polygon_count", nav_polygon.get_polygon_count())
+	_perf_mark_scope(&"main.navigation_rebuild", rebuild_start_us, {
+		"obstacles": final_obstacle_polygons.size(),
+		"polygons": nav_polygon.get_polygon_count(),
+	})
 
 func _build_navigation_polygon(world_bounds: Rect2, obstacle_polygons: Array[PackedVector2Array]) -> NavigationPolygon:
-	var grid_nav_polygon: NavigationPolygon = _build_navigation_polygon_from_tile_grid()
-	if grid_nav_polygon.get_polygon_count() > 0:
-		return grid_nav_polygon
+	if navigation_use_tile_grid_builder:
+		var grid_nav_polygon: NavigationPolygon = _build_navigation_polygon_from_tile_grid()
+		if grid_nav_polygon.get_polygon_count() > 0:
+			return grid_nav_polygon
 
 	var nav_polygon: NavigationPolygon = NavigationPolygon.new()
 	var walkable_polygons: Array[PackedVector2Array] = _build_walkable_polygons(world_bounds, obstacle_polygons)
@@ -203,13 +485,20 @@ func _build_navigation_polygon(world_bounds: Rect2, obstacle_polygons: Array[Pac
 	return nav_polygon
 
 func _build_navigation_polygon_from_tile_grid() -> NavigationPolygon:
+	var build_grid_start_us: int = Time.get_ticks_usec()
 	var nav_polygon: NavigationPolygon = NavigationPolygon.new()
 	var ground_layer: TileMapLayer = _find_world_tile_map_layer()
 	if ground_layer == null:
+		_perf_mark_scope(&"main.navigation_build_tile_grid", build_grid_start_us, {
+			"status": "no_ground",
+		})
 		return nav_polygon
 
 	var used_rect: Rect2i = ground_layer.get_used_rect()
 	if used_rect.size == Vector2i.ZERO:
+		_perf_mark_scope(&"main.navigation_build_tile_grid", build_grid_start_us, {
+			"status": "empty_used_rect",
+		})
 		return nav_polygon
 
 	var tile_size: Vector2 = Vector2(32.0, 32.0)
@@ -228,32 +517,153 @@ func _build_navigation_polygon_from_tile_grid() -> NavigationPolygon:
 
 	var vertices: PackedVector2Array = PackedVector2Array()
 	var triangles: Array[PackedInt32Array] = []
+	var walkable_rectangles: Array[Rect2i] = []
+	if navigation_grid_merge_walkable_rectangles:
+		walkable_rectangles = _build_walkable_rectangles(used_rect, blocked_cells)
+	else:
+		for y in range(used_rect.position.y, used_rect.end.y):
+			for x in range(used_rect.position.x, used_rect.end.x):
+				var cell: Vector2i = Vector2i(x, y)
+				if blocked_cells.has(cell):
+					continue
+				walkable_rectangles.append(Rect2i(cell, Vector2i.ONE))
 
-	for y in range(used_rect.position.y, used_rect.end.y):
-		for x in range(used_rect.position.x, used_rect.end.x):
-			var cell: Vector2i = Vector2i(x, y)
-			if blocked_cells.has(cell):
-				continue
+	for walkable_rect in walkable_rectangles:
+		var cell_polygon: PackedVector2Array = _build_tile_rect_polygon(ground_layer, walkable_rect, tile_size)
+		if cell_polygon.size() < 4:
+			continue
 
-			var cell_polygon: PackedVector2Array = _build_tile_cell_polygon(ground_layer, cell, tile_size)
-			if cell_polygon.size() < 4:
-				continue
+		var vertex_offset: int = vertices.size()
+		for point in cell_polygon:
+			vertices.append(point)
 
-			var vertex_offset: int = vertices.size()
-			for point in cell_polygon:
-				vertices.append(point)
-
-			triangles.append(PackedInt32Array([vertex_offset + 0, vertex_offset + 1, vertex_offset + 2]))
-			triangles.append(PackedInt32Array([vertex_offset + 0, vertex_offset + 2, vertex_offset + 3]))
+		triangles.append(PackedInt32Array([vertex_offset + 0, vertex_offset + 1, vertex_offset + 2]))
+		triangles.append(PackedInt32Array([vertex_offset + 0, vertex_offset + 2, vertex_offset + 3]))
 
 	if vertices.is_empty() or triangles.is_empty():
+		_perf_mark_scope(&"main.navigation_build_tile_grid", build_grid_start_us, {
+			"status": "no_vertices",
+			"blocked_cells": blocked_cells.size(),
+		})
 		return nav_polygon
 
 	nav_polygon.set_vertices(vertices)
 	for triangle in triangles:
 		nav_polygon.add_polygon(triangle)
 
+	_perf_inc(&"main.navigation_grid_blocked_cells", blocked_cells.size())
+	_perf_inc(&"main.navigation_grid_walkable_rectangles", walkable_rectangles.size())
+	_perf_inc(&"main.navigation_grid_triangles", triangles.size())
+	_perf_mark_scope(&"main.navigation_build_tile_grid", build_grid_start_us, {
+		"blocked_cells": blocked_cells.size(),
+		"walkable_rectangles": walkable_rectangles.size(),
+		"triangles": triangles.size(),
+		"polygons": nav_polygon.get_polygon_count(),
+	})
+
 	return nav_polygon
+
+func _build_walkable_rectangles(used_rect: Rect2i, blocked_cells: Dictionary) -> Array[Rect2i]:
+	var rectangles: Array[Rect2i] = []
+	if used_rect.size == Vector2i.ZERO:
+		return rectangles
+
+	var active_by_key: Dictionary = {}
+	for y in range(used_rect.position.y, used_rect.end.y):
+		var next_active_by_key: Dictionary = {}
+		var x: int = used_rect.position.x
+		while x < used_rect.end.x:
+			var cell: Vector2i = Vector2i(x, y)
+			if blocked_cells.has(cell):
+				x += 1
+				continue
+
+			var run_start: int = x
+			while x < used_rect.end.x and not blocked_cells.has(Vector2i(x, y)):
+				x += 1
+
+			var run_end_exclusive: int = x
+			var run_key: String = "%d:%d" % [run_start, run_end_exclusive]
+			if active_by_key.has(run_key):
+				var existing_rect: Rect2i = active_by_key[run_key] as Rect2i
+				existing_rect.size.y += 1
+				next_active_by_key[run_key] = existing_rect
+			else:
+				next_active_by_key[run_key] = Rect2i(Vector2i(run_start, y), Vector2i(run_end_exclusive - run_start, 1))
+
+		for active_key in active_by_key.keys():
+			if next_active_by_key.has(active_key):
+				continue
+
+			var completed_rect: Rect2i = active_by_key[active_key] as Rect2i
+			if completed_rect.size.x > 0 and completed_rect.size.y > 0:
+				rectangles.append(completed_rect)
+
+		active_by_key = next_active_by_key
+
+	for active_key in active_by_key.keys():
+		var completed_rect: Rect2i = active_by_key[active_key] as Rect2i
+		if completed_rect.size.x > 0 and completed_rect.size.y > 0:
+			rectangles.append(completed_rect)
+
+	return rectangles
+
+func _build_tile_rect_polygon(tile_map_layer: TileMapLayer, cell_rect: Rect2i, tile_size: Vector2) -> PackedVector2Array:
+	if cell_rect.size.x <= 0 or cell_rect.size.y <= 0:
+		return PackedVector2Array()
+
+	var top_left_cell: Vector2i = cell_rect.position
+	var bottom_right_cell: Vector2i = cell_rect.position + cell_rect.size - Vector2i.ONE
+	var half_tile: Vector2 = tile_size * 0.5
+
+	var top_left_local: Vector2 = tile_map_layer.map_to_local(top_left_cell) - half_tile
+	var bottom_right_local: Vector2 = tile_map_layer.map_to_local(bottom_right_cell) + half_tile
+
+	var local_polygon: PackedVector2Array = PackedVector2Array([
+		top_left_local,
+		Vector2(bottom_right_local.x, top_left_local.y),
+		bottom_right_local,
+		Vector2(top_left_local.x, bottom_right_local.y),
+	])
+
+	return _transform_polygon(local_polygon, tile_map_layer.global_transform)
+
+func _is_probable_tree_node(node: Node) -> bool:
+	if node == null:
+		return false
+
+	var current: Node = node
+	var visited: int = 0
+	while current != null and visited < 12:
+		if current.is_in_group("trees") or current.is_in_group("saplings"):
+			return true
+
+		var lowered_name: String = String(current.name).to_lower()
+		if lowered_name.contains("tree") or lowered_name.contains("sapling"):
+			return true
+
+		current = current.get_parent()
+		visited += 1
+
+	return false
+
+func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.add_scope_time_us(scope_name, Time.get_ticks_usec() - start_us, metadata)
+
+func _perf_inc(counter_name: StringName, amount: int = 1) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.increment_counter(counter_name, amount)
+
+func _perf_mark_event(event_name: String, metadata: Dictionary = {}) -> void:
+	if not is_instance_valid(_perf_debug):
+		return
+
+	_perf_debug.mark_event(event_name, metadata)
 
 func _mark_static_obstacles_on_ground_grid(ground_layer: TileMapLayer, blocked_cells: Dictionary, tile_size: Vector2) -> void:
 	var scene_root: Node = get_tree().current_scene

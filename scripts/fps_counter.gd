@@ -1,6 +1,6 @@
 extends Label
 
-@export var refresh_interval: float = 0.25
+@export var refresh_interval: float = 0.2
 
 var _time_to_refresh: float = 0.0
 
@@ -16,4 +16,5 @@ func _process(delta: float) -> void:
 	_update_fps_label()
 
 func _update_fps_label() -> void:
-	text = "FPS: %d" % int(roundi(Engine.get_frames_per_second()))
+	var avg_fps: int = int(roundi(Engine.get_frames_per_second()))
+	text = "FPS: %d" % avg_fps
