@@ -55,13 +55,13 @@ position = Vector2(614, 242)
 script = ExtResource("8_hud")
 
 [node name="DayNightOverlay" type="ColorRect" parent="UI" unique_id=752603394]
+z_index = -1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-z_index = -1
 color = Color(0.06, 0.09, 0.15, 0)
 
 [node name="LootboxCountLabel" type="Label" parent="UI" unique_id=213834753]
@@ -101,10 +101,10 @@ player_ref = NodePath("../../player")
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -176.0
+offset_left = -296.0
 offset_top = 12.0
 offset_right = -16.0
-offset_bottom = 40.0
+offset_bottom = 58.0
 grow_horizontal = 0
 horizontal_alignment = 2
 script = ExtResource("12_fps")

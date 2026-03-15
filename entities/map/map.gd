@@ -2,11 +2,14 @@ extends StaticBody2D
 
 @export var interact_action: StringName = &"interact"
 @export var interact_range: float = 96.0
+@export var prompt_refresh_interval: float = 0.2
 
 const MAP_STATUS_HINT: String = "Click or drag to select. Right-click to move. Use Hold, Follow, or Auto for selected summons."
 
 var _action_hint_text: String = "E"
 var _map_open: bool = false
+var _prompt_refresh_time_left: float = 0.0
+var _spatial_index: SpatialIndex2D
 
 @onready var _prompt_label: Label = get_node_or_null("InteractPrompt") as Label
 @onready var _map_layer: CanvasLayer = get_node_or_null("MapLayer") as CanvasLayer
@@ -24,6 +27,7 @@ var _map_open: bool = false
 func _ready() -> void:
 	add_to_group("maps")
 	_action_hint_text = _resolve_action_hint(interact_action)
+	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
 
 	if is_instance_valid(_hold_selected_button):
 		_hold_selected_button.pressed.connect(_on_hold_selected_pressed)
@@ -46,9 +50,15 @@ func _ready() -> void:
 	_on_selection_changed(_get_selected_count())
 	_set_status(MAP_STATUS_HINT)
 	_update_prompt()
+	_schedule_prompt_refresh(0.0)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_prompt_refresh_time_left = maxf(_prompt_refresh_time_left - delta, 0.0)
+	if _prompt_refresh_time_left > 0.0:
+		return
+
 	_update_prompt()
+	_schedule_prompt_refresh()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _map_open:
@@ -184,6 +194,10 @@ func _update_prompt() -> void:
 	_prompt_label.text = "Press %s to open map" % _action_hint_text
 
 func _is_any_player_in_range() -> bool:
+	if is_instance_valid(_spatial_index):
+		var nearby_players: Array[Node2D] = _spatial_index.get_nodes_in_radius(global_position, &"players", interact_range)
+		return not nearby_players.is_empty()
+
 	for player in get_tree().get_nodes_in_group("players"):
 		if not (player is Node2D):
 			continue
@@ -193,6 +207,15 @@ func _is_any_player_in_range() -> bool:
 			return true
 
 	return false
+
+func _schedule_prompt_refresh(initial_delay: float = -1.0) -> void:
+	if initial_delay >= 0.0:
+		_prompt_refresh_time_left = initial_delay
+		return
+
+	var base_interval: float = maxf(prompt_refresh_interval, 0.05)
+	var jitter: float = randf_range(0.0, base_interval * 0.3)
+	_prompt_refresh_time_left = base_interval + jitter
 
 func _resolve_action_hint(action: StringName) -> String:
 	if not InputMap.has_action(action):

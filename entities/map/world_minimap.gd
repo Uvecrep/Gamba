@@ -472,6 +472,8 @@ func _same_node_selection(previous_selection: Array[Node2D], current_selection: 
 func _is_summon_holding(summon: Node2D) -> bool:
 	if summon == null:
 		return false
+	if summon is SummonUnit:
+		return (summon as SummonUnit).is_holding_position()
 	if summon.has_method("is_holding_position"):
 		return bool(summon.call("is_holding_position"))
 	if summon.has_method("get_command_mode_name"):
@@ -481,13 +483,19 @@ func _is_summon_holding(summon: Node2D) -> bool:
 func _is_summon_hold_toggle_enabled(summon: Node2D) -> bool:
 	if summon == null:
 		return false
+	if summon is SummonUnit:
+		return (summon as SummonUnit).is_hold_toggle_enabled()
 	if summon.has_method("is_hold_toggle_enabled"):
 		return bool(summon.call("is_hold_toggle_enabled"))
 	# Backwards compatibility for older summon scripts where hold toggle equals current hold mode.
 	return _is_summon_holding(summon)
 
 func _is_summon_moving(summon: Node2D) -> bool:
-	if summon == null or not summon.has_method("get_command_mode_name"):
+	if summon == null:
+		return false
+	if summon is SummonUnit:
+		return (summon as SummonUnit).get_command_mode_name() == "MOVE"
+	if not summon.has_method("get_command_mode_name"):
 		return false
 	return String(summon.call("get_command_mode_name")) == "MOVE"
 
