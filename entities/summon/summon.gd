@@ -2,6 +2,12 @@ extends CharacterBody2D
 class_name SummonUnit
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
+const SummonCommandModule = preload("res://entities/summon/modules/summon_command_module.gd")
+const SummonAiNavigationModule = preload("res://entities/summon/modules/summon_ai_navigation_module.gd")
+const SummonCombatModule = preload("res://entities/summon/modules/summon_combat_module.gd")
+const SummonVfxModule = preload("res://entities/summon/modules/summon_vfx_module.gd")
+const SummonHealthModule = preload("res://entities/summon/modules/summon_health_module.gd")
+const SummonProfileCatalogScript = preload("res://entities/summon/summon_profile_catalog.gd")
 
 @export var summon_identity: StringName = &"mushroom_knight"
 @export var move_speed: float = 110.0
@@ -132,6 +138,11 @@ var _stuck_check_time_left: float = 0.0
 var _stuck_window_distance_accum: float = 0.0
 var _stuck_window_failures: int = 0
 var _stuck_recovery_cooldown_time_left: float = 0.0
+var _command_module
+var _ai_navigation_module
+var _combat_module
+var _vfx_module_impl
+var _health_module
 
 static var _world_vfx_spawn_frame: int = -1
 static var _world_vfx_spawn_count: int = 0
@@ -146,7 +157,46 @@ static var _stuck_recovery_count: int = 0
 @onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
 @onready var _sprite: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
 
+func _ensure_modules() -> void:
+	if _command_module == null:
+		_command_module = SummonCommandModule.new(self)
+	if _ai_navigation_module == null:
+		_ai_navigation_module = SummonAiNavigationModule.new(self)
+	if _combat_module == null:
+		_combat_module = SummonCombatModule.new(self)
+	if _vfx_module_impl == null:
+		_vfx_module_impl = SummonVfxModule.new(self)
+	if _health_module == null:
+		_health_module = SummonHealthModule.new(self)
+
+func _touch_delegated_private_state() -> void:
+	# These fields are consumed by extracted modules; touching them here avoids false "unused private" warnings.
+	_move_target_position = _move_target_position
+	_hold_toggle_enabled = _hold_toggle_enabled
+	_last_follow_nav_target = _last_follow_nav_target
+	_follow_snapshot_target = _follow_snapshot_target
+	_cached_nav_velocity = _cached_nav_velocity
+	_has_split_once = _has_split_once
+	_vfx_fire_cone = _vfx_fire_cone
+	_vfx_chain_lightning = _vfx_chain_lightning
+	_vfx_acorn_projectile = _vfx_acorn_projectile
+	_vfx_spring_projectile = _vfx_spring_projectile
+	_attack_tilt_tween = _attack_tilt_tween
+	_stuck_window_distance_accum = _stuck_window_distance_accum
+	_stuck_window_failures = _stuck_window_failures
+	_world_vfx_spawn_frame = _world_vfx_spawn_frame
+	_world_vfx_spawn_count = _world_vfx_spawn_count
+	_projectile_spawn_frame = _projectile_spawn_frame
+	_projectile_spawn_count = _projectile_spawn_count
+	_nav_probe_frame = _nav_probe_frame
+	_nav_probe_count = _nav_probe_count
+	_stuck_recovery_frame = _stuck_recovery_frame
+	_stuck_recovery_count = _stuck_recovery_count
+	_health_bar = _health_bar
+
 func _ready() -> void:
+	_ensure_modules()
+	_touch_delegated_private_state()
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	_load_vfx_assets()
 	set_summon_identity(summon_identity)
@@ -182,71 +232,18 @@ func set_summon_identity(identity: StringName) -> void:
 	_apply_summon_identity_profile()
 
 func _apply_summon_identity_profile() -> void:
-	match summon_identity:
-		ID_BABY_DRAGON:
-			move_speed = 150.0
-			attack_range = 210.0
-			attack_damage = 11.0
-			attack_cooldown = 1.0
-			max_health = 62.0
-		ID_SLIME:
-			move_speed = 72.0
-			attack_range = 58.0
-			attack_damage = 40.0
-			attack_cooldown = 1.65
-			max_health = 150.0
-		ID_GHOST:
-			move_speed = 140.0
-			attack_range = 92.0
-			attack_damage = 0.0
-			attack_cooldown = 0.35
-			max_health = 50.0
-			follow_player_distance = 60.0
-		ID_SPARK_GOBLIN:
-			move_speed = 112.0
-			attack_range = 220.0
-			attack_damage = 15.0
-			attack_cooldown = 0.9
-			max_health = 80.0
-		ID_JACK_IN_THE_BOX:
-			move_speed = 120.0
-			attack_range = 190.0
-			attack_damage = 20.0
-			attack_cooldown = 1.05
-			max_health = 96.0
-		ID_MUSHROOM_KNIGHT:
-			move_speed = 84.0
-			attack_range = 62.0
-			attack_damage = 19.0
-			attack_cooldown = 1.2
-			max_health = 125.0
-		ID_ACORN_SPITTER:
-			move_speed = 152.0
-			attack_range = 256.0
-			attack_damage = 8.0
-			attack_cooldown = 0.5
-			max_health = 82.0
-		ID_BUSH_BOY:
-			move_speed = 48.0
-			attack_range = 0.0
-			attack_damage = 0.0
-			attack_cooldown = 1.0
-			max_health = 300.0
-		ID_BEE_SWARM:
-			move_speed = 170.0
-			attack_range = 132.0
-			attack_damage = 4.0
-			attack_cooldown = 0.24
-			max_health = 58.0
-		ID_ROOTER:
-			move_speed = 82.0
-			attack_range = 145.0
-			attack_damage = 7.0
-			attack_cooldown = 1.0
-			max_health = 102.0
-		_:
-			# Preserve existing defaults for unknown IDs.
-			pass
+	var profile: SummonIdentityProfile = SummonProfileCatalogScript.get_profile(summon_identity)
+	if profile == null:
+		# Preserve existing defaults for unknown IDs.
+		return
+
+	move_speed = profile.move_speed
+	attack_range = profile.attack_range
+	attack_damage = profile.attack_damage
+	attack_cooldown = profile.attack_cooldown
+	max_health = profile.max_health
+	if profile.follow_player_distance_override >= 0.0:
+		follow_player_distance = profile.follow_player_distance_override
 
 func _physics_process(delta: float) -> void:
 	var physics_start_us: int = Time.get_ticks_usec()
@@ -346,48 +343,24 @@ func _physics_process(delta: float) -> void:
 	_perf_mark_physics_scope(&"summon.physics_total", physics_start_us)
 
 func set_move_target(target_position: Vector2) -> void:
-	_move_target_position = target_position
-	_command_mode = CommandMode.MOVE
-	_set_navigation_target(target_position)
+	_ensure_modules()
+	_command_module.set_move_target(target_position)
 
 func set_hold_position(should_hold: bool) -> void:
-	_hold_toggle_enabled = should_hold
-
-	if _command_mode == CommandMode.MOVE:
-		return
-
-	if should_hold:
-		_command_mode = CommandMode.HOLD
-		velocity = Vector2.ZERO
-		return
-
-	_command_mode = CommandMode.AUTO
+	_ensure_modules()
+	_command_module.set_hold_position(should_hold)
 
 func clear_manual_command() -> void:
-	if _hold_toggle_enabled:
-		_command_mode = CommandMode.HOLD
-	else:
-		_command_mode = CommandMode.AUTO
+	_ensure_modules()
+	_command_module.clear_manual_command()
 
 func set_follow_player() -> void:
-	if not is_instance_valid(_player_target):
-		_player_target = _find_player()
-
-	if not is_instance_valid(_player_target):
-		_command_mode = CommandMode.AUTO
-		return
-
-	_hold_toggle_enabled = false
-	_command_mode = CommandMode.FOLLOW
-	_time_to_follow_nav_refresh = 0.0
-	_time_to_follow_enemy_scan = 0.0
-	_follow_snapshot_target = Vector2.INF
-	_last_follow_nav_target = Vector2.INF
+	_ensure_modules()
+	_command_module.set_follow_player()
 
 func set_auto_behavior() -> void:
-	_hold_toggle_enabled = false
-	_command_mode = CommandMode.AUTO
-	_clear_navigation_target()
+	_ensure_modules()
+	_command_module.set_auto_behavior()
 
 func set_selected_for_command(is_selected: bool) -> void:
 	if _is_command_selected == is_selected:
@@ -398,291 +371,72 @@ func set_selected_for_command(is_selected: bool) -> void:
 	queue_redraw()
 
 func is_holding_position() -> bool:
-	return _command_mode == CommandMode.HOLD
+	_ensure_modules()
+	return _command_module.is_holding_position()
 
 func is_hold_toggle_enabled() -> bool:
-	return _hold_toggle_enabled
+	_ensure_modules()
+	return _command_module.is_hold_toggle_enabled()
 
 func get_command_mode_name() -> String:
-	match _command_mode:
-		CommandMode.MOVE:
-			return "MOVE"
-		CommandMode.FOLLOW:
-			return "FOLLOW"
-		CommandMode.HOLD:
-			return "HOLD"
-		_:
-			return "AUTO"
+	_ensure_modules()
+	return _command_module.get_command_mode_name()
 
 func _handle_move_command() -> void:
-	var distance_to_target: float = global_position.distance_to(_move_target_position)
-	if distance_to_target > target_reach_distance:
-		_move_towards(_move_target_position)
-	else:
-		velocity = Vector2.ZERO
-		if _hold_toggle_enabled:
-			_command_mode = CommandMode.HOLD
-		else:
-			_command_mode = CommandMode.AUTO
-
-	_try_attack_in_range()
+	_ensure_modules()
+	_ai_navigation_module.handle_move_command()
 
 func _handle_hold_command() -> void:
-	velocity = Vector2.ZERO
-	_clear_navigation_target()
-	_try_attack_in_range()
+	_ensure_modules()
+	_ai_navigation_module.handle_hold_command()
 
 func _handle_follow_command() -> void:
-	var follow_start_us: int = Time.get_ticks_usec()
-	if not is_instance_valid(_player_target):
-		_player_target = _find_player()
-
-	if not is_instance_valid(_player_target):
-		_command_mode = CommandMode.AUTO
-		velocity = Vector2.ZERO
-		_perf_mark_scope(&"summon.follow_handler", follow_start_us, {
-			"status": "no_player",
-		})
-		return
-
-	if _attack_lock_time_left > 0.0:
-		velocity = Vector2.ZERO
-		_try_attack_in_range()
-		_perf_mark_scope(&"summon.follow_handler", follow_start_us, {
-			"status": "attack_lock",
-		})
-		return
-
-	_update_follow_navigation_target(_player_target.global_position)
-
-	if _follow_snapshot_target == Vector2.INF:
-		_follow_snapshot_target = _get_follow_formation_target(_player_target.global_position)
-		_set_navigation_target(_follow_snapshot_target)
-		_last_follow_nav_target = _follow_snapshot_target
-		_time_to_follow_nav_refresh = _get_follow_nav_refresh_wait(_follow_snapshot_target)
-
-	var distance_to_follow_snapshot: float = global_position.distance_to(_follow_snapshot_target)
-	if distance_to_follow_snapshot > maxf(target_reach_distance, 16.0):
-		velocity = _get_navigation_velocity(_follow_snapshot_target)
-	else:
-		velocity = Vector2.ZERO
-		_clear_navigation_target()
-
-	_try_attack_in_range()
-	_perf_mark_scope(&"summon.follow_handler", follow_start_us)
+	_ensure_modules()
+	_ai_navigation_module.handle_follow_command()
 
 func _handle_non_attacker_auto() -> void:
-	if is_instance_valid(_player_target) and global_position.distance_to(_player_target.global_position) > follow_player_distance:
-		_move_towards(_player_target.global_position)
-	else:
-		velocity = Vector2.ZERO
-		_clear_navigation_target()
+	_ensure_modules()
+	_ai_navigation_module.handle_non_attacker_auto()
 
 func _update_follow_navigation_target(player_position: Vector2) -> void:
-	var update_start_us: int = Time.get_ticks_usec()
-	if not _uses_navigation_agent():
-		_perf_mark_scope(&"summon.update_follow_nav_target", update_start_us, {
-			"status": "no_nav_agent",
-		})
-		return
-	if _navigation_agent == null:
-		_perf_mark_scope(&"summon.update_follow_nav_target", update_start_us, {
-			"status": "missing_nav_agent",
-		})
-		return
-	if _navigation_agent.get_navigation_map() == RID():
-		_perf_mark_scope(&"summon.update_follow_nav_target", update_start_us, {
-			"status": "missing_nav_map",
-		})
-		return
-
-	var follow_target: Vector2 = _get_follow_formation_target(player_position)
-	if _time_to_follow_nav_refresh > 0.0:
-		_perf_mark_scope(&"summon.update_follow_nav_target", update_start_us, {
-			"status": "refresh_wait",
-		})
-		return
-
-	_set_navigation_target(follow_target)
-	_follow_snapshot_target = follow_target
-	_last_follow_nav_target = follow_target
-	_time_to_follow_nav_refresh = _get_follow_nav_refresh_wait(follow_target)
-	_perf_inc(&"summon.follow_nav_target_updates")
-	_perf_mark_scope(&"summon.update_follow_nav_target", update_start_us)
+	_ensure_modules()
+	_ai_navigation_module.update_follow_navigation_target(player_position)
 
 func _get_follow_formation_target(player_position: Vector2) -> Vector2:
-	var radius: float = maxf(follow_formation_radius, 0.0)
-	if radius <= 0.0:
-		return player_position
-
-	return player_position + (Vector2.RIGHT.rotated(_follow_formation_angle) * radius)
+	_ensure_modules()
+	return _ai_navigation_module.get_follow_formation_target(player_position)
 
 func _try_attack_in_range() -> bool:
-	if not is_instance_valid(_enemy_target):
-		return false
-	if attack_range <= 0.0 or attack_damage <= 0.0:
-		return false
-
-	if global_position.distance_to(_enemy_target.global_position) > attack_range:
-		return false
-
-	if _time_to_next_attack > 0.0:
-		return false
-
-	_time_to_next_attack = attack_cooldown
-	_perform_attack(_enemy_target)
-	return true
+	_ensure_modules()
+	return _combat_module.try_attack_in_range()
 
 func _update_passive_archetype_behavior() -> void:
-	if _sprite != null:
-		var bounce_time: float = Time.get_ticks_msec() / 1000.0
-		var bounce_speed: float = idle_bounce_slow_speed
-		var bounce_height: float = idle_bounce_slow_height
-		if summon_identity == ID_JACK_IN_THE_BOX or summon_identity == ID_SLIME:
-			bounce_speed = idle_bounce_fast_speed
-			bounce_height = idle_bounce_fast_height
-
-		_sprite.position.y = sin(bounce_time * bounce_speed) * bounce_height
-
-	if summon_identity != ID_GHOST:
-		return
-	if _behavior_tick_time_left > 0.0:
-		return
-
-	_behavior_tick_time_left = 0.22
-	for enemy in _get_enemies_in_radius(attack_range):
-		_deal_damage_to_target(enemy, 3.0)
+	_ensure_modules()
+	_combat_module.update_passive_archetype_behavior()
 
 func _perform_attack(target: Node2D) -> void:
-	if target == null:
-		return
-
-	if summon_identity != ID_GHOST and summon_identity != ID_BUSH_BOY:
-		_play_attack_tilt_animation()
-
-	match summon_identity:
-		ID_BABY_DRAGON:
-			_attack_baby_dragon(target)
-		ID_SLIME:
-			_attack_slime(target)
-		ID_GHOST:
-			# Ghost deals proximity drain as a passive aura.
-			pass
-		ID_SPARK_GOBLIN:
-			_attack_spark_goblin(target)
-		ID_JACK_IN_THE_BOX:
-			_attack_jack(target)
-		ID_MUSHROOM_KNIGHT:
-			_attack_mushroom_knight(target)
-		ID_ACORN_SPITTER:
-			_attack_acorn_spitter(target)
-		ID_BUSH_BOY:
-			# Bush unit is a defensive body blocker and does not attack.
-			pass
-		ID_BEE_SWARM:
-			_attack_bee_swarm(target)
-		ID_ROOTER:
-			_attack_rooter(target)
-		_:
-			_launch_projectile_attack(target)
+	_ensure_modules()
+	_combat_module.perform_attack(target)
 
 func _play_attack_tilt_animation() -> void:
-	if _sprite == null:
-		return
-
-	if is_instance_valid(_attack_tilt_tween):
-		_attack_tilt_tween.kill()
-
-	var tilt_sign: float = -1.0 if (randi() % 2 == 0) else 1.0
-	var tilt_angle: float = deg_to_rad(attack_tilt_angle_degrees) * tilt_sign
-	var half_duration: float = maxf(attack_tilt_duration * 0.5, 0.03)
-
-	_attack_tilt_tween = create_tween()
-	_attack_tilt_tween.tween_property(_sprite, "rotation", tilt_angle, half_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_attack_tilt_tween.tween_property(_sprite, "rotation", 0.0, half_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_ensure_modules()
+	_combat_module.play_attack_tilt_animation()
 
 func _attack_baby_dragon(primary_target: Node2D) -> void:
-	var to_primary: Vector2 = (primary_target.global_position - global_position).normalized()
-	if to_primary == Vector2.ZERO:
-		to_primary = Vector2.RIGHT
-
-	_spawn_world_vfx(
-		_vfx_fire_cone,
-		global_position,
-		to_primary.angle() + deg_to_rad(30.0),
-		Vector2(1.45, 1.15) * 4.0,
-		0.2,
-		true,
-		Vector2(0.0, 1.0)
-	)
-
-	var cone_half_angle_cos: float = cos(deg_to_rad(22.0))
-	for enemy in _get_enemies_in_radius(attack_range):
-		var to_enemy: Vector2 = (enemy.global_position - global_position).normalized()
-		if to_enemy == Vector2.ZERO:
-			continue
-		if to_primary.dot(to_enemy) < cone_half_angle_cos:
-			continue
-		_deal_damage_to_target(enemy, attack_damage, {
-			"burn_dps": 4.0,
-			"burn_duration": 2.5,
-		})
+	_ensure_modules()
+	_combat_module.attack_baby_dragon(primary_target)
 
 func _attack_slime(target: Node2D) -> void:
-	_deal_damage_to_target(target, attack_damage, {
-		"knockback_force": 120.0,
-	})
+	_ensure_modules()
+	_combat_module.attack_slime(target)
 
 func _attack_spark_goblin(target: Node2D) -> void:
-	var visited: Dictionary = {}
-	var current_target: Node2D = target
-	var jump_damage: float = attack_damage
-	var chain_from: Vector2 = global_position
-
-	for jump_index in range(4):
-		if not is_instance_valid(current_target):
-			break
-
-		_spawn_chain_lightning_vfx(chain_from, current_target.global_position)
-
-		visited[current_target.get_instance_id()] = true
-		_deal_damage_to_target(current_target, jump_damage)
-		jump_damage *= 0.78
-		chain_from = current_target.global_position
-
-		if jump_index >= 3:
-			break
-
-		var next_target: Node2D = _find_next_chain_target(current_target.global_position, visited)
-		if not is_instance_valid(next_target):
-			break
-		current_target = next_target
+	_ensure_modules()
+	_combat_module.attack_spark_goblin(target)
 
 func _find_next_chain_target(from_position: Vector2, visited: Dictionary) -> Node2D:
-	var enemy_candidates: Array[Node2D] = []
-	for enemy in _get_enemies_in_radius_from_point(from_position, 135.0):
-		if visited.has(enemy.get_instance_id()):
-			continue
-		enemy_candidates.append(enemy)
-
-	var summon_candidates: Array[Node2D] = []
-	for summon_candidate in _get_summons_in_radius_from_point(from_position, 135.0):
-		if summon_candidate == self:
-			continue
-		if visited.has(summon_candidate.get_instance_id()):
-			continue
-		summon_candidates.append(summon_candidate)
-
-	if not summon_candidates.is_empty() and randf() < 0.65:
-		return _pick_closest_target(from_position, summon_candidates)
-
-	if not enemy_candidates.is_empty():
-		return _pick_closest_target(from_position, enemy_candidates)
-
-	if not summon_candidates.is_empty():
-		return _pick_closest_target(from_position, summon_candidates)
-
-	return null
+	_ensure_modules()
+	return _combat_module.find_next_chain_target(from_position, visited)
 
 func _pick_closest_target(from_position: Vector2, candidates: Array[Node2D]) -> Node2D:
 	var best_target: Node2D
@@ -698,34 +452,24 @@ func _pick_closest_target(from_position: Vector2, candidates: Array[Node2D]) -> 
 	return best_target
 
 func _attack_jack(target: Node2D) -> void:
-	_launch_projectile_attack(target, {
-		"knockback_force": 260.0,
-		"projectile_texture": _vfx_spring_projectile,
-		"projectile_rotation_offset": deg_to_rad(45.0),
-	})
+	_ensure_modules()
+	_combat_module.attack_jack(target)
 
 func _attack_mushroom_knight(target: Node2D) -> void:
-	_deal_damage_to_target(target, attack_damage)
+	_ensure_modules()
+	_combat_module.attack_mushroom_knight(target)
 
 func _attack_acorn_spitter(target: Node2D) -> void:
-	_attack_lock_time_left = maxf(_attack_lock_time_left, 0.22)
-	velocity = Vector2.ZERO
-	_launch_projectile_attack(target, {
-		"projectile_texture": _vfx_acorn_projectile,
-	})
+	_ensure_modules()
+	_combat_module.attack_acorn_spitter(target)
 
 func _attack_bee_swarm(target: Node2D) -> void:
-	_deal_damage_to_target(target, attack_damage, {
-		"sting_stacks_add": 1,
-		"sting_dps_per_stack": 0.5,
-		"sting_duration": 2.4,
-		"sting_max_stack_burst_damage": 12.0,
-	})
+	_ensure_modules()
+	_combat_module.attack_bee_swarm(target)
 
 func _attack_rooter(target: Node2D) -> void:
-	_deal_damage_to_target(target, attack_damage, {
-		"root_duration": 1.1,
-	})
+	_ensure_modules()
+	_combat_module.attack_rooter(target)
 
 func _get_enemies_in_radius(radius: float) -> Array[Node2D]:
 	return _get_enemies_in_radius_from_point(global_position, radius)
@@ -785,130 +529,40 @@ func _deal_damage_to_target(target: Node2D, damage: float, options: Dictionary =
 		target.call("take_damage", damage)
 
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
-	var final_damage: float = amount
-	if summon_identity == ID_BUSH_BOY and _command_mode == CommandMode.HOLD:
-		final_damage *= 0.6
-
-	if options.has("damage_multiplier"):
-		final_damage *= float(options.get("damage_multiplier", 1.0))
-
-	take_damage(final_damage)
-
-	var knockback_force: float = float(options.get("knockback_force", 0.0))
-	if knockback_force > 0.0 and is_instance_valid(source):
-		var push_direction: Vector2 = source.global_position.direction_to(global_position)
-		if push_direction != Vector2.ZERO:
-			_external_push_velocity += push_direction * knockback_force
+	_ensure_modules()
+	_health_module.take_hit(amount, source, options)
 
 func take_damage(amount: float) -> void:
-	if amount <= 0.0:
-		return
-
-	var previous_health: float = _current_health
-	_current_health = clampf(_current_health - amount, 0.0, max_health)
-	var applied_damage: float = previous_health - _current_health
-	if applied_damage > 0.0:
-		CombatText.spawn_damage(self, applied_damage)
-		_request_health_bar_visibility()
-	_update_health_bar()
-
-	if _current_health <= 0.0:
-		_die()
+	_ensure_modules()
+	_health_module.take_damage(amount)
 
 func heal(amount: float) -> void:
-	if amount <= 0.0:
-		return
-	if _current_health <= 0.0:
-		return
-
-	var previous_health: float = _current_health
-	_current_health = clampf(_current_health + amount, 0.0, max_health)
-	var healed_amount: float = _current_health - previous_health
-	if healed_amount <= 0.0:
-		return
-
-	CombatText.spawn_heal(self, healed_amount)
-	_request_health_bar_visibility(0.75)
-	_update_health_bar()
+	_ensure_modules()
+	_health_module.heal(amount)
 
 func _die() -> void:
-	if _should_split_on_death():
-		_spawn_split_children()
-	queue_free()
+	_ensure_modules()
+	_health_module.die()
 
 func _should_split_on_death() -> bool:
-	if summon_identity != ID_SLIME:
-		return false
-	if not split_enabled:
-		return false
-	if is_mini_slime:
-		return false
-	if _has_split_once:
-		return false
-	return true
+	_ensure_modules()
+	return _health_module.should_split_on_death()
 
 func _spawn_split_children() -> void:
-	if summon_scene_for_split == null:
-		return
-
-	_has_split_once = true
-	var parent_node: Node = get_tree().current_scene
-	if parent_node == null:
-		parent_node = get_parent()
-	if parent_node == null:
-		return
-
-	var split_count: int = maxi(split_child_count, 1)
-	for split_index in range(split_count):
-		var split_summon := summon_scene_for_split.instantiate() as Node2D
-		if split_summon == null:
-			continue
-
-		if split_summon.has_method("set_summon_identity"):
-			split_summon.call("set_summon_identity", ID_SLIME)
-		else:
-			split_summon.set("summon_identity", ID_SLIME)
-
-		split_summon.set("is_mini_slime", true)
-		split_summon.set("split_enabled", false)
-		split_summon.set("max_health", maxf(max_health * split_child_health_scale, 12.0))
-		split_summon.set("attack_damage", maxf(attack_damage * split_child_damage_scale, 4.0))
-		split_summon.set("move_speed", move_speed * 1.25)
-		split_summon.set("sprite_texture_override", sprite_texture_override)
-
-		parent_node.add_child(split_summon)
-		split_summon.scale = scale * split_child_scale
-		var angle: float = TAU * float(split_index) / float(split_count)
-		split_summon.global_position = global_position + Vector2.RIGHT.rotated(angle) * 20.0
-		if split_summon.has_method("set_hold_position"):
-			split_summon.call("set_hold_position", true)
+	_ensure_modules()
+	_health_module.spawn_split_children()
 
 func _update_health_bar() -> void:
-	if _health_bar == null:
-		return
-
-	_health_bar.max_value = max_health
-	_health_bar.value = _current_health
-	_refresh_health_bar_visibility()
+	_ensure_modules()
+	_health_module.update_health_bar()
 
 func _request_health_bar_visibility(duration: float = -1.0) -> void:
-	if _health_bar == null:
-		return
-
-	var resolved_duration: float = duration
-	if resolved_duration < 0.0:
-		resolved_duration = health_bar_show_duration
-	_health_bar_visible_time_left = maxf(_health_bar_visible_time_left, maxf(resolved_duration, 0.0))
-	_refresh_health_bar_visibility()
+	_ensure_modules()
+	_health_module.request_health_bar_visibility(duration)
 
 func _refresh_health_bar_visibility() -> void:
-	if _health_bar == null:
-		return
-
-	var should_show: bool = always_show_health_bar or _is_command_selected or _health_bar_visible_time_left > 0.0
-	if _current_health <= 0.0:
-		should_show = false
-	_health_bar.visible = should_show
+	_ensure_modules()
+	_health_module.refresh_health_bar_visibility()
 
 func _is_ai_bucket_turn() -> bool:
 	var bucket_count: int = maxi(ai_update_bucket_count, 1)
@@ -920,419 +574,84 @@ func _is_ai_bucket_turn() -> bool:
 	return frame_bucket == summon_bucket
 
 func _launch_projectile_attack(target: Node2D, hit_options: Dictionary = {}) -> void:
-	if attack_projectile_scene == null:
-		_deal_damage_to_target(target, attack_damage, hit_options)
-		return
-	if not _can_spawn_projectile_this_frame():
-		_deal_damage_to_target(target, attack_damage, hit_options)
-		return
-
-	var parent_node: Node = get_tree().current_scene
-	if parent_node == null:
-		parent_node = get_parent()
-	if parent_node == null:
-		_deal_damage_to_target(target, attack_damage, hit_options)
-		return
-
-	var projectile: SummonAttackProjectile = SummonAttackProjectile.spawn(
-		attack_projectile_scene,
-		parent_node,
-		global_position,
-		target,
-		attack_damage,
-		self,
-		hit_options
-	)
-	if projectile == null:
-		_deal_damage_to_target(target, attack_damage, hit_options)
-		return
+	_ensure_modules()
+	_vfx_module_impl.launch_projectile_attack(target, hit_options)
 
 func _spawn_chain_lightning_vfx(from_position: Vector2, to_position: Vector2) -> void:
-	var chain_delta: Vector2 = to_position - from_position
-	if chain_delta.length_squared() <= 0.0001:
-		return
-
-	var midpoint: Vector2 = from_position + (chain_delta * 0.5)
-	var scale_x: float = maxf(chain_delta.length() / 64.0, 0.6)
-	_spawn_world_vfx(_vfx_chain_lightning, midpoint, chain_delta.angle(), Vector2(scale_x, 1.0), 0.12)
+	_ensure_modules()
+	_vfx_module_impl.spawn_chain_lightning_vfx(from_position, to_position)
 
 func _load_vfx_assets() -> void:
-	_vfx_fire_cone = load(VFX_FIRE_CONE_PATH) as Texture2D
-	_vfx_chain_lightning = load(VFX_CHAIN_LIGHTNING_PATH) as Texture2D
-	_vfx_acorn_projectile = load(VFX_ACORN_PROJECTILE_PATH) as Texture2D
-	_vfx_spring_projectile = load(VFX_SPRING_PROJECTILE_PATH) as Texture2D
+	_ensure_modules()
+	_vfx_module_impl.load_vfx_assets()
 
 func _spawn_world_vfx(texture: Texture2D, world_position: Vector2, rotation_radians: float = 0.0, sprite_scale: Vector2 = Vector2.ONE, lifetime: float = 0.2, use_corner_anchor: bool = false, corner_anchor_uv: Vector2 = Vector2.ZERO) -> void:
-	if texture == null:
-		return
-	if not _can_spawn_world_vfx_this_frame():
-		return
-
-	var parent_node: Node = get_tree().current_scene
-	if parent_node == null:
-		parent_node = get_parent()
-	if parent_node == null:
-		return
-
-	var resolved_world_position: Vector2 = world_position
-	if use_corner_anchor:
-		var clamped_anchor_uv: Vector2 = Vector2(clampf(corner_anchor_uv.x, 0.0, 1.0), clampf(corner_anchor_uv.y, 0.0, 1.0))
-		var texture_size: Vector2 = texture.get_size() * sprite_scale
-		var local_anchor_offset: Vector2 = Vector2(texture_size.x * clamped_anchor_uv.x, texture_size.y * clamped_anchor_uv.y)
-		resolved_world_position = world_position - local_anchor_offset.rotated(rotation_radians)
-
-	if is_instance_valid(_vfx_pool):
-		_vfx_pool.spawn_world_fade(parent_node, texture, resolved_world_position, rotation_radians, sprite_scale, 30, lifetime, 0.96, not use_corner_anchor)
-		return
-
-	var vfx_sprite := Sprite2D.new()
-	vfx_sprite.texture = texture
-	vfx_sprite.centered = not use_corner_anchor
-	vfx_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	if use_corner_anchor:
-		vfx_sprite.global_position = resolved_world_position
-	else:
-		vfx_sprite.global_position = resolved_world_position
-	vfx_sprite.rotation = rotation_radians
-	vfx_sprite.scale = sprite_scale
-	vfx_sprite.z_index = 30
-	vfx_sprite.modulate = Color(1.0, 1.0, 1.0, 0.96)
-	parent_node.add_child(vfx_sprite)
-
-	var fade_tween: Tween = vfx_sprite.create_tween()
-	fade_tween.tween_property(vfx_sprite, "modulate:a", 0.0, maxf(lifetime, 0.05))
-	fade_tween.tween_callback(Callable(vfx_sprite, "queue_free"))
+	_ensure_modules()
+	_vfx_module_impl.spawn_world_vfx(texture, world_position, rotation_radians, sprite_scale, lifetime, use_corner_anchor, corner_anchor_uv)
 
 func _can_spawn_world_vfx_this_frame() -> bool:
-	var frame: int = Engine.get_process_frames()
-	if frame != _world_vfx_spawn_frame:
-		_world_vfx_spawn_frame = frame
-		_world_vfx_spawn_count = 0
-
-	if _world_vfx_spawn_count >= MAX_WORLD_VFX_SPAWNS_PER_FRAME:
-		return false
-
-	_world_vfx_spawn_count += 1
-	return true
+	_ensure_modules()
+	return _vfx_module_impl.can_spawn_world_vfx_this_frame()
 
 func _can_spawn_projectile_this_frame() -> bool:
-	var frame: int = Engine.get_process_frames()
-	if frame != _projectile_spawn_frame:
-		_projectile_spawn_frame = frame
-		_projectile_spawn_count = 0
-
-	if _projectile_spawn_count >= MAX_PROJECTILE_SPAWNS_PER_FRAME:
-		return false
-
-	_projectile_spawn_count += 1
-	return true
+	_ensure_modules()
+	return _vfx_module_impl.can_spawn_projectile_this_frame()
 
 func _move_towards(target_position: Vector2) -> void:
-	if _attack_lock_time_left > 0.0:
-		velocity = Vector2.ZERO
-		return
-
-	if global_position.distance_to(target_position) > target_reach_distance:
-		if _uses_navigation_agent():
-			# AUTO/FOLLOW already update nav goals on their own timers; avoid per-frame target resets.
-			if _command_mode == CommandMode.MOVE:
-				_set_navigation_target(target_position)
-			velocity = _get_navigation_velocity(target_position)
-		else:
-			velocity = global_position.direction_to(target_position) * move_speed
-	else:
-		velocity = Vector2.ZERO
-		_clear_navigation_target()
+	_ensure_modules()
+	_ai_navigation_module.move_towards(target_position)
 
 func _update_stuck_recovery(delta: float, pre_move_position: Vector2) -> void:
-	if not stuck_detection_enabled:
-		_stuck_window_failures = 0
-		_stuck_window_distance_accum = 0.0
-		_stuck_check_time_left = maxf(stuck_check_window_seconds, 0.05)
-		return
-	if not _uses_navigation_agent():
-		return
-	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
-		return
-	if _command_mode == CommandMode.HOLD:
-		_stuck_window_failures = 0
-		_stuck_window_distance_accum = 0.0
-		_stuck_check_time_left = maxf(stuck_check_window_seconds, 0.05)
-		return
-	if _command_mode == CommandMode.FOLLOW:
-		# Follow mode should keep snapping toward player updates rather than detouring to recovery waypoints.
-		_stuck_window_failures = 0
-		_stuck_window_distance_accum = 0.0
-		_stuck_check_time_left = maxf(stuck_check_window_seconds, 0.05)
-		return
-
-	var current_goal: Vector2 = _get_current_navigation_goal()
-	if current_goal == Vector2.INF:
-		_stuck_window_failures = 0
-		_stuck_window_distance_accum = 0.0
-		_stuck_check_time_left = maxf(stuck_check_window_seconds, 0.05)
-		return
-
-	var min_goal_distance: float = maxf(target_reach_distance * 2.0, 24.0)
-	if _command_mode == CommandMode.FOLLOW:
-		min_goal_distance = maxf(command_follow_distance * 0.5, 24.0)
-
-	var should_be_advancing: bool = global_position.distance_to(current_goal) > min_goal_distance
-	if not should_be_advancing:
-		_stuck_window_failures = 0
-		_stuck_window_distance_accum = 0.0
-		_stuck_check_time_left = maxf(stuck_check_window_seconds, 0.05)
-		return
-
-	_stuck_check_time_left = maxf(_stuck_check_time_left - delta, 0.0)
-	_stuck_window_distance_accum += pre_move_position.distance_to(global_position)
-	if _stuck_check_time_left > 0.0:
-		return
-
-	var moved_enough: bool = _stuck_window_distance_accum >= maxf(stuck_min_distance_per_window, 0.5)
-	if moved_enough:
-		_stuck_window_failures = 0
-	else:
-		_stuck_window_failures += 1
-
-	_stuck_check_time_left = maxf(stuck_check_window_seconds, 0.05)
-	_stuck_window_distance_accum = 0.0
-
-	if _stuck_window_failures < maxi(stuck_required_windows, 1):
-		return
-	if _stuck_recovery_cooldown_time_left > 0.0:
-		return
-	if not _try_consume_stuck_recovery_budget():
-		return
-
-	_trigger_stuck_recovery(current_goal)
-	_stuck_window_failures = 0
-	_stuck_recovery_cooldown_time_left = maxf(stuck_recovery_cooldown_seconds, 0.25)
+	_ensure_modules()
+	_ai_navigation_module.update_stuck_recovery(delta, pre_move_position)
 
 func _get_current_navigation_goal() -> Vector2:
-	if _command_mode == CommandMode.MOVE:
-		return _move_target_position
-
-	if _command_mode == CommandMode.FOLLOW:
-		if _follow_snapshot_target != Vector2.INF:
-			return _follow_snapshot_target
-		if is_instance_valid(_player_target):
-			return _player_target.global_position
-		return Vector2.INF
-
-	if _command_mode == CommandMode.AUTO:
-		if not _is_non_attacker_identity() and is_instance_valid(_enemy_target):
-			return _enemy_target.global_position
-		if is_instance_valid(_player_target):
-			return _player_target.global_position
-		return Vector2.INF
-
-	return Vector2.INF
+	_ensure_modules()
+	return _ai_navigation_module.get_current_navigation_goal()
 
 func _trigger_stuck_recovery(goal_position: Vector2) -> void:
-	if goal_position == Vector2.INF:
-		return
-
-	var recovery_start_us: int = Time.get_ticks_usec()
-	var recovery_waypoint: Vector2 = _choose_stuck_recovery_waypoint(goal_position)
-	_clear_navigation_target()
-	_set_navigation_target(recovery_waypoint)
-
-	if _command_mode == CommandMode.FOLLOW:
-		_follow_snapshot_target = recovery_waypoint
-		_time_to_follow_nav_refresh = 0.0
-
-	_time_to_nav_goal_refresh = 0.0
-	_time_to_repath = 0.0
-	_perf_inc(&"summon.stuck_recoveries")
-	_perf_mark_scope(&"summon.stuck_recovery", recovery_start_us, {
-		"mode": get_command_mode_name(),
-	})
+	_ensure_modules()
+	_ai_navigation_module.trigger_stuck_recovery(goal_position)
 
 func _choose_stuck_recovery_waypoint(goal_position: Vector2) -> Vector2:
-	if _navigation_agent == null:
-		return goal_position
-
-	var nav_map: RID = _navigation_agent.get_navigation_map()
-	if nav_map == RID():
-		return goal_position
-
-	var best_candidate: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, goal_position)
-	var best_score: float = best_candidate.distance_to(goal_position) + (best_candidate.distance_to(global_position) * 0.1)
-	var base_direction: Vector2 = global_position.direction_to(goal_position)
-	if base_direction == Vector2.ZERO:
-		base_direction = Vector2.RIGHT
-
-	var probe_points: int = mini(maxi(stuck_recovery_probe_points, 4), 8)
-	var ring_count: int = mini(maxi(stuck_recovery_probe_rings, 1), 2)
-	var ring_step: float = maxf(stuck_recovery_probe_step, 12.0)
-	var max_samples: int = maxi(stuck_recovery_max_samples, 4)
-	var sampled: int = 0
-
-	for ring_index in range(1, ring_count + 1):
-		var probe_radius: float = ring_step * float(ring_index)
-		for point_index in range(probe_points):
-			if sampled >= max_samples:
-				break
-			var angle: float = TAU * float(point_index) / float(probe_points)
-			var probe_direction: Vector2 = base_direction.rotated(angle)
-			var sample_position: Vector2 = global_position + (probe_direction * probe_radius)
-			var projected_sample: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, sample_position)
-			sampled += 1
-			if projected_sample.distance_to(global_position) < 12.0:
-				continue
-
-			var score: float = projected_sample.distance_to(sample_position) + (projected_sample.distance_to(goal_position) * 0.08)
-			if score < best_score:
-				best_score = score
-				best_candidate = projected_sample
-
-		if sampled >= max_samples:
-			break
-
-	return best_candidate
+	_ensure_modules()
+	return _ai_navigation_module.choose_stuck_recovery_waypoint(goal_position)
 
 func _uses_navigation_agent() -> bool:
-	return summon_identity != ID_GHOST
+	_ensure_modules()
+	return _ai_navigation_module.uses_navigation_agent()
 
 func _get_navigation_velocity(target_position: Vector2) -> Vector2:
-	if not _uses_navigation_agent():
-		return global_position.direction_to(target_position) * move_speed
-
-	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
-		return global_position.direction_to(target_position) * move_speed
-
-	if _time_to_nav_velocity_refresh > 0.0:
-		return _cached_nav_velocity
-
-	_time_to_nav_velocity_refresh = _get_nav_velocity_refresh_wait()
-
-	if _navigation_agent.is_navigation_finished():
-		_cached_nav_velocity = Vector2.ZERO
-		return _cached_nav_velocity
-
-	var next_path_position: Vector2 = _navigation_agent.get_next_path_position()
-	_cached_nav_velocity = global_position.direction_to(next_path_position) * move_speed
-	return _cached_nav_velocity
+	_ensure_modules()
+	return _ai_navigation_module.get_navigation_velocity(target_position)
 
 func _get_nav_velocity_refresh_wait() -> float:
-	var wait_time: float = maxf(nav_velocity_refresh_interval, 0.01)
-	if _command_mode == CommandMode.FOLLOW:
-		wait_time = minf(wait_time, maxf(follow_nav_target_update_interval * 0.5, 0.02))
-	if _is_far_from_player():
-		wait_time *= maxf(far_lod_velocity_refresh_multiplier, 1.0)
-	return wait_time
+	_ensure_modules()
+	return _ai_navigation_module.get_nav_velocity_refresh_wait()
 
 func _set_navigation_target(target_position: Vector2) -> void:
-	if not _uses_navigation_agent():
-		return
-	if _navigation_agent == null:
-		return
-
-	if _navigation_agent.target_position.distance_to(target_position) <= 6.0:
-		return
-
-	_navigation_agent.target_position = target_position
-	_time_to_nav_velocity_refresh = 0.0
+	_ensure_modules()
+	_ai_navigation_module.set_navigation_target(target_position)
 
 func _set_navigation_target_for_target(target: Node2D) -> void:
-	var nav_target_start_us: int = Time.get_ticks_usec()
-	if target == null:
-		_perf_mark_scope(&"summon.set_nav_target_for_target", nav_target_start_us, {
-			"status": "missing_target",
-		})
-		return
-
-	if not _uses_navigation_agent():
-		_perf_mark_scope(&"summon.set_nav_target_for_target", nav_target_start_us, {
-			"status": "no_nav_agent",
-		})
-		return
-
-	if _navigation_agent == null or _navigation_agent.get_navigation_map() == RID():
-		_set_navigation_target(target.global_position)
-		_perf_mark_scope(&"summon.set_nav_target_for_target", nav_target_start_us, {
-			"status": "fallback_direct_target",
-		})
-		return
-
-	var desired_distance: float = attack_range if target == _enemy_target else target_reach_distance
-	var should_probe_ring: bool = target == _enemy_target and not _is_far_from_player() and _try_consume_nav_probe_budget()
-	var best_target: Vector2 = _choose_best_navigation_target(target.global_position, desired_distance, should_probe_ring)
-	_set_navigation_target(best_target)
-	_perf_mark_scope(&"summon.set_nav_target_for_target", nav_target_start_us, {
-		"probe_ring": should_probe_ring,
-	})
+	_ensure_modules()
+	_ai_navigation_module.set_navigation_target_for_target(target)
 
 func _choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
-	if _navigation_agent == null:
-		return target_position
-
-	var nav_map: RID = _navigation_agent.get_navigation_map()
-	if nav_map == RID():
-		return target_position
-
-	var projected_center: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, target_position)
-	if not probe_ring:
-		return projected_center
-
-	var direction_from_target: Vector2 = (global_position - target_position).normalized()
-	if direction_from_target == Vector2.ZERO:
-		direction_from_target = Vector2.RIGHT
-
-	var desired_ring_distance: float = maxf(desired_distance, 8.0)
-	var best_candidate: Vector2 = projected_center
-	var best_score: float = projected_center.distance_to(target_position)
-	var ring_points: int = mini(maxi(nav_probe_ring_points, 4), 6)
-	var ring_distances: Array[float] = [desired_ring_distance]
-
-	for ring_distance in ring_distances:
-		for i in range(ring_points):
-			var angle_offset: float = TAU * float(i) / float(ring_points)
-			var ring_target: Vector2 = target_position + (direction_from_target.rotated(angle_offset) * ring_distance)
-			var projected_ring: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, ring_target)
-			var candidate_score: float = projected_ring.distance_to(ring_target)
-			if candidate_score < best_score:
-				best_score = candidate_score
-				best_candidate = projected_ring
-
-	return best_candidate
+	_ensure_modules()
+	return _ai_navigation_module.choose_best_navigation_target(target_position, desired_distance, probe_ring)
 
 func _try_consume_nav_probe_budget() -> bool:
-	var frame: int = Engine.get_physics_frames()
-	if frame != _nav_probe_frame:
-		_nav_probe_frame = frame
-		_nav_probe_count = 0
-
-	var max_per_frame: int = maxi(nav_probe_ring_max_per_frame, 1)
-	if _nav_probe_count >= max_per_frame:
-		return false
-
-	_nav_probe_count += 1
-	return true
+	_ensure_modules()
+	return _ai_navigation_module.try_consume_nav_probe_budget()
 
 func _try_consume_stuck_recovery_budget() -> bool:
-	var frame: int = Engine.get_physics_frames()
-	if frame != _stuck_recovery_frame:
-		_stuck_recovery_frame = frame
-		_stuck_recovery_count = 0
-
-	var max_per_frame: int = maxi(stuck_recovery_max_per_frame, 1)
-	if _stuck_recovery_count >= max_per_frame:
-		return false
-
-	_stuck_recovery_count += 1
-	return true
+	_ensure_modules()
+	return _ai_navigation_module.try_consume_stuck_recovery_budget()
 
 func _clear_navigation_target() -> void:
-	if not _uses_navigation_agent():
-		return
-	if _navigation_agent == null:
-		return
-
-	_navigation_agent.target_position = global_position
-	_cached_nav_velocity = Vector2.ZERO
-	_time_to_nav_velocity_refresh = 0.0
+	_ensure_modules()
+	_ai_navigation_module.clear_navigation_target()
 
 func _find_player() -> Node2D:
 	var spatial_index := _resolve_spatial_index()
@@ -1417,37 +736,16 @@ func _perf_inc(counter_name: StringName, amount: int = 1) -> void:
 	_perf_debug.increment_counter(counter_name, amount)
 
 func _get_follow_enemy_scan_wait() -> float:
-	var wait_time: float = maxf(follow_enemy_scan_interval, 0.1)
-	if _is_far_from_player():
-		wait_time *= maxf(far_lod_follow_refresh_multiplier, 1.0)
-	return wait_time
+	_ensure_modules()
+	return _ai_navigation_module.get_follow_enemy_scan_wait()
 
 func _should_refresh_auto_navigation_goal(nav_target: Node2D) -> bool:
-	if nav_target == null:
-		return false
-	if _last_nav_goal_target != nav_target:
-		return true
-	if _navigation_agent == null:
-		return true
-
-	var desired_position: Vector2 = nav_target.global_position
-	var current_target_position: Vector2 = _navigation_agent.target_position
-	return current_target_position.distance_to(desired_position) >= maxf(follow_nav_target_min_shift, 4.0)
+	_ensure_modules()
+	return _ai_navigation_module.should_refresh_auto_navigation_goal(nav_target)
 
 func _get_target_retarget_wait(target_position: Vector2) -> float:
-	var base_wait: float = maxf(retarget_min_interval, 2.0)
-	base_wait = maxf(base_wait, maxf(nav_goal_update_interval, 0.05))
-	base_wait = maxf(base_wait, maxf(follow_nav_target_update_interval, 0.05))
-
-	var extra_wait: float = 0.0
-	var start_distance: float = maxf(retarget_far_distance_start, 0.0)
-	var span_distance: float = maxf(retarget_far_distance_span, 1.0)
-	var distance_to_target: float = global_position.distance_to(target_position)
-	if distance_to_target > start_distance:
-		var t: float = clampf((distance_to_target - start_distance) / span_distance, 0.0, 1.0)
-		extra_wait = t * maxf(retarget_far_interval_bonus, 0.0)
-
-	return base_wait + extra_wait
+	_ensure_modules()
+	return _ai_navigation_module.get_target_retarget_wait(target_position)
 
 func _resolve_spatial_index() -> SpatialIndex2D:
 	if is_instance_valid(_spatial_index):
@@ -1468,15 +766,8 @@ func _is_far_from_player() -> bool:
 	return global_position.distance_squared_to(player_target.global_position) > threshold * threshold
 
 func _get_follow_nav_refresh_wait(follow_target: Vector2) -> float:
-	var wait_time: float = maxf(follow_nav_target_update_interval, 0.08)
-	if _is_far_from_player():
-		wait_time *= maxf(far_lod_follow_refresh_multiplier, 1.0)
-
-	var distance_to_follow_target: float = global_position.distance_to(follow_target)
-	if distance_to_follow_target > maxf(command_follow_distance * 1.5, 110.0):
-		wait_time *= 0.5
-
-	return clampf(wait_time, 0.05, maxf(follow_player_retarget_interval, 0.2))
+	_ensure_modules()
+	return _ai_navigation_module.get_follow_nav_refresh_wait(follow_target)
 
 func _is_non_attacker_identity() -> bool:
 	return summon_identity == ID_BUSH_BOY

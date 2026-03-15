@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/summon/summon_identity_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+summon_identity = &"ghost"
+move_speed = 140.0
+attack_range = 92.0
+attack_damage = 0.0
+attack_cooldown = 0.35
+max_health = 50.0
+follow_player_distance_override = 60.0
