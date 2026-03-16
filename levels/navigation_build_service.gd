@@ -1,6 +1,8 @@
 class_name NavigationBuildService
 extends Node
 
+const WORLD_BOUNDS_UTIL_PATH: String = "res://scripts/world_bounds_util.gd"
+
 # Config — set by main.gd before add_child() or before calling schedule_rebuild().
 var obstacle_padding: float = 10.0
 var rebuild_delay_seconds: float = 0.15
@@ -576,24 +578,17 @@ func _get_world_bounds_from_tile_map() -> Rect2:
 		push_warning("NavigationBuildService: could not find TileMapGround for navigation bounds.")
 		return Rect2()
 
-	var used_rect: Rect2i = tile_map_layer.get_used_rect()
-	if used_rect.size == Vector2i.ZERO:
+	var world_bounds_util: Variant = load(WORLD_BOUNDS_UTIL_PATH)
+	if world_bounds_util == null:
+		push_warning("NavigationBuildService: world bounds utility could not be loaded.")
+		return Rect2()
+
+	var world_bounds: Rect2 = world_bounds_util.get_used_rect_world_rect(tile_map_layer)
+	if world_bounds.size.x <= 0.0 or world_bounds.size.y <= 0.0:
 		push_warning("NavigationBuildService: TileMapGround has no used cells for navigation bounds.")
 		return Rect2()
 
-	var tile_size: Vector2 = Vector2(32.0, 32.0)
-	if tile_map_layer.tile_set != null:
-		tile_size = Vector2(tile_map_layer.tile_set.tile_size)
-
-	var top_left_local: Vector2 = tile_map_layer.map_to_local(used_rect.position) - (tile_size * 0.5)
-	var bottom_right_local: Vector2 = top_left_local + (Vector2(used_rect.size) * tile_size)
-
-	var top_left_global: Vector2 = tile_map_layer.to_global(top_left_local)
-	var bottom_right_global: Vector2 = tile_map_layer.to_global(bottom_right_local)
-	var min_point: Vector2 = Vector2(min(top_left_global.x, bottom_right_global.x), min(top_left_global.y, bottom_right_global.y))
-	var max_point: Vector2 = Vector2(max(top_left_global.x, bottom_right_global.x), max(top_left_global.y, bottom_right_global.y))
-
-	return Rect2(min_point, max_point - min_point)
+	return world_bounds
 
 
 func _find_world_tile_map_layer() -> TileMapLayer:

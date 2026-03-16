@@ -2,6 +2,7 @@ extends Control
 class_name WorldMinimap
 
 const SUMMON_SELECTION_STATE_PATH: String = "res://scripts/summon_selection_state.gd"
+const WORLD_BOUNDS_UTIL_PATH: String = "res://scripts/world_bounds_util.gd"
 
 signal selection_changed(selected_count: int)
 signal move_order_issued(target_world_position: Vector2, summon_count: int)
@@ -350,23 +351,14 @@ func _try_build_bounds_from_world_tile_map() -> bool:
 		return false
 
 	var tile_map_layer: TileMapLayer = tile_map_layer_node as TileMapLayer
-	var used_rect: Rect2i = tile_map_layer.get_used_rect()
-	if used_rect.size == Vector2i.ZERO:
+	var world_bounds_util: Variant = load(WORLD_BOUNDS_UTIL_PATH)
+	if world_bounds_util == null:
 		return false
 
-	var tile_size: Vector2 = Vector2(32.0, 32.0)
-	if tile_map_layer.tile_set != null:
-		tile_size = Vector2(tile_map_layer.tile_set.tile_size)
+	_world_bounds = world_bounds_util.get_used_rect_world_rect(tile_map_layer)
+	if _world_bounds.size.x <= 0.0 or _world_bounds.size.y <= 0.0:
+		return false
 
-	var top_left_local: Vector2 = tile_map_layer.map_to_local(used_rect.position) - (tile_size * 0.5)
-	var bottom_right_local: Vector2 = top_left_local + (Vector2(used_rect.size) * tile_size)
-
-	var top_left_global: Vector2 = tile_map_layer.to_global(top_left_local)
-	var bottom_right_global: Vector2 = tile_map_layer.to_global(bottom_right_local)
-	var min_point: Vector2 = Vector2(min(top_left_global.x, bottom_right_global.x), min(top_left_global.y, bottom_right_global.y))
-	var max_point: Vector2 = Vector2(max(top_left_global.x, bottom_right_global.x), max(top_left_global.y, bottom_right_global.y))
-
-	_world_bounds = Rect2(min_point, max_point - min_point)
 	return _world_bounds.size.x > 0.0 and _world_bounds.size.y > 0.0
 
 func _try_build_bounds_from_entities() -> bool:
