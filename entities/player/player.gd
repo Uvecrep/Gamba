@@ -107,9 +107,6 @@ func _input(event: InputEvent) -> void:
 func is_dead() -> bool:
 	return _health_component.is_dead()
 
-func _emit_sapling_carried_changed(is_carrying: bool) -> void:
-	sapling_carried_changed.emit(is_carrying)
-
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
 	_health_component.take_hit(self, amount, source, options)
 
@@ -158,14 +155,8 @@ func _try_use_item() -> bool:
 func _try_plant_sapling_near_house() -> bool:
 	return _interaction_component.try_plant_sapling_near_house(self)
 
-func is_carrying_sapling() -> bool:
-	return _interaction_component.is_carrying_sapling(self)
-
 func can_plant_sapling_here() -> bool:
 	return _interaction_component.can_plant_sapling_here(self)
-
-func _emit_sapling_carried_changed_if_needed() -> void:
-	_interaction_component.emit_sapling_carried_changed_if_needed(self)
 
 func _open_lootbox(lootbox: Lootbox) -> bool:
 	return _interaction_component.open_lootbox(self, lootbox)
@@ -230,7 +221,6 @@ func _on_pickup_touched_me(area: Area2D) -> void:
 
 func _on_inventory_changed() -> void:
 	_pickup_magnet_component.on_inventory_changed(self, pickups_following_me)
-	_emit_sapling_carried_changed_if_needed()
 
 func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
 	if not is_instance_valid(_perf_debug):
