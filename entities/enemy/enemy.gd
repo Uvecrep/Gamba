@@ -293,8 +293,8 @@ func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: fl
 	if target is SummonUnit:
 		(target as SummonUnit).take_damage(melee_damage)
 		return
-	if target.has_method("take_damage"):
-		target.call("take_damage", melee_damage)
+	if target is House:
+		(target as House).take_damage(melee_damage)
 
 func _has_clear_path_to_target(target: Node2D) -> bool:
 	var los_start_us: int = Time.get_ticks_usec()

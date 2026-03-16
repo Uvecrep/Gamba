@@ -85,8 +85,8 @@ func spawn_split_children() -> void:
 		if split_summon == null:
 			continue
 
-		if split_summon.has_method("set_summon_identity"):
-			split_summon.call("set_summon_identity", unit.ID_SLIME)
+		if split_summon is SummonUnit:
+			(split_summon as SummonUnit).set_summon_identity(unit.ID_SLIME)
 		else:
 			split_summon.set("summon_identity", unit.ID_SLIME)
 
@@ -101,8 +101,8 @@ func spawn_split_children() -> void:
 		split_summon.scale = unit.scale * unit.split_child_scale
 		var angle: float = TAU * float(split_index) / float(split_count)
 		split_summon.global_position = unit.global_position + Vector2.RIGHT.rotated(angle) * 20.0
-		if split_summon.has_method("set_hold_position"):
-			split_summon.call("set_hold_position", true)
+		if split_summon is SummonUnit:
+			(split_summon as SummonUnit).set_hold_position(true)
 
 func update_health_bar() -> void:
 	if unit._health_bar == null:

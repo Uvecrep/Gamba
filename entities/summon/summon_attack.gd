@@ -143,10 +143,8 @@ func _process(delta: float) -> void:
 			(target_node as Player).take_hit(_damage, source_node, _hit_options)
 		elif target_node is SummonUnit:
 			(target_node as SummonUnit).take_hit(_damage, source_node, _hit_options)
-		elif target_node.has_method("take_hit"):
-			target_node.call("take_hit", _damage, source_node, _hit_options)
-		elif target_node.has_method("take_damage"):
-			target_node.call("take_damage", _damage)
+		elif target_node is House:
+			(target_node as House).take_damage(_damage)
 		_deactivate()
 		return
 

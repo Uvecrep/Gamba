@@ -44,14 +44,14 @@ func handle_summon_command_shortcuts(player: Player) -> void:
 	if selection_controller == null:
 		return
 
-	if Input.is_action_just_pressed(player.summon_command_hold_action) and selection_controller.has_method("hold_selected_summons"):
-		selection_controller.call("hold_selected_summons")
+	if Input.is_action_just_pressed(player.summon_command_hold_action) and selection_controller is ZooSummonSelectionController:
+		(selection_controller as ZooSummonSelectionController).hold_selected_summons()
 
-	if Input.is_action_just_pressed(player.summon_command_follow_action) and selection_controller.has_method("follow_selected_summons"):
-		selection_controller.call("follow_selected_summons")
+	if Input.is_action_just_pressed(player.summon_command_follow_action) and selection_controller is ZooSummonSelectionController:
+		(selection_controller as ZooSummonSelectionController).follow_selected_summons()
 
-	if Input.is_action_just_pressed(player.summon_command_auto_action) and selection_controller.has_method("auto_selected_summons"):
-		selection_controller.call("auto_selected_summons")
+	if Input.is_action_just_pressed(player.summon_command_auto_action) and selection_controller is ZooSummonSelectionController:
+		(selection_controller as ZooSummonSelectionController).auto_selected_summons()
 
 func draw(player: Player) -> void:
 	if not _is_middle_mouse_selecting:
@@ -104,31 +104,25 @@ func reset_middle_mouse_selection_state(player: Player) -> void:
 
 func is_map_open(player: Player) -> bool:
 	for map_node in player.get_tree().get_nodes_in_group("maps"):
-		if not is_instance_valid(map_node):
-			continue
-		if map_node.has_method("is_map_open") and bool(map_node.call("is_map_open")):
+		if map_node is MapInteractable and (map_node as MapInteractable).is_map_open():
 			return true
 
 	return false
 
 func _select_summons_in_world_radius(player: Player, world_position: Vector2) -> bool:
 	var selection_controller: Node = _get_summon_selection_controller(player)
-	if selection_controller == null:
-		return false
-	if not selection_controller.has_method("select_summons_in_world_circle"):
+	if not selection_controller is ZooSummonSelectionController:
 		return false
 
-	var matched_count: int = int(selection_controller.call("select_summons_in_world_circle", world_position, player.summon_selection_radius, true))
+	var matched_count: int = (selection_controller as ZooSummonSelectionController).select_summons_in_world_circle(world_position, player.summon_selection_radius, true)
 	return matched_count > 0
 
 func clear_selected_summons(player: Player) -> void:
 	var selection_controller: Node = _get_summon_selection_controller(player)
-	if selection_controller == null:
-		return
-	if not selection_controller.has_method("clear_selection"):
+	if not selection_controller is ZooSummonSelectionController:
 		return
 
-	selection_controller.call("clear_selection")
+	(selection_controller as ZooSummonSelectionController).clear_selection()
 
 func _get_summon_selection_controller(player: Player) -> Node:
 	if is_instance_valid(_summon_selection_controller):
@@ -138,17 +132,6 @@ func _get_summon_selection_controller(player: Player) -> Node:
 	for controller in controllers:
 		if is_instance_valid(controller):
 			_summon_selection_controller = controller
-			return _summon_selection_controller
-
-	for map_node in player.get_tree().get_nodes_in_group("maps"):
-		if not is_instance_valid(map_node):
-			continue
-		if not map_node.has_method("get_minimap_control"):
-			continue
-
-		var minimap_control: Variant = map_node.call("get_minimap_control")
-		if minimap_control is Node:
-			_summon_selection_controller = minimap_control as Node
 			return _summon_selection_controller
 
 	return null

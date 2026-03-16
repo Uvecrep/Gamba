@@ -17,7 +17,7 @@ var night_overlay_color: Color = Color(0.06, 0.09, 0.15, 0.48)
 var day_label_color: Color = Color(0.94, 0.96, 1.0, 1.0)
 var night_label_color: Color = Color(0.65, 0.78, 1.0, 1.0)
 
-var _enemy_spawner: Node = null
+var _enemy_spawner: EnemySpawner = null
 var _label: Label = null
 var _overlay: ColorRect = null
 
@@ -31,7 +31,7 @@ var _waves_spawned_this_night: int = 0
 var _stopped: bool = false
 
 
-func setup(enemy_spawner: Node, label: Label, overlay: ColorRect) -> void:
+func setup(enemy_spawner: EnemySpawner, label: Label, overlay: ColorRect) -> void:
 	_enemy_spawner = enemy_spawner
 	_label = label
 	_overlay = overlay
@@ -45,8 +45,8 @@ func initialize() -> void:
 			_label.visible = false
 		_apply_visual_state(false, true)
 		_set_tree_growth_paused(false)
-		if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("start_spawning"):
-			_enemy_spawner.call("start_spawning")
+		if is_instance_valid(_enemy_spawner):
+			_enemy_spawner.start_spawning()
 		return
 
 	_ensure_timers()
@@ -110,8 +110,8 @@ func _start_day_phase() -> void:
 	if is_instance_valid(_wave_timer):
 		_wave_timer.stop()
 
-	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
-		_enemy_spawner.call("stop_spawning")
+	if is_instance_valid(_enemy_spawner):
+		_enemy_spawner.stop_spawning()
 
 	_set_tree_growth_paused(false)
 	_apply_visual_state(false, false)
@@ -124,8 +124,8 @@ func _start_night_phase() -> void:
 	_night_index += 1
 	_waves_spawned_this_night = 0
 
-	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
-		_enemy_spawner.call("stop_spawning")
+	if is_instance_valid(_enemy_spawner):
+		_enemy_spawner.stop_spawning()
 
 	_set_tree_growth_paused(true)
 	_apply_visual_state(true, false)
@@ -140,8 +140,8 @@ func _set_tree_growth_paused(is_paused: bool) -> void:
 	for tree in get_tree().get_nodes_in_group("trees"):
 		if not is_instance_valid(tree):
 			continue
-		if tree.has_method("set_growth_paused"):
-			tree.call("set_growth_paused", is_paused)
+		if tree is FarmTree:
+			(tree as FarmTree).set_growth_paused(is_paused)
 
 
 func _apply_visual_state(is_night: bool, immediate: bool) -> void:
@@ -197,10 +197,7 @@ func _spawn_next_wave() -> void:
 
 	var wave_size: int = _compute_wave_size()
 	if is_instance_valid(_enemy_spawner):
-		if _enemy_spawner.has_method("spawn_wave"):
-			_enemy_spawner.call("spawn_wave", wave_size, true)
-		elif _enemy_spawner.has_method("start_spawning"):
-			_enemy_spawner.call("start_spawning")
+		_enemy_spawner.spawn_wave(wave_size, true)
 
 	_waves_spawned_this_night += 1
 	_update_label("Night %d  Wave %d/%d" % [_night_index, _waves_spawned_this_night, total_waves])

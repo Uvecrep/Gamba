@@ -1,4 +1,5 @@
 extends Control
+class_name WorldMinimap
 
 signal selection_changed(selected_count: int)
 signal move_order_issued(target_world_position: Vector2, summon_count: int)
@@ -248,10 +249,10 @@ func hold_selected_summons() -> int:
 	for summon in _selected_summons:
 		if not is_instance_valid(summon):
 			continue
-		if not summon.has_method("set_hold_position"):
+		if not summon is SummonUnit:
 			continue
 
-		summon.call("set_hold_position", target_hold_state)
+		(summon as SummonUnit).set_hold_position(target_hold_state)
 		commanded_count += 1
 
 	return commanded_count
@@ -265,10 +266,10 @@ func follow_selected_summons() -> int:
 	for summon in _selected_summons:
 		if not is_instance_valid(summon):
 			continue
-		if not summon.has_method("set_follow_player"):
+		if not summon is SummonUnit:
 			continue
 
-		summon.call("set_follow_player")
+		(summon as SummonUnit).set_follow_player()
 		commanded_count += 1
 
 	return commanded_count
@@ -283,13 +284,8 @@ func auto_selected_summons() -> int:
 		if not is_instance_valid(summon):
 			continue
 
-		if summon.has_method("set_auto_behavior"):
-			summon.call("set_auto_behavior")
-			commanded_count += 1
-			continue
-
-		if summon.has_method("clear_manual_command"):
-			summon.call("clear_manual_command")
+		if summon is SummonUnit:
+			(summon as SummonUnit).set_auto_behavior()
 			commanded_count += 1
 
 	return commanded_count
@@ -394,10 +390,10 @@ func _issue_move_order(target_world_position: Vector2) -> int:
 	for summon in _selected_summons:
 		if not is_instance_valid(summon):
 			continue
-		if not summon.has_method("set_move_target"):
+		if not summon is SummonUnit:
 			continue
 
-		summon.call("set_move_target", target_world_position)
+		(summon as SummonUnit).set_move_target(target_world_position)
 		moved_count += 1
 
 	return moved_count
@@ -455,9 +451,9 @@ func _sync_summon_selection_visuals(previous_selection: Array[Node2D]) -> void:
 func _set_summon_selected_visual(summon: Node2D, is_selected: bool) -> void:
 	if summon == null:
 		return
-	if not summon.has_method("set_selected_for_command"):
+	if not summon is SummonUnit:
 		return
-	summon.call("set_selected_for_command", is_selected)
+	(summon as SummonUnit).set_selected_for_command(is_selected)
 
 func _same_node_selection(previous_selection: Array[Node2D], current_selection: Array[Node2D]) -> bool:
 	if previous_selection.size() != current_selection.size():
@@ -474,10 +470,6 @@ func _is_summon_holding(summon: Node2D) -> bool:
 		return false
 	if summon is SummonUnit:
 		return (summon as SummonUnit).is_holding_position()
-	if summon.has_method("is_holding_position"):
-		return bool(summon.call("is_holding_position"))
-	if summon.has_method("get_command_mode_name"):
-		return String(summon.call("get_command_mode_name")) == "HOLD"
 	return false
 
 func _is_summon_hold_toggle_enabled(summon: Node2D) -> bool:
@@ -485,19 +477,14 @@ func _is_summon_hold_toggle_enabled(summon: Node2D) -> bool:
 		return false
 	if summon is SummonUnit:
 		return (summon as SummonUnit).is_hold_toggle_enabled()
-	if summon.has_method("is_hold_toggle_enabled"):
-		return bool(summon.call("is_hold_toggle_enabled"))
-	# Backwards compatibility for older summon scripts where hold toggle equals current hold mode.
-	return _is_summon_holding(summon)
+	return false
 
 func _is_summon_moving(summon: Node2D) -> bool:
 	if summon == null:
 		return false
 	if summon is SummonUnit:
 		return (summon as SummonUnit).get_command_mode_name() == "MOVE"
-	if not summon.has_method("get_command_mode_name"):
-		return false
-	return String(summon.call("get_command_mode_name")) == "MOVE"
+	return false
 
 func _get_map_rect() -> Rect2:
 	var constrained_padding: float = clampf(map_padding, 0.0, minf(size.x, size.y) * 0.45)
@@ -547,29 +534,24 @@ func _refresh_world_bounds() -> void:
 	_has_world_bounds = false
 
 func _try_build_bounds_from_world_tile_map() -> bool:
-	var tile_map_layer: Node = _find_world_tile_map_layer()
-	if tile_map_layer == null:
-		return false
-	if not tile_map_layer.has_method("get_used_rect") or not tile_map_layer.has_method("map_to_local"):
-		return false
-	if not (tile_map_layer is Node2D):
+	var tile_map_layer_node: Node = _find_world_tile_map_layer()
+	if not tile_map_layer_node is TileMapLayer:
 		return false
 
-	var used_rect: Rect2i = tile_map_layer.call("get_used_rect")
+	var tile_map_layer: TileMapLayer = tile_map_layer_node as TileMapLayer
+	var used_rect: Rect2i = tile_map_layer.get_used_rect()
 	if used_rect.size == Vector2i.ZERO:
 		return false
 
 	var tile_size: Vector2 = Vector2(32.0, 32.0)
-	var tile_set_variant: Variant = tile_map_layer.get("tile_set")
-	if tile_set_variant is TileSet:
-		tile_size = Vector2((tile_set_variant as TileSet).tile_size)
+	if tile_map_layer.tile_set != null:
+		tile_size = Vector2(tile_map_layer.tile_set.tile_size)
 
-	var top_left_local: Vector2 = tile_map_layer.call("map_to_local", used_rect.position) - (tile_size * 0.5)
+	var top_left_local: Vector2 = tile_map_layer.map_to_local(used_rect.position) - (tile_size * 0.5)
 	var bottom_right_local: Vector2 = top_left_local + (Vector2(used_rect.size) * tile_size)
 
-	var world_node: Node2D = tile_map_layer as Node2D
-	var top_left_global: Vector2 = world_node.to_global(top_left_local)
-	var bottom_right_global: Vector2 = world_node.to_global(bottom_right_local)
+	var top_left_global: Vector2 = tile_map_layer.to_global(top_left_local)
+	var bottom_right_global: Vector2 = tile_map_layer.to_global(bottom_right_local)
 	var min_point: Vector2 = Vector2(min(top_left_global.x, bottom_right_global.x), min(top_left_global.y, bottom_right_global.y))
 	var max_point: Vector2 = Vector2(max(top_left_global.x, bottom_right_global.x), max(top_left_global.y, bottom_right_global.y))
 

@@ -2,15 +2,15 @@ class_name GameOverController
 extends Node
 
 var _is_game_over: bool = false
-var _enemy_spawner: Node = null
+var _enemy_spawner: EnemySpawner = null
 var _game_over_layer: CanvasLayer = null
 var _restart_button: Button = null
 var _quit_button: Button = null
-var _day_night_controller: Node = null
+var _day_night_controller: DayNightController = null
 
 
 func setup(
-	enemy_spawner: Node,
+	enemy_spawner: EnemySpawner,
 	game_over_layer: CanvasLayer,
 	restart_button: Button,
 	quit_button: Button,
@@ -28,7 +28,7 @@ func setup(
 	_set_visible(false)
 
 
-func set_day_night_controller(dnc: Node) -> void:
+func set_day_night_controller(dnc: DayNightController) -> void:
 	_day_night_controller = dnc
 
 
@@ -38,10 +38,10 @@ func on_house_destroyed() -> void:
 
 	_is_game_over = true
 
-	if is_instance_valid(_enemy_spawner) and _enemy_spawner.has_method("stop_spawning"):
-		_enemy_spawner.call("stop_spawning")
+	if is_instance_valid(_enemy_spawner):
+		_enemy_spawner.stop_spawning()
 
-	if is_instance_valid(_day_night_controller) and _day_night_controller.has_method("stop"):
+	if is_instance_valid(_day_night_controller):
 		_day_night_controller.stop()
 
 	_set_visible(true)

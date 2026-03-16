@@ -1,4 +1,5 @@
 extends StaticBody2D
+class_name House
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
 

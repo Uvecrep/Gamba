@@ -1,4 +1,5 @@
 extends StaticBody2D
+class_name MapInteractable
 
 @export var interact_action: StringName = &"interact"
 @export var interact_range: float = 96.0
@@ -14,7 +15,7 @@ var _spatial_index: SpatialIndex2D
 @onready var _prompt_label: Label = get_node_or_null("InteractPrompt") as Label
 @onready var _map_layer: CanvasLayer = get_node_or_null("MapLayer") as CanvasLayer
 @onready var _map_panel: PanelContainer = get_node_or_null("MapLayer/MapWindow") as PanelContainer
-@onready var _minimap: Control = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/WorldMinimap") as Control
+@onready var _minimap: WorldMinimap = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/WorldMinimap") as WorldMinimap
 @onready var _selection_label: Label = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/SelectionLabel") as Label
 @onready var _status_label: Label = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/StatusLabel") as Label
 @onready var _close_hint_label: Label = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/CloseHint") as Label
@@ -106,10 +107,10 @@ func _set_map_open(should_open: bool) -> void:
 		_hold_selected_button.grab_focus()
 
 func _on_hold_selected_pressed() -> void:
-	if _minimap == null or not _minimap.has_method("hold_selected_summons"):
+	if _minimap == null:
 		return
 
-	var toggled_count: int = int(_minimap.call("hold_selected_summons"))
+	var toggled_count: int = _minimap.hold_selected_summons()
 	if toggled_count <= 0:
 		_set_status("No summons selected.")
 		return
@@ -124,17 +125,17 @@ func _on_hold_selected_pressed() -> void:
 	_on_selection_changed(_get_selected_count())
 
 func _on_clear_selection_pressed() -> void:
-	if _minimap == null or not _minimap.has_method("clear_selection"):
+	if _minimap == null:
 		return
 
-	_minimap.call("clear_selection")
+	_minimap.clear_selection()
 	_set_status("Selection cleared.")
 
 func _on_follow_selected_pressed() -> void:
-	if _minimap == null or not _minimap.has_method("follow_selected_summons"):
+	if _minimap == null:
 		return
 
-	var followed_count: int = int(_minimap.call("follow_selected_summons"))
+	var followed_count: int = _minimap.follow_selected_summons()
 	if followed_count <= 0:
 		_set_status("No summons selected.")
 		return
@@ -143,10 +144,10 @@ func _on_follow_selected_pressed() -> void:
 	_on_selection_changed(_get_selected_count())
 
 func _on_auto_selected_pressed() -> void:
-	if _minimap == null or not _minimap.has_method("auto_selected_summons"):
+	if _minimap == null:
 		return
 
-	var auto_count: int = int(_minimap.call("auto_selected_summons"))
+	var auto_count: int = _minimap.auto_selected_summons()
 	if auto_count <= 0:
 		_set_status("No summons selected.")
 		return
@@ -168,14 +169,14 @@ func _on_move_order_issued(target_world_position: Vector2, summon_count: int) ->
 	_on_selection_changed(_get_selected_count())
 
 func _get_selected_count() -> int:
-	if _minimap == null or not _minimap.has_method("get_selected_summon_count"):
+	if _minimap == null:
 		return 0
-	return int(_minimap.call("get_selected_summon_count"))
+	return _minimap.get_selected_summon_count()
 
 func _get_selected_hold_toggled_count() -> int:
-	if _minimap == null or not _minimap.has_method("get_selected_hold_toggled_count"):
+	if _minimap == null:
 		return 0
-	return int(_minimap.call("get_selected_hold_toggled_count"))
+	return _minimap.get_selected_hold_toggled_count()
 
 func _set_status(status_text: String) -> void:
 	if _status_label == null:

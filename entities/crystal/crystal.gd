@@ -1,4 +1,5 @@
 extends StaticBody2D
+class_name CrystalNode
 
 signal lootbox_ready_changed(has_lootbox: bool)
 

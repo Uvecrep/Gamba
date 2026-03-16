@@ -56,9 +56,9 @@ func hold_selected_summons() -> int:
 	var target_hold_state: bool = not all_selected_holding
 	var commanded_count: int = 0
 	for summon in _selected_summons:
-		if not summon.has_method("set_hold_position"):
+		if not summon is SummonUnit:
 			continue
-		summon.call("set_hold_position", target_hold_state)
+		(summon as SummonUnit).set_hold_position(target_hold_state)
 		commanded_count += 1
 
 	return commanded_count
@@ -70,9 +70,9 @@ func follow_selected_summons() -> int:
 
 	var commanded_count: int = 0
 	for summon in _selected_summons:
-		if not summon.has_method("set_follow_player"):
+		if not summon is SummonUnit:
 			continue
-		summon.call("set_follow_player")
+		(summon as SummonUnit).set_follow_player()
 		commanded_count += 1
 
 	return commanded_count
@@ -84,12 +84,8 @@ func auto_selected_summons() -> int:
 
 	var commanded_count: int = 0
 	for summon in _selected_summons:
-		if summon.has_method("set_auto_behavior"):
-			summon.call("set_auto_behavior")
-			commanded_count += 1
-			continue
-		if summon.has_method("clear_manual_command"):
-			summon.call("clear_manual_command")
+		if summon is SummonUnit:
+			(summon as SummonUnit).set_auto_behavior()
 			commanded_count += 1
 
 	return commanded_count
@@ -101,9 +97,9 @@ func issue_move_order_world(target_world_position: Vector2) -> int:
 
 	var moved_count: int = 0
 	for summon in _selected_summons:
-		if not summon.has_method("set_move_target"):
+		if not summon is SummonUnit:
 			continue
-		summon.call("set_move_target", target_world_position)
+		(summon as SummonUnit).set_move_target(target_world_position)
 		moved_count += 1
 
 	return moved_count
@@ -154,15 +150,13 @@ func _finalize_selection_change(previous_selection: Array[Node2D]) -> void:
 		_set_summon_selected_visual(selected_summon, true)
 
 func _set_summon_selected_visual(summon: Node2D, is_selected: bool) -> void:
-	if not summon.has_method("set_selected_for_command"):
+	if not summon is SummonUnit:
 		return
-	summon.call("set_selected_for_command", is_selected)
+	(summon as SummonUnit).set_selected_for_command(is_selected)
 
 func _is_summon_hold_toggle_enabled(summon: Node2D) -> bool:
 	if summon == null:
 		return false
-	if summon.has_method("is_hold_toggle_enabled"):
-		return bool(summon.call("is_hold_toggle_enabled"))
-	if summon.has_method("is_holding_position"):
-		return bool(summon.call("is_holding_position"))
+	if summon is SummonUnit:
+		return (summon as SummonUnit).is_hold_toggle_enabled()
 	return false

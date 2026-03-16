@@ -6,24 +6,21 @@ func initialize(player: Player) -> void:
 	configure_world_bounds(player)
 
 func configure_world_bounds(player: Player) -> void:
-	var tile_map_layer: Node = _find_world_tile_map_layer(player)
-	if tile_map_layer == null:
-		return
-	if not tile_map_layer.has_method("get_used_rect") or not tile_map_layer.has_method("map_to_local"):
-		push_warning("Player: world TileMapGround is missing required bounds methods.")
+	var tile_map_layer_node: Node = _find_world_tile_map_layer(player)
+	if not tile_map_layer_node is TileMapLayer:
 		return
 
-	var used_rect: Rect2i = tile_map_layer.call("get_used_rect")
+	var tile_map_layer: TileMapLayer = tile_map_layer_node as TileMapLayer
+	var used_rect: Rect2i = tile_map_layer.get_used_rect()
 	if used_rect.size == Vector2i.ZERO:
 		push_warning("Player: world TileMapGround has no used cells; bounds not applied.")
 		return
 
 	var tile_size: Vector2 = Vector2(32.0, 32.0)
-	var tile_set: Variant = tile_map_layer.get("tile_set")
-	if tile_set is TileSet:
-		tile_size = Vector2((tile_set as TileSet).tile_size)
+	if tile_map_layer.tile_set != null:
+		tile_size = Vector2(tile_map_layer.tile_set.tile_size)
 
-	var top_left_local: Vector2 = tile_map_layer.call("map_to_local", used_rect.position) - (tile_size * 0.5)
+	var top_left_local: Vector2 = tile_map_layer.map_to_local(used_rect.position) - (tile_size * 0.5)
 	var bottom_right_local: Vector2 = top_left_local + (Vector2(used_rect.size) * tile_size)
 
 	var top_left_global: Vector2 = tile_map_layer.to_global(top_left_local)

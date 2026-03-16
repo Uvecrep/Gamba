@@ -521,12 +521,8 @@ func _deal_damage_to_target(target: Node2D, damage: float, options: Dictionary =
 		(target as SummonUnit).take_hit(damage, self, options)
 		return
 
-	if target.has_method("take_hit"):
-		target.call("take_hit", damage, self, options)
-		return
-
-	if target.has_method("take_damage"):
-		target.call("take_damage", damage)
+	if target is House:
+		(target as House).take_damage(damage)
 
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
 	_ensure_modules()

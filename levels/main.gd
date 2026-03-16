@@ -1,4 +1,5 @@
 extends Node2D
+class_name MainScene
 
 # Navigation config — serialized here for scene backwards-compat; passed to NavigationBuildService.
 @export var navigation_obstacle_padding: float = 10.0
@@ -25,7 +26,7 @@ extends Node2D
 @export var night_label_color: Color = Color(0.65, 0.78, 1.0, 1.0)
 
 @onready var _house: Node = get_node_or_null("house")
-@onready var _enemy_spawner: Node = get_node_or_null("EnemySpawner")
+@onready var _enemy_spawner: EnemySpawner = get_node_or_null("EnemySpawner") as EnemySpawner
 @onready var _game_over_layer: CanvasLayer = get_node_or_null("GameOverLayer") as CanvasLayer
 @onready var _restart_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/RestartButton") as Button
 @onready var _quit_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/QuitButton") as Button

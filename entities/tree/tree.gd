@@ -1,4 +1,5 @@
 extends StaticBody2D
+class_name FarmTree
 
 signal fruit_count_changed(current: int, maximum: int)
 
@@ -128,11 +129,11 @@ func _sync_growth_pause_from_day_night_cycle() -> void:
 		return
 
 	var current_scene: Node = get_tree().current_scene
-	if current_scene == null or not current_scene.has_method("is_night_time"):
+	if not current_scene is MainScene:
 		set_growth_paused(false)
 		return
 
-	set_growth_paused(bool(current_scene.call("is_night_time")))
+	set_growth_paused((current_scene as MainScene).is_night_time())
 
 func _update_fruit_visuals() -> void:
 	var target_visible_count := mini(_fruit_count, _fruit_sprites.size())

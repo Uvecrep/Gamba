@@ -1,4 +1,5 @@
 extends Node2D
+class_name EnemySpawner
 
 @export var enemy_scene: PackedScene
 @export var spawn_interval: float = 15

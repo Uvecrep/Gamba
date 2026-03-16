@@ -1,4 +1,5 @@
 extends StaticBody2D
+class_name PhoneInteractable
 
 @export var interact_action: StringName = &"interact"
 @export var interact_range: float = 96.0
