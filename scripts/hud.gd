@@ -29,15 +29,10 @@ func _ready() -> void:
 		_update_sapling_plant_debug_label()
 		push_warning("LootboxCounterHUD: player node reference was null")
 		return
-	
-	player.player_inventory.inventory_changed.connect(_on_player_inventory_changed)
 
 func _process(_delta: float) -> void:
 	_update_sapling_plant_debug_label()
 	_update_lootbox_prompt_label()
-
-func _on_player_inventory_changed() -> void:
-	_update_sapling_plant_debug_label() # I don't think this operation is too expensive to not do every frame
 
 func _update_lootbox_prompt_label() -> void:
 	if player == null:

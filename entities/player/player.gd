@@ -1,7 +1,6 @@
 extends CharacterBody2D
 class_name Player
 
-signal sapling_carried_changed(is_carrying: bool)
 
 @export var interact_action: StringName = &"interact"
 @export var summon_command_hold_action: StringName = &"summon_command_hold"
@@ -65,7 +64,7 @@ func _ready() -> void:
 	_health_component.initialize(self)
 	_interaction_component.initialize(self)
 
-	player_inventory.inventory_changed.connect(_on_inventory_changed)
+	player_inventory.inventory_changed.connect(_pickup_magnet_component.on_inventory_changed.bind(player_inventory,pickups_following_me))
 
 func get_input() -> void:
 	_movement_component.get_input(self)
@@ -218,9 +217,6 @@ func _on_pickup_touched_radius(area: Area2D) -> void:
 
 func _on_pickup_touched_me(area: Area2D) -> void:
 	_pickup_magnet_component.on_pickup_touched_me(self, area, pickups_following_me)
-
-func _on_inventory_changed() -> void:
-	_pickup_magnet_component.on_inventory_changed(self, pickups_following_me)
 
 func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
 	if not is_instance_valid(_perf_debug):

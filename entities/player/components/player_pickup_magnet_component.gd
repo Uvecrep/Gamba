@@ -34,14 +34,14 @@ func on_pickup_touched_me(player: Player, area: Area2D, pickups_following_me: Ar
 		if index >= 0:
 			pickups_following_me.remove_at(index)
 
-func on_inventory_changed(player: Player, pickups_following_me: Array[Pickup]) -> void:
+func on_inventory_changed(player_inventory: PlayerInventory, pickups_following_me: Array[Pickup]) -> void:
 	var invalid_pickups: Array[Pickup] = []
 	var pickups_no_longer_following: Array[Pickup] = []
 	for pickup in pickups_following_me:
 		if not is_instance_valid(pickup):
 			invalid_pickups.append(pickup)
 			continue
-		if not player.player_inventory.would_item_fit(pickup.item_id):
+		if not player_inventory.would_item_fit(pickup.item_id):
 			pickup.floating_towards = null
 			pickups_no_longer_following.append(pickup)
 
