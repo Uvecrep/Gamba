@@ -1,11 +1,21 @@
 extends RefCounted
 
+const HealthComponent = preload("res://entities/shared/health_component.gd")
+
 var unit
+var _health_component: HealthComponent = HealthComponent.new()
+var _is_initialized: bool = false
 
 func _init(owner) -> void:
 	unit = owner
 
+func initialize_health(start_full: bool = true) -> void:
+	_health_component.initialize(unit.max_health, start_full)
+	_is_initialized = true
+	_sync_health_to_unit()
+
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
+	_ensure_health_initialized()
 	var final_damage: float = amount
 	if unit.summon_identity == unit.ID_BUSH_BOY and unit._command_mode == unit.CommandMode.HOLD:
 		final_damage *= 0.6
@@ -22,29 +32,31 @@ func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) ->
 			unit._external_push_velocity += push_direction * knockback_force
 
 func take_damage(amount: float) -> void:
+	_ensure_health_initialized()
 	if amount <= 0.0:
 		return
 
-	var previous_health: float = unit._current_health
-	unit._current_health = clampf(unit._current_health - amount, 0.0, unit.max_health)
-	var applied_damage: float = previous_health - unit._current_health
+	_sync_health_max_from_unit_export()
+	var applied_damage: float = _health_component.take_damage(amount)
+	_sync_health_to_unit()
 	if applied_damage > 0.0:
 		unit.CombatText.spawn_damage(unit, applied_damage)
 		request_health_bar_visibility()
 	update_health_bar()
 
-	if unit._current_health <= 0.0:
+	if _health_component.is_dead:
 		die()
 
 func heal(amount: float) -> void:
+	_ensure_health_initialized()
 	if amount <= 0.0:
 		return
-	if unit._current_health <= 0.0:
+	if _health_component.is_dead:
 		return
 
-	var previous_health: float = unit._current_health
-	unit._current_health = clampf(unit._current_health + amount, 0.0, unit.max_health)
-	var healed_amount: float = unit._current_health - previous_health
+	_sync_health_max_from_unit_export()
+	var healed_amount: float = _health_component.heal(amount)
+	_sync_health_to_unit()
 	if healed_amount <= 0.0:
 		return
 
@@ -105,11 +117,12 @@ func spawn_split_children() -> void:
 			(split_summon as SummonUnit).set_hold_position(true)
 
 func update_health_bar() -> void:
+	_ensure_health_initialized()
 	if unit._health_bar == null:
 		return
 
-	unit._health_bar.max_value = unit.max_health
-	unit._health_bar.value = unit._current_health
+	unit._health_bar.max_value = _health_component.max_health
+	unit._health_bar.value = _health_component.current_health
 	refresh_health_bar_visibility()
 
 func request_health_bar_visibility(duration: float = -1.0) -> void:
@@ -123,10 +136,28 @@ func request_health_bar_visibility(duration: float = -1.0) -> void:
 	refresh_health_bar_visibility()
 
 func refresh_health_bar_visibility() -> void:
+	_ensure_health_initialized()
 	if unit._health_bar == null:
 		return
 
 	var should_show: bool = unit.always_show_health_bar or unit._is_command_selected or unit._health_bar_visible_time_left > 0.0
-	if unit._current_health <= 0.0:
+	if _health_component.is_dead:
 		should_show = false
 	unit._health_bar.visible = should_show
+
+func _ensure_health_initialized() -> void:
+	if _is_initialized:
+		return
+
+	var initial_health: float = unit._current_health
+	if initial_health <= 0.0:
+		initial_health = unit.max_health
+	_health_component.initialize(unit.max_health, false, initial_health)
+	_is_initialized = true
+	_sync_health_to_unit()
+
+func _sync_health_max_from_unit_export() -> void:
+	_health_component.set_max_health(unit.max_health)
+
+func _sync_health_to_unit() -> void:
+	unit._current_health = _health_component.current_health

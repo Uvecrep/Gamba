@@ -216,7 +216,7 @@ func _ready() -> void:
 	_vfx_pool = get_node_or_null("/root/VfxPool") as VfxPool2D
 	_follow_formation_angle = randf_range(0.0, TAU)
 	_player_target = _find_player()
-	_current_health = max_health
+	_health_module.initialize_health(true)
 	_time_to_repath = randf_range(0.0, maxf(repath_interval, 0.05))
 	_time_to_nav_goal_refresh = randf_range(0.0, maxf(nav_goal_update_interval, 0.05))
 	_time_to_follow_nav_refresh = randf_range(0.0, maxf(follow_nav_target_update_interval, 0.05))
