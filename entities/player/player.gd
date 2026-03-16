@@ -1,25 +1,24 @@
 extends CharacterBody2D
 class_name Player
 
-signal lootbox_inventory_changed(chaos_count: int, forest_count: int, selected_kind: int)
 signal sapling_carried_changed(is_carrying: bool)
 
-@export var speed: float = 400.0
-@export var harvest_range: float = 96.0
-@export var harvest_amount_per_interaction: int = 1
 @export var interact_action: StringName = &"interact"
 @export var summon_command_hold_action: StringName = &"summon_command_hold"
 @export var summon_command_follow_action: StringName = &"summon_command_follow"
 @export var summon_command_auto_action: StringName = &"summon_command_auto"
+@export var scroll_up_action: StringName = &"scroll_up"
+@export var scroll_down_action: StringName = &"scroll_down"
+
+@export var speed: float = 400.0
+@export var harvest_range: float = 96.0
+@export var harvest_amount_per_interaction: int = 1
 @export var summon_selection_radius: float = 72.0
 @export var summon_selection_drag_step: float = 22.0
 @export var summon_selection_preview_fill_color: Color = Color(1.0, 0.95, 0.45, 0.14)
 @export var summon_selection_preview_line_color: Color = Color(1.0, 0.95, 0.45, 0.95)
 @export var summon_selection_preview_line_width: float = 2.0
-@export var chaos_lootbox: Lootbox = preload("res://entities/lootbox/chaos_lootbox.tres")
-@export var forest_lootbox: Lootbox = preload("res://entities/lootbox/forest_lootbox.tres")
-@export var scroll_up_action: StringName = &"scroll_up"
-@export var scroll_down_action: StringName = &"scroll_down"
+
 @export var sapling_plant_range: float = 640.0
 @export var sapling_tree_scene: PackedScene = preload("res://entities/tree/tree.tscn")
 @export var max_health: float = 180.0
@@ -49,7 +48,6 @@ var _pickup_magnet_component: PlayerPickupMagnetComponent = PlayerPickupMagnetCo
 var _summon_command_component: PlayerSummonCommandComponent = PlayerSummonCommandComponent.new()
 var _health_component: PlayerHealthComponent = PlayerHealthComponent.new()
 var _interaction_component: PlayerInteractionComponent = PlayerInteractionComponent.new()
-var _last_reported_carrying_sapling: bool = false
 
 @export var pickup_packed_scene: PackedScene
 @export var toss_reticle: Node2D
@@ -108,21 +106,6 @@ func _input(event: InputEvent) -> void:
 
 func is_dead() -> bool:
 	return _health_component.is_dead()
-
-func get_chaos_lootbox_count() -> int:
-	if chaos_lootbox == null:
-		return 0
-
-	return player_inventory.get_lootbox_count(chaos_lootbox)
-
-func get_forest_lootbox_count() -> int:
-	if forest_lootbox == null:
-		return 0
-
-	return player_inventory.get_lootbox_count(forest_lootbox)
-
-func _emit_lootbox_inventory_changed() -> void:
-	lootbox_inventory_changed.emit(get_chaos_lootbox_count(), get_forest_lootbox_count(), 0)
 
 func _emit_sapling_carried_changed(is_carrying: bool) -> void:
 	sapling_carried_changed.emit(is_carrying)
@@ -247,7 +230,6 @@ func _on_pickup_touched_me(area: Area2D) -> void:
 
 func _on_inventory_changed() -> void:
 	_pickup_magnet_component.on_inventory_changed(self, pickups_following_me)
-	_emit_lootbox_inventory_changed()
 	_emit_sapling_carried_changed_if_needed()
 
 func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:

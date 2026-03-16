@@ -78,50 +78,6 @@ func add_items(item_id: StringName, num_items: int) -> bool:
 		inventory_became_full.emit()
 	return true
 
-func get_lootbox_count(lootbox: Lootbox) -> int:
-	var lootbox_item_id: StringName = _get_lootbox_item_id(lootbox)
-	if lootbox_item_id == &"":
-		return 0
-
-	if not inventory_items.has(lootbox_item_id):
-		return 0
-
-	var slot_index: int = inventory_items.find(lootbox_item_id)
-	if slot_index < 0:
-		return 0
-
-	return maxi(inventory_item_counts[slot_index], 0)
-
-func add_lootboxes(lootbox: Lootbox, amount: int) -> int:
-	if amount <= 0:
-		return 0
-
-	var lootbox_item_id: StringName = _get_lootbox_item_id(lootbox)
-	if lootbox_item_id == &"":
-		return 0
-
-	if not add_items(lootbox_item_id, amount):
-		return 0
-
-	return amount
-
-func try_spend_lootboxes(lootbox: Lootbox, amount: int) -> bool:
-	if amount <= 0:
-		return true
-
-	var lootbox_item_id: StringName = _get_lootbox_item_id(lootbox)
-	if lootbox_item_id == &"":
-		return false
-
-	if not inventory_items.has(lootbox_item_id):
-		return false
-
-	var slot_index: int = inventory_items.find(lootbox_item_id)
-	if slot_index < 0:
-		return false
-
-	return remove_items(slot_index, amount, false)
-
 # If allow_insufficient_funds is false, function will not do anything if you have fewer items than the number you want removed
 func remove_items(index : int, num_to_remove : int, allow_insufficient_funds : bool = false) -> bool:
 	if index < 0 or index >= num_slots: return false
@@ -143,9 +99,3 @@ func _get_empty_slots() -> Array[int]:
 			if inventory_item_counts[i] == 0:
 				empty_slots.append(i)
 	return empty_slots
-
-func _get_lootbox_item_id(lootbox: Lootbox) -> StringName:
-	if lootbox == null:
-		return &""
-
-	return StringName("lootbox_%s" % [String(lootbox.id)])
