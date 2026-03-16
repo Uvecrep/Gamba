@@ -3,10 +3,10 @@ class_name PlayerInventory
 
 signal inventory_changed()
 signal inventory_became_full()
-signal selection_index_changed(new_index : int)
+signal selected_index_changed(new_index : int)
 signal slot_contents_changed(index : int, item_id : StringName, count : int)
 
-var selected_index : int = 0
+var selected_index : int = 2
 var num_slots : int = 5 # TODO implement changing number of slots? Static rn
 
 var inventory_items : Array[StringName] = []
@@ -17,6 +17,13 @@ func _init() -> void:
 	for index in range(num_slots):
 		inventory_items.append(&"")
 		inventory_item_counts.append(0)
+
+func _ready() -> void:
+	selected_index_changed.emit(selected_index)
+
+func set_selected_index(new_index : int) -> void:
+	selected_index = new_index
+	selected_index_changed.emit(new_index)
 
 func get_slot_item_id(index : int) -> StringName:
 	if index < 0 or index >= num_slots: return &""
@@ -38,17 +45,7 @@ func set_slot_item_count(index : int, new_value: int) -> bool:
 	if new_value == 0:
 		inventory_items[index] = &""
 	inventory_changed.emit()
-	return true
-
-func set_selected_index(new_index: int) -> bool:
-	if new_index < 0 or new_index >= num_slots:
-		return false
-	if new_index == selected_index:
-		return false
-
-	selected_index = new_index
-	selection_index_changed.emit(selected_index)
-	inventory_changed.emit()
+	slot_contents_changed.emit(index, inventory_items[index], new_value)
 	return true
 
 func add_items(item_id: StringName, num_items: int) -> bool:
@@ -65,7 +62,11 @@ func add_items(item_id: StringName, num_items: int) -> bool:
 		if empty_slots.size() == 0: 
 			return false
 		
-		target_slot_index = empty_slots[0] # TODO: Should maybe have a smarter way of determining this
+		# Try to put item in selected slot, otherwise in leftmost slot
+		if empty_slots.find(selected_index) != -1: 
+			target_slot_index = selected_index
+		else:
+			target_slot_index = empty_slots[0] # TODO: Should maybe have a smarter way of determining this
 		inventory_items[target_slot_index] = item_id
 		filled_new_slot = true
 	

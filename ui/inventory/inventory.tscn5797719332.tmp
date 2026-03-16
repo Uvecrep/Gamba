@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://b815q8hl3sixl"]
+
+[ext_resource type="Script" uid="uid://vqti75yd87dr" path="res://ui/inventory/inventory_ui.gd" id="1_t68fq"]
+[ext_resource type="PackedScene" uid="uid://xtfj7565v6v4" path="res://ui/inventory/inventory_slot.tscn" id="2_s83yu"]
+
+[node name="Inventory" type="Control" unique_id=1753442306 node_paths=PackedStringArray("slot_0", "slot_1", "slot_2", "slot_3", "slot_4")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_t68fq")
+slot_0 = NodePath("MarginContainer/PanelContainer/InventorySlot_0")
+slot_1 = NodePath("MarginContainer/PanelContainer/InventorySlot_1")
+slot_2 = NodePath("MarginContainer/PanelContainer/InventorySlot_2")
+slot_3 = NodePath("MarginContainer/PanelContainer/InventorySlot_3")
+slot_4 = NodePath("MarginContainer/PanelContainer/InventorySlot_4")
+metadata/_custom_type_script = "uid://vqti75yd87dr"
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=264400365]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -200.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 400
+theme_override_constants/margin_right = 400
+
+[node name="PanelContainer" type="Panel" parent="MarginContainer" unique_id=554923517]
+layout_mode = 2
+
+[node name="InventorySlot_0" parent="MarginContainer/PanelContainer" unique_id=1493361272 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+offset_left = -320.0
+offset_right = -320.0
+
+[node name="InventorySlot_1" parent="MarginContainer/PanelContainer" unique_id=92212709 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+offset_left = -160.0
+offset_right = -160.0
+
+[node name="InventorySlot_2" parent="MarginContainer/PanelContainer" unique_id=2109016855 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+
+[node name="InventorySlot_3" parent="MarginContainer/PanelContainer" unique_id=1071416769 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+offset_left = 160.0
+offset_right = 160.0
+
+[node name="InventorySlot_4" parent="MarginContainer/PanelContainer" unique_id=976170593 instance=ExtResource("2_s83yu")]
+layout_mode = 1
+offset_left = 320.0
+offset_right = 320.0

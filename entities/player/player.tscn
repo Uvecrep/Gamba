@@ -2,20 +2,24 @@
 
 [ext_resource type="Script" uid="uid://b5x3ag8pucgmf" path="res://entities/player/player.gd" id="1_abrql"]
 [ext_resource type="Texture2D" uid="uid://bwxhko8w27k0n" path="res://assets/characters/player.png" id="2_abrql"]
+[ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="3_sglur"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wdj6m"]
 size = Vector2(50, 60)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_abrql"]
 
-[node name="player" type="CharacterBody2D" unique_id=57563531]
+[node name="player" type="CharacterBody2D" unique_id=57563531 node_paths=PackedStringArray("toss_reticle", "toss_line")]
 script = ExtResource("1_abrql")
+toss_reticle = NodePath("TossReticle")
+toss_line = NodePath("TossLine")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1986886271]
 position = Vector2(-5, 2)
 shape = SubResource("RectangleShape2D_wdj6m")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2107561974]
+z_index = 3
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
@@ -50,6 +54,17 @@ offset_bottom = -28.0
 mouse_filter = 2
 value = 100.0
 show_percentage = false
+
+[node name="TossReticle" type="Node2D" parent="." unique_id=1440640529]
+visible = false
+
+[node name="Sprite2D" type="Sprite2D" parent="TossReticle" unique_id=1343234261]
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("3_sglur")
+
+[node name="TossLine" type="Line2D" parent="." unique_id=1004722858]
+visible = false
+points = PackedVector2Array(10, 10, 100, 100)
 
 [connection signal="area_entered" from="PickupMagnetRadius" to="." method="_on_pickup_touched_radius"]
 [connection signal="area_entered" from="PickupCollectRadius" to="." method="_on_pickup_touched_me"]

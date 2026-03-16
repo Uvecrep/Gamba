@@ -49,6 +49,12 @@ var _pickup_magnet_component: PlayerPickupMagnetComponent = PlayerPickupMagnetCo
 var _summon_command_component: PlayerSummonCommandComponent = PlayerSummonCommandComponent.new()
 var _health_component: PlayerHealthComponent = PlayerHealthComponent.new()
 var _interaction_component: PlayerInteractionComponent = PlayerInteractionComponent.new()
+var _last_reported_carrying_sapling: bool = false
+
+@export var pickup_packed_scene: PackedScene
+@export var toss_reticle: Node2D
+@export var toss_line: Line2D
+var _is_tossing = false
 
 func _ready() -> void:
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
@@ -68,6 +74,15 @@ func get_input() -> void:
 
 func _process(delta: float) -> void:
 	_health_component.process(self, delta)
+	if _health_component._invulnerability_time_left > 0.0:
+		_health_component._invulnerability_time_left = maxf(_health_component._invulnerability_time_left - delta, 0.0)
+	_update_house_regen(delta)
+	
+	_update_health_bar()
+	
+	if _is_tossing:
+		toss_reticle.position = get_local_mouse_position()
+		toss_line.points[1] = get_local_mouse_position()
 
 func _physics_process(_delta: float) -> void:
 	if _health_component.is_dead():
@@ -252,3 +267,33 @@ func _perf_mark_event(event_name: String, metadata: Dictionary = {}) -> void:
 		return
 
 	_perf_debug.mark_event(event_name, metadata)
+
+func _try_perform_item_action(is_left : bool) -> void:
+	if player_inventory.inventory_item_counts[player_inventory.selected_index] == 0: return
+	
+	# TODO Do something with left and right click actions here
+	
+	_begin_tossing()
+
+func _begin_tossing() -> void:
+	if _is_tossing: return
+	
+	toss_reticle.visible = true
+	toss_line.visible = true
+	_is_tossing = true
+
+func _stop_tossing() -> void:
+	if not _is_tossing: return
+	var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
+	if not player_inventory.remove_items(player_inventory.selected_index,1): return
+	
+	# If we're dropping, place the item down. Need to have support for more actions
+	var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
+	get_parent().add_child(dropped_pickup)
+	dropped_pickup.global_position = get_global_mouse_position()
+	dropped_pickup.set_data(held_item_id)
+	
+	
+	toss_reticle.visible = false
+	toss_line.visible = false
+	_is_tossing = false
