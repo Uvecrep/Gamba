@@ -8,12 +8,16 @@ var max_height: float = 80.0
 
 var time := 0.0
 
+var has_landed = false
 
 # Meant to be overridden with whatever should happen when the object hits the ground
 func on_landed():
 	print("Landed!")
+	queue_free()
 
 func _process(delta):
+	if has_landed: return
+
 	time += delta
 	var t = clamp(time / duration, 0.0, 1.0)
 
@@ -24,6 +28,5 @@ func _process(delta):
 	position = ground_pos - Vector2(0, height)
 
 	if t >= 1.0:
+		has_landed = true
 		on_landed()
-		queue_free()
-

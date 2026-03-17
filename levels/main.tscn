@@ -43,7 +43,6 @@ spawn_interval = 10.0
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
 z_index = 1
 position = Vector2(614, 242)
-pickup_packed_scene = ExtResource("13_1fput")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=299344106 node_paths=PackedStringArray("player", "_lootbox_prompt_label", "_sapling_debug_label", "_summon_command_hint_label")]
 script = ExtResource("8_hud")
