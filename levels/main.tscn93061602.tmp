@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://domyo1x6j4x7w" path="res://entities/enemy/enemy_spawner.tscn" id="5_u7xt2"]
 [ext_resource type="PackedScene" uid="uid://b6u051drnvexw" path="res://entities/house/house.tscn" id="6_7hmax"]
 [ext_resource type="PackedScene" path="res://entities/phone/phone.tscn" id="8_2v8j6"]
-[ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/hud.gd" id="8_hud"]
+[ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/lootbox_counter_hud.gd" id="8_hud"]
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
 [ext_resource type="PackedScene" uid="uid://c63lyvmlfrslj" path="res://entities/pickups/sapling_pickup.tscn" id="10_2v0sd"]
@@ -52,12 +52,8 @@ z_index = 1
 position = Vector2(614, 242)
 pickup_packed_scene = ExtResource("13_1fput")
 
-[node name="UI" type="CanvasLayer" parent="." unique_id=299344106 node_paths=PackedStringArray("player", "_lootbox_prompt_label", "_sapling_debug_label", "_summon_command_hint_label")]
+[node name="UI" type="CanvasLayer" parent="." unique_id=299344106]
 script = ExtResource("8_hud")
-player = NodePath("../player")
-_lootbox_prompt_label = NodePath("VBoxContainer/LootboxPromptLabel")
-_sapling_debug_label = NodePath("VBoxContainer/SaplingPlantDebugLabel")
-_summon_command_hint_label = NodePath("VBoxContainer/SummonCommandHintLabel")
 
 [node name="DayNightOverlay" type="ColorRect" parent="UI" unique_id=752603394]
 z_index = -1
@@ -69,23 +65,32 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.06, 0.09, 0.15, 0)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UI" unique_id=220813397]
-offset_left = 15.0
-offset_top = 15.0
-offset_right = 55.0
-offset_bottom = 55.0
+[node name="LootboxCountLabel" type="Label" parent="UI" unique_id=213834753]
+visible = false
+offset_left = 970.0
+offset_top = 1001.0
+offset_right = 1087.0
+offset_bottom = 1029.0
+text = "Lootboxes: 0"
+horizontal_alignment = 1
 
-[node name="SummonCommandHintLabel" type="Label" parent="UI/VBoxContainer" unique_id=246778403]
-layout_mode = 2
-text = "MMB: Select summons | H: Hold | F: Follow | R: Auto"
-
-[node name="SaplingPlantDebugLabel" type="Label" parent="UI/VBoxContainer" unique_id=2067746762]
-layout_mode = 2
-text = "Sapling Can Plant: No"
-
-[node name="LootboxPromptLabel" type="Label" parent="UI/VBoxContainer" unique_id=470985317]
-layout_mode = 2
+[node name="LootboxPromptLabel" type="Label" parent="UI" unique_id=470985317]
+visible = false
+offset_left = 920.0
+offset_top = 1027.0
+offset_right = 1139.0
+offset_bottom = 1055.0
 text = "Press Q to open a lootbox"
+horizontal_alignment = 1
+
+[node name="SaplingPlantDebugLabel" type="Label" parent="UI" unique_id=2067746762]
+visible = false
+offset_left = 860.0
+offset_top = 1053.0
+offset_right = 1200.0
+offset_bottom = 1081.0
+text = "Sapling Can Plant: No"
+horizontal_alignment = 1
 
 [node name="DebugInventory" parent="UI" unique_id=1649588140 node_paths=PackedStringArray("player_ref") instance=ExtResource("11_c7dyn")]
 visible = false
@@ -105,6 +110,13 @@ offset_bottom = 58.0
 grow_horizontal = 0
 horizontal_alignment = 2
 script = ExtResource("12_fps")
+
+[node name="SummonCommandHintLabel" type="Label" parent="UI" unique_id=246778403]
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 520.0
+offset_bottom = 36.0
+text = "MMB: Select summons | H: Hold | F: Follow | R: Auto"
 
 [node name="DayNightLabel" type="Label" parent="UI" unique_id=1790246650]
 anchors_preset = 1
