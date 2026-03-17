@@ -244,6 +244,9 @@ func _try_perform_item_action(is_left : bool) -> void:
 	if not is_left:
 		# If we're dropping, place the item down. Need to have support for more actions
 		var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
+		if not player_inventory.remove_items(player_inventory.selected_index,1): return
+
+		
 		var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
 		get_parent().add_child(dropped_pickup)
 		dropped_pickup.global_position = position + ((get_global_mouse_position() - global_position).normalized() * 100)
@@ -273,7 +276,7 @@ func _stop_tossing() -> void:
 	dropped_pickup.set_data(held_item_id)# If we're dropping, place the item down. Need to have support for more actions
 	dropped_pickup.target_pos = get_global_mouse_position()
 	dropped_pickup.start_pos = global_position
-	dropped_pickup.active = true	
+	dropped_pickup.is_being_thrown = true	
 	dropped_pickup.sleeping = true
 	
 	toss_reticle.visible = false

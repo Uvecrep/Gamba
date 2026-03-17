@@ -9,7 +9,7 @@ func on_pickup_touched_radius(player: Player, area: Area2D, pickups_following_me
 	if pickups_following_me.has(pickup): return
 	if not player.player_inventory.would_item_fit(pickup.item_id): return
 	
-	if pickup.active: return
+	if pickup.is_being_thrown: return
 
 	pickup.floating_towards = player
 	pickups_following_me.append(pickup)
@@ -19,7 +19,7 @@ func on_pickup_touched_me(player: Player, area: Area2D, pickups_following_me: Ar
 	if pickup == null: return
 	if pickup is not Pickup: return
 	if not is_instance_valid(pickup): return
-	if pickup.active: return
+	if pickup.is_being_thrown: return
 
 	if player.player_inventory.add_items(pickup.item_id, 1):
 		pickup.floating_towards = null
