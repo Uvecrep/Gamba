@@ -8,6 +8,8 @@ signal lootbox_ready_changed(has_lootbox: bool)
 @export var harvest_prompt_action: StringName = &"interact"
 @export var default_harvest_range: float = 96.0
 @export var prompt_refresh_interval: float = 0.25
+const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
+const PROXIMITY_PROMPT_UTIL: GDScript = preload("res://scripts/proximity_prompt_util.gd")
 var box_pickup_scene : PackedScene = preload("res://entities/pickups/box_pickup.tscn")
 
 
@@ -24,7 +26,7 @@ var _spatial_index: SpatialIndex2D
 
 func _ready() -> void:
 	add_to_group("crystals")
-	_harvest_hint_text = _resolve_action_hint(harvest_prompt_action)
+	_harvest_hint_text = INPUT_HINT_UTIL.resolve_action_hint(harvest_prompt_action)
 	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
 
 	_growth_timer.wait_time = maxf(growth_interval_seconds, 0.01)
@@ -37,7 +39,7 @@ func _ready() -> void:
 	_schedule_prompt_refresh(0.0)
 
 func _process(delta: float) -> void:
-	_prompt_refresh_time_left = maxf(_prompt_refresh_time_left - delta, 0.0)
+	_prompt_refresh_time_left = PROXIMITY_PROMPT_UTIL.tick_refresh_time_left(_prompt_refresh_time_left, delta)
 	if _prompt_refresh_time_left > 0.0:
 		return
 
@@ -106,62 +108,17 @@ func _update_harvest_prompt() -> void:
 	_harvest_prompt_label.text = "Press %s to harvest" % _harvest_hint_text
 
 func _is_any_player_in_harvest_range() -> bool:
-	if is_instance_valid(_spatial_index):
-		var nearest_player: Node2D = _spatial_index.find_closest_in_group(global_position, &"players")
-		if nearest_player != null:
-			var nearest_range: float = maxf(default_harvest_range, 0.0)
-			var nearest_player_harvest_range: Variant = nearest_player.get("harvest_range")
-			if typeof(nearest_player_harvest_range) == TYPE_FLOAT or typeof(nearest_player_harvest_range) == TYPE_INT:
-				nearest_range = maxf(float(nearest_player_harvest_range), 0.0)
-
-			var nearest_distance_sq: float = global_position.distance_squared_to(nearest_player.global_position)
-			if nearest_distance_sq <= nearest_range * nearest_range:
-				return true
-
-	var players: Array = get_tree().get_nodes_in_group("players")
-	for player in players:
-		if not (player is Node2D):
-			continue
-
-		var harvest_range: float = maxf(default_harvest_range, 0.0)
-		var player_harvest_range: Variant = player.get("harvest_range")
-		if typeof(player_harvest_range) == TYPE_FLOAT or typeof(player_harvest_range) == TYPE_INT:
-			harvest_range = maxf(float(player_harvest_range), 0.0)
-
-		var player_node: Node2D = player as Node2D
-		var distance_sq: float = global_position.distance_squared_to(player_node.global_position)
-		if distance_sq <= harvest_range * harvest_range:
-			return true
-
-	return false
+	return PROXIMITY_PROMPT_UTIL.is_any_player_in_dynamic_range(
+		self,
+		global_position,
+		default_harvest_range,
+		_spatial_index
+	)
 
 func _schedule_prompt_refresh(initial_delay: float = -1.0) -> void:
-	if initial_delay >= 0.0:
-		_prompt_refresh_time_left = initial_delay
-		return
-
-	var base_interval: float = maxf(prompt_refresh_interval, 0.06)
-	var jitter: float = randf_range(0.0, base_interval * 0.4)
-	_prompt_refresh_time_left = base_interval + jitter
-
-func _resolve_action_hint(action: StringName) -> String:
-	if not InputMap.has_action(action):
-		return String(action).to_upper()
-
-	var events: Array[InputEvent] = InputMap.action_get_events(action)
-	for event in events:
-		if event == null:
-			continue
-
-		if event is InputEventKey:
-			var key_event: InputEventKey = event as InputEventKey
-			if key_event.physical_keycode != 0:
-				return OS.get_keycode_string(key_event.physical_keycode)
-			if key_event.keycode != 0:
-				return OS.get_keycode_string(key_event.keycode)
-
-		var event_text: String = event.as_text()
-		if not event_text.is_empty():
-			return event_text
-
-	return String(action).to_upper()
+	_prompt_refresh_time_left = PROXIMITY_PROMPT_UTIL.schedule_next_refresh(
+		prompt_refresh_interval,
+		0.06,
+		0.4,
+		initial_delay
+	)

@@ -6,6 +6,7 @@ extends CanvasLayer
 @export var summon_command_follow_action: StringName = &"summon_command_follow"
 @export var summon_command_auto_action: StringName = &"summon_command_auto"
 @export var sapling_debug_refresh_interval: float = 0.2
+const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
 
 @onready var _lootbox_count_label: Label = $LootboxCountLabel
 @onready var _lootbox_prompt_label: Label = $LootboxPromptLabel
@@ -23,10 +24,10 @@ var _sapling_debug_time_to_refresh: float = 0.0
 # TODO: I, Kyle, have borked most of this functionality. It still compiles though, so leaving for the time being
 
 func _ready() -> void:
-	_interact_hint_text = _resolve_action_hint(interact_action)
-	_summon_hold_hint_text = _resolve_action_hint(summon_command_hold_action)
-	_summon_follow_hint_text = _resolve_action_hint(summon_command_follow_action)
-	_summon_auto_hint_text = _resolve_action_hint(summon_command_auto_action)
+	_interact_hint_text = INPUT_HINT_UTIL.resolve_action_hint(interact_action)
+	_summon_hold_hint_text = INPUT_HINT_UTIL.resolve_action_hint(summon_command_hold_action)
+	_summon_follow_hint_text = INPUT_HINT_UTIL.resolve_action_hint(summon_command_follow_action)
+	_summon_auto_hint_text = INPUT_HINT_UTIL.resolve_action_hint(summon_command_auto_action)
 	_update_summon_hint_label()
 	_update_label(0, 0)
 	_update_prompt(0, 0)
@@ -137,25 +138,3 @@ func _update_summon_hint_label() -> void:
 		_summon_follow_hint_text,
 		_summon_auto_hint_text,
 	]
-
-func _resolve_action_hint(action: StringName) -> String:
-	if not InputMap.has_action(action):
-		return String(action).to_upper()
-
-	var events: Array[InputEvent] = InputMap.action_get_events(action)
-	for event in events:
-		if event == null:
-			continue
-
-		if event is InputEventKey:
-			var key_event := event as InputEventKey
-			if key_event.physical_keycode != 0:
-				return OS.get_keycode_string(key_event.physical_keycode)
-			if key_event.keycode != 0:
-				return OS.get_keycode_string(key_event.keycode)
-
-		var event_text := event.as_text()
-		if not event_text.is_empty():
-			return event_text
-
-	return String(action).to_upper()
