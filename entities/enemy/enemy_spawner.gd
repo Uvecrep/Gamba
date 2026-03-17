@@ -6,6 +6,18 @@ class_name EnemySpawner
 @export var max_alive_enemies: int = 8
 @export var auto_start: bool = true
 @export var spawn_points_root_path: NodePath = NodePath("SpawnPoints")
+@export var randomize_enemy_archetypes: bool = true
+@export var spawn_archetype_pool: PackedStringArray = [
+	"basic_raider",
+	"basic_raider",
+	"basic_raider",
+	"fast_raider",
+	"fast_raider",
+	"tank_raider",
+	"ranged_raider",
+	"healing_raider",
+	"trenchcoat_goblin",
+]
 
 @onready var _spawn_timer: Timer = $SpawnTimer
 
@@ -83,6 +95,8 @@ func _spawn_single_enemy() -> bool:
 	var enemy: Node2D = enemy_scene.instantiate() as Node2D
 	if enemy == null:
 		return false
+	if enemy is EnemyUnit:
+		(enemy as EnemyUnit).set_enemy_archetype(_pick_spawn_archetype())
 
 	enemy.global_position = _pick_spawn_position()
 	if get_parent() != null:
@@ -91,6 +105,17 @@ func _spawn_single_enemy() -> bool:
 		add_child(enemy)
 
 	return true
+
+func _pick_spawn_archetype() -> StringName:
+	if not randomize_enemy_archetypes:
+		return EnemyUnit.ENEMY_ARCHETYPE_BASIC_RAIDER
+	if spawn_archetype_pool.is_empty():
+		return EnemyUnit.ENEMY_ARCHETYPE_BASIC_RAIDER
+
+	var entry: String = spawn_archetype_pool[randi() % spawn_archetype_pool.size()]
+	if entry == "":
+		return EnemyUnit.ENEMY_ARCHETYPE_BASIC_RAIDER
+	return StringName(entry)
 
 func _pick_spawn_position() -> Vector2:
 	var spawn_root: Node = get_node_or_null(spawn_points_root_path)

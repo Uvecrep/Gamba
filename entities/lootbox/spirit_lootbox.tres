@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://d5y9u8yy1hlm0"]
+[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://blfa62qhapu8"]
 
 [ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://entities/lootbox/lootbox.gd" id="1_lootbox"]
 [ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://entities/lootbox/loot_entry.gd" id="2_entry"]
 [ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="3_summon_scene"]
 [ext_resource type="Script" uid="uid://b8tplg8ohx7w4" path="res://entities/lootbox/lootbox_outcome_spawn_summon.gd" id="4_spawn_outcome"]
-[ext_resource type="Texture2D" uid="uid://cm4stqdkebie5" path="res://assets/characters/summons/chaos/ghost.png" id="5_ghost_texture"]
-[ext_resource type="Texture2D" uid="uid://cm4stqdkebie6" path="res://assets/characters/summons/chaos/jack_in_the_box.png" id="6_jack_in_the_box_texture"]
-[ext_resource type="Texture2D" uid="uid://cm4stqdkebie7" path="res://assets/characters/summons/forest/bee_swarm.png" id="7_bee_swarm_texture"]
+[ext_resource type="Texture2D" uid="uid://cxt3wbwk3meto" path="res://assets/characters/summons/chaos/ghost.png" id="5_ghost_texture"]
+[ext_resource type="Texture2D" uid="uid://dgsjnvayetwtl" path="res://assets/characters/summons/chaos/jack_in_the_box.png" id="6_jack_in_the_box_texture"]
+[ext_resource type="Texture2D" uid="uid://576e77qnkd8v" path="res://assets/characters/summons/forest/bee_swarm.png" id="7_bee_swarm_texture"]
 
 [sub_resource type="Resource" id="Outcome_Spirit_Ghost"]
 script = ExtResource("4_spawn_outcome")

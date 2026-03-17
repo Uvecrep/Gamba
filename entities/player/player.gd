@@ -236,7 +236,7 @@ func _perf_mark_event(event_name: String, metadata: Dictionary = {}) -> void:
 
 	_perf_debug.mark_event(event_name, metadata)
 
-func _try_perform_item_action(is_left : bool) -> void:
+func _try_perform_item_action(_is_left : bool) -> void:
 	if player_inventory.inventory_item_counts[player_inventory.selected_index] == 0: return
 	
 	# TODO Do something with left and right click actions here

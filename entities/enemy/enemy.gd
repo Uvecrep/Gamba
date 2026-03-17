@@ -5,6 +5,19 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.gd")
 const NAVIGATION_GOAL_PROBE_SCRIPT = preload("res://entities/shared/navigation_goal_probe.gd")
 
+const ENEMY_ARCHETYPE_BASIC_RAIDER: StringName = &"basic_raider"
+const ENEMY_ARCHETYPE_FAST_RAIDER: StringName = &"fast_raider"
+const ENEMY_ARCHETYPE_TANK_RAIDER: StringName = &"tank_raider"
+const ENEMY_ARCHETYPE_RANGED_RAIDER: StringName = &"ranged_raider"
+const ENEMY_ARCHETYPE_HEALING_RAIDER: StringName = &"healing_raider"
+const ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN: StringName = &"trenchcoat_goblin"
+const ENEMY_ARCHETYPE_GOBLIN: StringName = &"goblin"
+
+const DEFAULT_ENEMY_TEXTURE_PATH: String = "res://assets/characters/enemy.png"
+const ENEMY_PROJECTILE_TEXTURE_PATH: String = "res://assets/characters/raider_projectile.png"
+const ENEMY_SCENE_PATH: String = "res://entities/enemy/enemy.tscn"
+const RANGED_PROJECTILE_SCENE: PackedScene = preload("res://entities/summon/summon_attack.tscn")
+
 @export var move_speed: float = 90.0
 @export var repath_interval: float = 0.3
 @export var target_reach_distance: float = 32.0
@@ -32,6 +45,25 @@ const NAVIGATION_GOAL_PROBE_SCRIPT = preload("res://entities/shared/navigation_g
 @export var knockback_decay: float = 900.0
 @export var health_bar_show_duration: float = 2.0
 @export var always_show_health_bar: bool = false
+@export var enemy_archetype: StringName = ENEMY_ARCHETYPE_BASIC_RAIDER
+@export var apply_archetype_on_ready: bool = true
+@export var ranged_attack_range: float = 340.0
+@export var ranged_damage: float = 13.0
+@export var ranged_attack_cooldown: float = 1.3
+@export var ranged_reposition_padding: float = 20.0
+@export var ranged_projectile_speed: float = 350.0
+@export var healer_keep_away_distance: float = 170.0
+@export var healer_reposition_padding: float = 28.0
+@export var healer_aura_radius: float = 220.0
+@export var healer_heal_per_second: float = 12.0
+@export var healer_tick_interval: float = 0.4
+@export var healer_max_allies_per_tick: int = 6
+@export var split_spawn_count: int = 4
+@export var split_spawn_spread_radius: float = 26.0
+@export var idle_bounce_speed: float = 3.5
+@export var idle_bounce_height: float = 1.6
+@export var attack_tilt_angle_degrees: float = 8.0
+@export var attack_tilt_duration: float = 0.12
 
 const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_ENEMY: int = 1 << 2
@@ -60,26 +92,35 @@ var _root_time_left: float = 0.0
 var _status_tick_time_left: float = 0.0
 var _external_push_velocity: Vector2 = Vector2.ZERO
 var _health_bar_visible_time_left: float = 0.0
+var _time_to_next_ranged_shot: float = 0.0
+var _time_to_next_heal_tick: float = 0.0
 var _burn_vfx_sprite: Sprite2D
 var _root_vfx_sprite: Sprite2D
 var _vfx_burn_effect: Texture2D
 var _vfx_rooted: Texture2D
 var _vfx_hit_marker: Texture2D
 var _vfx_knockback: Texture2D
+var _ranged_projectile_texture: Texture2D
+var _attack_tilt_tween: Tween
 var _spatial_index: SpatialIndex2D
 var _vfx_pool: VfxPool2D
 var _perf_debug: PerfDebugService
 
 static var _vfx_spawn_frame: int = -1
 static var _vfx_spawn_count: int = 0
+static var _texture_cache: Dictionary = {}
+static var _enemy_scene_cache: PackedScene
 const MAX_VFX_SPAWNS_PER_FRAME: int = 24
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 @onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
+@onready var _sprite: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
 
 func _ready() -> void:
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	_load_vfx_assets()
+	if apply_archetype_on_ready:
+		_apply_enemy_archetype(enemy_archetype)
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = PHYSICS_LAYER_ENEMY
 	collision_mask = PHYSICS_LAYER_WORLD
@@ -87,6 +128,7 @@ func _ready() -> void:
 	if _navigation_agent != null:
 		_navigation_agent.path_desired_distance = maxf(nav_path_desired_distance, 4.0)
 		_navigation_agent.target_desired_distance = maxf(nav_target_desired_distance, 6.0)
+		_navigation_agent.max_speed = maxf(move_speed, 1.0)
 		_navigation_agent.set_navigation_map(get_world_2d().navigation_map)
 	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
 	_vfx_pool = get_node_or_null("/root/VfxPool") as VfxPool2D
@@ -96,9 +138,21 @@ func _ready() -> void:
 	_time_to_nav_goal_refresh = randf_range(0.0, maxf(nav_goal_update_interval, 0.05))
 	_time_to_visibility_refresh = randf_range(0.0, maxf(visibility_check_interval, 0.05))
 	_time_to_next_melee_hit = randf_range(0.0, maxf(melee_attack_cooldown, 0.05) * 0.3)
+	_time_to_next_ranged_shot = randf_range(0.0, maxf(ranged_attack_cooldown, 0.05) * 0.4)
+	_time_to_next_heal_tick = randf_range(0.0, maxf(healer_tick_interval, 0.1))
 	_health_bar_visible_time_left = 0.0
 	_update_health_bar()
 	_setup_status_vfx()
+
+func set_enemy_archetype(archetype: StringName) -> void:
+	enemy_archetype = archetype
+	if not is_inside_tree():
+		return
+
+	_apply_enemy_archetype(enemy_archetype)
+	_sync_health_max_from_export()
+	_current_health = _health_component.current_health
+	_update_health_bar()
 
 func _physics_process(delta: float) -> void:
 	var physics_start_us: int = Time.get_ticks_usec()
@@ -108,9 +162,13 @@ func _physics_process(delta: float) -> void:
 	_time_to_nav_goal_refresh = maxf(_time_to_nav_goal_refresh - delta, 0.0)
 	_time_to_visibility_refresh = maxf(_time_to_visibility_refresh - delta, 0.0)
 	_time_to_next_melee_hit = maxf(_time_to_next_melee_hit - delta, 0.0)
+	_time_to_next_ranged_shot = maxf(_time_to_next_ranged_shot - delta, 0.0)
+	_time_to_next_heal_tick = maxf(_time_to_next_heal_tick - delta, 0.0)
 	var previous_health_bar_visible_time_left: float = _health_bar_visible_time_left
 	_health_bar_visible_time_left = maxf(_health_bar_visible_time_left - delta, 0.0)
 	_update_status_effects(delta)
+	_update_healer_aura(delta)
+	_update_idle_bounce()
 	_external_push_velocity = _external_push_velocity.move_toward(Vector2.ZERO, maxf(knockback_decay, 0.0) * delta)
 	if previous_health_bar_visible_time_left > 0.0 and _health_bar_visible_time_left <= 0.0:
 		_refresh_health_bar_visibility()
@@ -156,15 +214,29 @@ func _physics_process(delta: float) -> void:
 		var stop_distance: float = _get_surface_stop_distance(_current_target)
 		var allow_attack_without_clear_path: bool = _current_target.is_in_group("house")
 		var can_engage: bool = _cached_has_clear_path or allow_attack_without_clear_path
+		var is_threat_target: bool = _current_target.is_in_group("summons") or _current_target.is_in_group("players")
+		var is_ranged_archetype: bool = _is_ranged_archetype()
+		var is_healer_archetype: bool = _is_healer_archetype()
 		if is_rooted:
 			velocity = Vector2.ZERO
+		elif is_healer_archetype and is_threat_target:
+			velocity = _get_healer_spacing_velocity(_current_target, target_distance)
+		elif is_ranged_archetype:
+			var ranged_stop_distance: float = maxf(ranged_attack_range - ranged_reposition_padding, stop_distance)
+			if target_distance > ranged_stop_distance or not can_engage:
+				velocity = _get_navigation_velocity(_current_target.global_position)
+			else:
+				velocity = Vector2.ZERO
 		elif target_distance > stop_distance or not can_engage:
 			velocity = _get_navigation_velocity(_current_target.global_position)
 		else:
 			velocity = Vector2.ZERO
 
 		if not is_rooted:
-			_try_melee_attack(_current_target, target_distance, stop_distance, _cached_has_clear_path, allow_attack_without_clear_path)
+			if is_ranged_archetype:
+				_try_ranged_attack(_current_target, target_distance, _cached_has_clear_path, allow_attack_without_clear_path)
+			elif not is_healer_archetype:
+				_try_melee_attack(_current_target, target_distance, stop_distance, _cached_has_clear_path, allow_attack_without_clear_path)
 	else:
 		velocity = Vector2.ZERO
 		_clear_navigation_target()
@@ -243,6 +315,60 @@ func _clear_navigation_target() -> void:
 
 	_navigation_agent.target_position = global_position
 
+func _update_healer_aura(_delta: float) -> void:
+	if not _is_healer_archetype():
+		return
+	if healer_heal_per_second <= 0.0 or healer_aura_radius <= 0.0:
+		return
+	if _time_to_next_heal_tick > 0.0:
+		return
+
+	var tick_interval: float = maxf(healer_tick_interval, 0.1)
+	_time_to_next_heal_tick = tick_interval
+	var heal_amount: float = healer_heal_per_second * tick_interval
+	if heal_amount <= 0.0:
+		return
+
+	for ally in _find_nearby_allied_enemies(healer_aura_radius, healer_max_allies_per_tick):
+		ally.heal(heal_amount)
+
+func _find_nearby_allied_enemies(radius: float, max_targets: int) -> Array[EnemyUnit]:
+	var allies: Array[EnemyUnit] = []
+	var radius_sq: float = radius * radius
+	for candidate in get_tree().get_nodes_in_group("enemies"):
+		if not (candidate is EnemyUnit):
+			continue
+
+		var ally: EnemyUnit = candidate as EnemyUnit
+		if ally == self:
+			continue
+		if ally._health_component.is_dead:
+			continue
+
+		var distance_sq: float = global_position.distance_squared_to(ally.global_position)
+		if distance_sq > radius_sq:
+			continue
+
+		allies.append(ally)
+		if max_targets > 0 and allies.size() >= max_targets:
+			break
+
+	return allies
+
+func _get_healer_spacing_velocity(target: Node2D, target_distance: float) -> Vector2:
+	if target == null:
+		return Vector2.ZERO
+
+	var keep_away_distance: float = maxf(healer_keep_away_distance, 48.0)
+	var inner_distance: float = keep_away_distance - maxf(healer_reposition_padding, 0.0)
+	var outer_distance: float = keep_away_distance + maxf(healer_reposition_padding, 0.0)
+
+	if target_distance < inner_distance:
+		return target.global_position.direction_to(global_position) * move_speed
+	if target_distance > outer_distance:
+		return _get_navigation_velocity(target.global_position)
+	return Vector2.ZERO
+
 func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: float, has_clear_path: bool, allow_without_clear_path: bool) -> void:
 	if melee_damage <= 0.0 or melee_attack_cooldown <= 0.0:
 		return
@@ -257,6 +383,7 @@ func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: fl
 		return
 
 	_time_to_next_melee_hit = melee_attack_cooldown
+	_play_attack_tilt()
 	if target is Player:
 		(target as Player).take_damage(melee_damage)
 		return
@@ -265,6 +392,45 @@ func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: fl
 		return
 	if target is House:
 		(target as House).take_damage(melee_damage)
+
+func _try_ranged_attack(target: Node2D, target_distance: float, has_clear_path: bool, allow_without_clear_path: bool) -> void:
+	if target == null:
+		return
+	if ranged_damage <= 0.0 or ranged_attack_cooldown <= 0.0:
+		return
+	if ranged_attack_range <= 0.0:
+		return
+	if _time_to_next_ranged_shot > 0.0:
+		return
+	if target_distance > ranged_attack_range:
+		return
+	if not has_clear_path and not allow_without_clear_path:
+		return
+
+	var projectile_parent: Node = get_tree().current_scene
+	if projectile_parent == null:
+		projectile_parent = get_parent()
+	if projectile_parent == null:
+		return
+
+	var hit_options: Dictionary = {
+		"projectile_speed": ranged_projectile_speed,
+	}
+	if _ranged_projectile_texture != null:
+		hit_options["projectile_texture"] = _ranged_projectile_texture
+
+	var projectile: SummonAttackProjectile = SummonAttackProjectile.spawn(
+		RANGED_PROJECTILE_SCENE,
+		projectile_parent,
+		global_position,
+		target,
+		ranged_damage,
+		self,
+		hit_options
+	)
+	if projectile != null:
+		_time_to_next_ranged_shot = ranged_attack_cooldown
+		_play_attack_tilt()
 
 func _has_clear_path_to_target(target: Node2D) -> bool:
 	var los_start_us: int = Time.get_ticks_usec()
@@ -489,7 +655,167 @@ func _can_spawn_vfx_this_frame() -> bool:
 	return true
 
 func _die() -> void:
+	if enemy_archetype == ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
+		_spawn_split_goblins()
 	queue_free()
+
+func _spawn_split_goblins() -> void:
+	var spawn_count: int = maxi(split_spawn_count, 0)
+	if spawn_count <= 0:
+		return
+	if get_parent() == null:
+		return
+
+	var enemy_scene: PackedScene = _get_enemy_scene()
+	if enemy_scene == null:
+		return
+
+	for i in spawn_count:
+		var enemy_node: Node = enemy_scene.instantiate()
+		if not (enemy_node is EnemyUnit):
+			if is_instance_valid(enemy_node):
+				enemy_node.queue_free()
+			continue
+
+		var goblin: EnemyUnit = enemy_node as EnemyUnit
+		goblin.set_enemy_archetype(ENEMY_ARCHETYPE_GOBLIN)
+		get_parent().add_child(goblin)
+		var angle: float = (TAU * float(i)) / float(spawn_count)
+		var offset: Vector2 = Vector2.RIGHT.rotated(angle) * maxf(split_spawn_spread_radius, 8.0)
+		goblin.global_position = global_position + offset
+
+func _get_enemy_scene() -> PackedScene:
+	if _enemy_scene_cache != null:
+		return _enemy_scene_cache
+
+	_enemy_scene_cache = load(ENEMY_SCENE_PATH) as PackedScene
+	return _enemy_scene_cache
+
+func _apply_enemy_archetype(archetype: StringName) -> void:
+	var resolved_archetype: StringName = _normalize_enemy_archetype(archetype)
+	enemy_archetype = resolved_archetype
+
+	match resolved_archetype:
+		ENEMY_ARCHETYPE_FAST_RAIDER:
+			move_speed = 145.0
+			max_health = 65.0
+			melee_damage = 14.0
+			melee_attack_cooldown = 0.85
+		ENEMY_ARCHETYPE_TANK_RAIDER:
+			move_speed = 58.0
+			max_health = 240.0
+			melee_damage = 9.0
+			melee_attack_cooldown = 1.1
+		ENEMY_ARCHETYPE_RANGED_RAIDER:
+			move_speed = 84.0
+			max_health = 70.0
+			melee_damage = 0.0
+			ranged_damage = 13.0
+			ranged_attack_range = 360.0
+			ranged_attack_cooldown = 1.35
+		ENEMY_ARCHETYPE_HEALING_RAIDER:
+			move_speed = 76.0
+			max_health = 85.0
+			melee_damage = 0.0
+			healer_heal_per_second = 14.0
+			healer_aura_radius = 230.0
+			healer_keep_away_distance = 180.0
+		ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
+			move_speed = 95.0
+			max_health = 260.0
+			melee_damage = 20.0
+			melee_attack_cooldown = 0.9
+		ENEMY_ARCHETYPE_GOBLIN:
+			move_speed = 102.0
+			max_health = 95.0
+			melee_damage = 13.0
+			melee_attack_cooldown = 0.9
+		_:
+			move_speed = 90.0
+			max_health = 100.0
+			melee_damage = 15.0
+			melee_attack_cooldown = 1.0
+
+	if _navigation_agent != null:
+		_navigation_agent.max_speed = maxf(move_speed, 1.0)
+
+	var texture_path: String = _get_archetype_texture_path(resolved_archetype)
+	var enemy_texture: Texture2D = _load_texture_cached(texture_path)
+	if enemy_texture == null:
+		enemy_texture = _load_texture_cached("res://assets/characters/raider.png")
+	if enemy_texture == null:
+		enemy_texture = _load_texture_cached(DEFAULT_ENEMY_TEXTURE_PATH)
+	if _sprite != null and enemy_texture != null:
+		_sprite.texture = enemy_texture
+
+	_ranged_projectile_texture = _load_texture_cached(ENEMY_PROJECTILE_TEXTURE_PATH)
+
+func _normalize_enemy_archetype(archetype: StringName) -> StringName:
+	if archetype == StringName():
+		return ENEMY_ARCHETYPE_BASIC_RAIDER
+
+	match archetype:
+		ENEMY_ARCHETYPE_BASIC_RAIDER, ENEMY_ARCHETYPE_FAST_RAIDER, ENEMY_ARCHETYPE_TANK_RAIDER, ENEMY_ARCHETYPE_RANGED_RAIDER, ENEMY_ARCHETYPE_HEALING_RAIDER, ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN, ENEMY_ARCHETYPE_GOBLIN:
+			return archetype
+		_:
+			return ENEMY_ARCHETYPE_BASIC_RAIDER
+
+func _get_archetype_texture_path(archetype: StringName) -> String:
+	match archetype:
+		ENEMY_ARCHETYPE_FAST_RAIDER:
+			return "res://assets/characters/fast_raider.png"
+		ENEMY_ARCHETYPE_TANK_RAIDER:
+			return "res://assets/characters/tank_raider.png"
+		ENEMY_ARCHETYPE_RANGED_RAIDER:
+			return "res://assets/characters/ranged_raider.png"
+		ENEMY_ARCHETYPE_HEALING_RAIDER:
+			return "res://assets/characters/healing_raider.png"
+		ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
+			return "res://assets/characters/trenchcoat_goblins.png"
+		ENEMY_ARCHETYPE_GOBLIN:
+			return "res://assets/characters/goblin.png"
+		ENEMY_ARCHETYPE_BASIC_RAIDER:
+			return "res://assets/characters/raider.png"
+		_:
+			return DEFAULT_ENEMY_TEXTURE_PATH
+
+func _load_texture_cached(path: String) -> Texture2D:
+	if path == "":
+		return null
+	if _texture_cache.has(path):
+		var cached_value: Variant = _texture_cache[path]
+		if cached_value is Texture2D:
+			return cached_value as Texture2D
+		return null
+
+	var texture: Texture2D = load(path) as Texture2D
+	_texture_cache[path] = texture
+	return texture
+
+func _is_ranged_archetype() -> bool:
+	return enemy_archetype == ENEMY_ARCHETYPE_RANGED_RAIDER
+
+func _is_healer_archetype() -> bool:
+	return enemy_archetype == ENEMY_ARCHETYPE_HEALING_RAIDER
+
+func _update_idle_bounce() -> void:
+	if _sprite == null:
+		return
+	var bounce_height: float = maxf(idle_bounce_height, 0.0)
+	var bounce_speed: float = maxf(idle_bounce_speed, 0.1)
+	_sprite.position.y = sin(Time.get_ticks_msec() / 1000.0 * bounce_speed) * bounce_height
+
+func _play_attack_tilt() -> void:
+	if _sprite == null:
+		return
+	if is_instance_valid(_attack_tilt_tween):
+		_attack_tilt_tween.kill()
+	var tilt_sign: float = -1.0 if (randi() % 2 == 0) else 1.0
+	var tilt_angle: float = deg_to_rad(attack_tilt_angle_degrees) * tilt_sign
+	var half_duration: float = maxf(attack_tilt_duration * 0.5, 0.03)
+	_attack_tilt_tween = create_tween()
+	_attack_tilt_tween.tween_property(_sprite, "rotation", tilt_angle, half_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_attack_tilt_tween.tween_property(_sprite, "rotation", 0.0, half_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 func _update_health_bar() -> void:
 	if _health_bar == null:

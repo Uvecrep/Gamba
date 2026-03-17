@@ -26,7 +26,7 @@ func set_is_selected(new_is_selected : bool) -> void:
 		item_portrait_border.remove_theme_stylebox_override("panel")
 
 # TODO: Image implementation
-func set_info(item_name : String, item_image : Texture2D, item_count : int) -> void:
+func set_info(item_name : String, _item_image : Texture2D, item_count : int) -> void:
 	if (item_count == 0): item_name = ""
 	item_count_label.visible = item_count != 0
 	item_name_label.text = item_name

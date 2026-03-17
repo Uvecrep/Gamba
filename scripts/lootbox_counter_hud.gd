@@ -8,8 +8,8 @@ extends CanvasLayer
 @export var sapling_debug_refresh_interval: float = 0.2
 const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
 
-@onready var _lootbox_count_label: Label = $LootboxCountLabel
-@onready var _lootbox_prompt_label: Label = $LootboxPromptLabel
+@onready var _lootbox_count_label: Label = get_node_or_null("LootboxCountLabel") as Label
+@onready var _lootbox_prompt_label: Label = get_node_or_null("LootboxPromptLabel") as Label
 @onready var _sapling_debug_label: Label = get_node_or_null("SaplingPlantDebugLabel") as Label
 @onready var _summon_command_hint_label: Label = get_node_or_null("SummonCommandHintLabel") as Label
 
@@ -80,6 +80,8 @@ func _on_lootbox_inventory_changed(chaos_count: int, forest_count: int, _selecte
 	_update_prompt(chaos_count, forest_count)
 
 func _update_label(chaos_count: int, forest_count: int) -> void:
+	if _lootbox_count_label == null:
+		return
 	var clamped_chaos_count := maxi(chaos_count, 0)
 	var clamped_forest_count := maxi(forest_count, 0)
 	_lootbox_count_label.text = "Chaos Boxes: %d   Forest Boxes: %d" % [clamped_chaos_count, clamped_forest_count]

@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://d5y9u8yy1hlm1"]
+[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://blfa62qhapva"]
 
 [ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://entities/lootbox/lootbox.gd" id="1_lootbox"]
 [ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://entities/lootbox/loot_entry.gd" id="2_entry"]
 [ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="3_summon_scene"]
 [ext_resource type="Script" uid="uid://b8tplg8ohx7w4" path="res://entities/lootbox/lootbox_outcome_spawn_summon.gd" id="4_spawn_outcome"]
-[ext_resource type="Texture2D" uid="uid://cm3stqdkebie4" path="res://assets/characters/summons/chaos/slime.png" id="5_slime_texture"]
-[ext_resource type="Texture2D" uid="uid://cm3stqdkebie3" path="res://assets/characters/summons/chaos/baby_dragon.png" id="6_baby_dragon_texture"]
-[ext_resource type="Texture2D" uid="uid://cm3stqdkebie2" path="res://assets/characters/summons/forest/rooter.png" id="7_rooter_texture"]
+[ext_resource type="Texture2D" uid="uid://c40df3l71d8k" path="res://assets/characters/summons/chaos/slime.png" id="5_slime_texture"]
+[ext_resource type="Texture2D" uid="uid://cm7stqdkebie7" path="res://assets/characters/summons/chaos/baby_dragon.png" id="6_baby_dragon_texture"]
+[ext_resource type="Texture2D" uid="uid://buwmk6t3owag" path="res://assets/characters/summons/forest/rooter.png" id="7_rooter_texture"]
 
 [sub_resource type="Resource" id="Outcome_Greed_Slime"]
 script = ExtResource("4_spawn_outcome")

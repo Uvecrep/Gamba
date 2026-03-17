@@ -1,7 +1,6 @@
 extends CanvasLayer
 
 @export var player: Player
-@export var _lootbox_prompt_label: Label
 @export var _sapling_debug_label: Label
 @export var _summon_command_hint_label: Label
 
@@ -32,18 +31,6 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_update_sapling_plant_debug_label()
-	_update_lootbox_prompt_label()
-
-func _update_lootbox_prompt_label() -> void:
-	if player == null:
-		_lootbox_prompt_label.visible = false
-		return
-	
-	var selected_id = player.player_inventory.inventory_items[player.player_inventory.selected_index]
-	var is_holding_lootbox = selected_id.begins_with("lootbox_")
-	
-	_lootbox_prompt_label.visible = is_holding_lootbox
-	_lootbox_prompt_label.text = "Press %s to open a lootbox" % [_interact_hint_text]
 
 func _update_sapling_plant_debug_label() -> void:
 	if _sapling_debug_label == null: return

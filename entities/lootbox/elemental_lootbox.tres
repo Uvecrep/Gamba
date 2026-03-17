@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://d5y9u8yy1hlm9"]
+[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://blfa62qhapvi"]
 
 [ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://entities/lootbox/lootbox.gd" id="1_lootbox"]
 [ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://entities/lootbox/loot_entry.gd" id="2_entry"]
 [ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="3_summon_scene"]
 [ext_resource type="Script" uid="uid://b8tplg8ohx7w4" path="res://entities/lootbox/lootbox_outcome_spawn_summon.gd" id="4_spawn_outcome"]
 [ext_resource type="Texture2D" uid="uid://cxt3wbwk3meto" path="res://assets/characters/summons/chaos/spark_goblin.png" id="5_spark_goblin_texture"]
-[ext_resource type="Texture2D" uid="uid://cxt3wbwk3metd" path="res://assets/characters/summons/forest/mushroom_knight.png" id="6_mushroom_knight_texture"]
-[ext_resource type="Texture2D" uid="uid://cxt3wbwk3metc" path="res://assets/characters/summons/forest/acorn_spitter.png" id="7_acorn_spitter_texture"]
+[ext_resource type="Texture2D" uid="uid://c06rctajha7as" path="res://assets/characters/summons/forest/mushroom_knight.png" id="6_mushroom_knight_texture"]
+[ext_resource type="Texture2D" uid="uid://bwh2ksx2304jn" path="res://assets/characters/summons/forest/acorn_spitter.png" id="7_acorn_spitter_texture"]
 
 [sub_resource type="Resource" id="Outcome_Elemental_SparkGoblin"]
 script = ExtResource("4_spawn_outcome")
