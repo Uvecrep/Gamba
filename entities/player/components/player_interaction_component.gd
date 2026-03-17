@@ -3,11 +3,9 @@ class_name PlayerInteractionComponent
 
 const HARVEST_NODE_SCRIPT: Script = preload("res://entities/shared/harvest_node.gd")
 
-var _last_reported_carrying_sapling: bool = false
 
 func initialize(player: Player) -> void:
-	_last_reported_carrying_sapling = is_carrying_sapling(player)
-	player._emit_sapling_carried_changed(_last_reported_carrying_sapling)
+	pass
 
 func handle_interaction_input(player: Player) -> void:
 	var nearest_harvest_node: Node2D = _find_nearest_harvestable_node(player)
@@ -131,26 +129,11 @@ func try_plant_sapling_near_house(player: Player) -> bool:
 	})
 	return true
 
-func is_carrying_sapling(player: Player) -> bool:
-	return _get_sapling_inventory_count(player) > 0
-
 func can_plant_sapling_here(player: Player) -> bool:
-	if player.is_dead():
-		return false
-	if player.sapling_tree_scene == null:
-		return false
-	if not is_carrying_sapling(player):
-		return false
+	if player.is_dead(): return false
+	if player.sapling_tree_scene == null: return false
 
 	return _find_nearest_house_for_planting(player) != null
-
-func emit_sapling_carried_changed_if_needed(player: Player) -> void:
-	var is_carrying: bool = is_carrying_sapling(player)
-	if is_carrying == _last_reported_carrying_sapling:
-		return
-
-	_last_reported_carrying_sapling = is_carrying
-	player._emit_sapling_carried_changed(is_carrying)
 
 func open_lootbox(player: Player, lootbox: Lootbox) -> bool:
 	if lootbox == null:
@@ -172,20 +155,6 @@ func open_lootbox(player: Player, lootbox: Lootbox) -> bool:
 	}
 
 	return bool(rolled_entry.outcome.execute(context))
-
-func _get_sapling_inventory_count(player: Player) -> int:
-	if player.player_inventory == null:
-		return 0
-
-	var sapling_item_id: StringName = &"sapling"
-	if not player.player_inventory.inventory_items.has(sapling_item_id):
-		return 0
-
-	var slot_index: int = player.player_inventory.inventory_items.find(sapling_item_id)
-	if slot_index < 0 or slot_index >= player.player_inventory.inventory_item_counts.size():
-		return 0
-
-	return maxi(player.player_inventory.inventory_item_counts[slot_index], 0)
 
 func _find_nearest_house_for_planting(player: Player) -> Node:
 	var houses: Array = player.get_tree().get_nodes_in_group("house")
