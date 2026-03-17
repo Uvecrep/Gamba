@@ -4,6 +4,9 @@ class_name InventoryUi
 # TODO: remove this and put in scene manager
 @export var player_ref : Player
 
+# Used in case of an invalid item ID so the slot isn't empty
+@export var placeholder_item_texture : Texture2D
+
 # Lol, I am hardcoding this. Whoops.
 @export var slot_0 : InventorySlot
 @export var slot_1 : InventorySlot
@@ -37,8 +40,16 @@ func _on_selected_index_changed(slot_index : int) -> void:
 func _on_slot_contents_changed(slot_index : int, item_id : StringName, count : int) -> void:
 	assert(slot_index >= 0 && slot_index < 5, "inventory_ui._on_selected_index_changed(): Slot index was not valid")
 	
-	slots[slot_index].set_info(item_id, null, count)
-	pass
+	if count == 0:
+		slots[slot_index].set_info(&"", null, 0)
+		return
+
+	if not ItemGlobals.items.has(item_id):
+		slots[slot_index].set_info("id: "+item_id, placeholder_item_texture, count)
+		return
+	
+	var item_data : ItemData = ItemGlobals.items[item_id]
+	slots[slot_index].set_info(item_data.name, item_data.texture, count)
 
 func _connect_slot_signals(slot : InventorySlot):
 	var indice = slots.size()

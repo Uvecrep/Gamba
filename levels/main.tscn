@@ -174,11 +174,11 @@ text = "Quit"
 
 [node name="Pickup" parent="." unique_id=1634760408 instance=ExtResource("13_1fput")]
 position = Vector2(581, 640)
-item_id = &"lootbox_chaos"
+item_id = &"dummy_item"
 
 [node name="Pickup2" parent="." unique_id=1896649483 instance=ExtResource("13_1fput")]
 position = Vector2(698, 690)
-item_id = &"pear"
+item_id = &"lootbox_chaos"
 
 [node name="Pickup3" parent="." unique_id=1233044806 instance=ExtResource("13_1fput")]
 position = Vector2(631, 787)
