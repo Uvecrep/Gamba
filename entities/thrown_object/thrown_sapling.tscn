@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://cbyrfoweidpqm"]
+
+[ext_resource type="Script" uid="uid://8ik52w3tm085" path="res://entities/thrown_object/thrown_sapling.gd" id="1_hduq2"]
+[ext_resource type="PackedScene" uid="uid://bnb85qll64ayq" path="res://entities/tree/tree.tscn" id="2_erapf"]
+[ext_resource type="Texture2D" uid="uid://ca5ewh1whl05e" path="res://assets/objects/sapling.png" id="2_hduq2"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_are6o"]
+font_size = 4
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_86vk5"]
+radius = 15.95
+
+[node name="ThrownSapling" type="Node2D" unique_id=2138357677]
+script = ExtResource("1_hduq2")
+sapling_tree_packed_scene = ExtResource("2_erapf")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=948559319]
+offset_left = -17.5
+offset_top = -17.5
+offset_right = 17.5
+offset_bottom = 17.5
+texture = ExtResource("2_hduq2")
+expand_mode = 1
+
+[node name="Label" type="Label" parent="." unique_id=653073620]
+visible = false
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+text = "base
+pickup"
+label_settings = SubResource("LabelSettings_are6o")
+horizontal_alignment = 1
+
+[node name="Area2D" type="Area2D" parent="." unique_id=8093267]
+collision_layer = 16
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1158476554]
+shape = SubResource("CircleShape2D_86vk5")

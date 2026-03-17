@@ -49,6 +49,8 @@ var _health_component: PlayerHealthComponent = PlayerHealthComponent.new()
 var _interaction_component: PlayerInteractionComponent = PlayerInteractionComponent.new()
 
 @export var pickup_packed_scene: PackedScene
+@export var thrown_lootbox_packed_scene: PackedScene
+@export var thrown_sapling_packed_scene: PackedScene
 @export var toss_reticle: Node2D
 @export var toss_line: Line2D
 var _is_tossing = false
@@ -246,7 +248,7 @@ func _try_perform_item_action(is_left : bool) -> void:
 		var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
 		if not player_inventory.remove_items(player_inventory.selected_index,1): return
 
-		
+
 		var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
 		get_parent().add_child(dropped_pickup)
 		dropped_pickup.global_position = position + ((get_global_mouse_position() - global_position).normalized() * 100)
@@ -269,15 +271,36 @@ func _stop_tossing() -> void:
 	var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
 	if not player_inventory.remove_items(player_inventory.selected_index,1): return
 	
-	# If we're tossing, the pickup should be thrown.
-	var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
-	get_parent().add_child(dropped_pickup)
-	dropped_pickup.global_position = get_global_mouse_position()
-	dropped_pickup.set_data(held_item_id)# If we're dropping, place the item down. Need to have support for more actions
-	dropped_pickup.target_pos = get_global_mouse_position()
-	dropped_pickup.start_pos = global_position
-	dropped_pickup.is_being_thrown = true	
-	dropped_pickup.sleeping = true
+	var lootbox : Lootbox
+	if held_item_id.begins_with("lootbox_"):
+		var box_id: StringName = StringName(held_item_id.split("_")[1])
+		if not LootboxGlobals.lootboxes.has(box_id):
+			push_warning("Player: Tried to open a lootbox '" + box_id + "' which is not present in the global array")
+			return
+		lootbox = LootboxGlobals.lootboxes[box_id]
+	
+	var thrown_object : ThrownObject
+	if lootbox != null:
+		var thrown_lootbox : ThrownLootbox = thrown_lootbox_packed_scene.instantiate()
+		thrown_lootbox.player = self
+		thrown_lootbox.lootbox = lootbox
+		thrown_object = thrown_lootbox as ThrownObject
+	elif held_item_id == &"sapling":
+		var thrown_sapling : ThrownSapling = thrown_sapling_packed_scene.instantiate()
+		thrown_object = thrown_sapling as ThrownObject
+	else:
+		print("Throw pickup?")
+		
+	if not thrown_object: return
+
+	get_parent().add_child(thrown_object)
+	thrown_object.global_position = get_global_mouse_position()
+	#dropped_pickup.set_data(held_item_id)# If we're dropping, place the item down. Need to have support for more actions
+	thrown_object.target_pos = get_global_mouse_position()
+	thrown_object.start_pos = global_position
+	thrown_object.is_being_thrown = true
+
+	
 	
 	toss_reticle.visible = false
 	toss_line.visible = false
