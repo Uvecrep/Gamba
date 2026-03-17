@@ -1,9 +1,9 @@
 extends RefCounted
 
-const HealthComponent = preload("res://entities/shared/health_component.gd")
+const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.gd")
 
 var unit
-var _health_component: HealthComponent = HealthComponent.new()
+var _health_component: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
 var _is_initialized: bool = false
 
 func _init(owner) -> void:

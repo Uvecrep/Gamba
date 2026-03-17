@@ -2,14 +2,14 @@ extends StaticBody2D
 class_name House
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
-const HealthComponent = preload("res://entities/shared/health_component.gd")
+const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.gd")
 
 signal destroyed
 
 @export var max_health: float = 500.0
 
 var _current_health: float = 0.0
-var _health_component: HealthComponent = HealthComponent.new()
+var _health_component: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 

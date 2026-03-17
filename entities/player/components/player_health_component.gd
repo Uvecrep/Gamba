@@ -2,7 +2,7 @@ extends RefCounted
 class_name PlayerHealthComponent
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
-const HealthComponent = preload("res://entities/shared/health_component.gd")
+const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.gd")
 const DEATH_INDICATOR_COLOR: Color = Color(1.0, 0.42, 0.42, 1.0)
 
 var _spawn_position: Vector2 = Vector2.ZERO
@@ -11,7 +11,7 @@ var _invulnerability_time_left: float = 0.0
 var _house_regen_time_left: float = 0.0
 var _death_indicator_layer: CanvasLayer
 var _death_indicator_label: Label
-var _health_state: HealthComponent = HealthComponent.new()
+var _health_state: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
 
 func initialize(player: Player) -> void:
 	_spawn_position = player.global_position

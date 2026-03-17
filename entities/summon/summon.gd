@@ -169,6 +169,7 @@ func _ensure_modules() -> void:
 
 func _touch_delegated_private_state() -> void:
 	# These fields are consumed by extracted modules; touching them here avoids false "unused private" warnings.
+	_current_health = _current_health
 	_move_target_position = _move_target_position
 	_hold_toggle_enabled = _hold_toggle_enabled
 	_last_follow_nav_target = _last_follow_nav_target

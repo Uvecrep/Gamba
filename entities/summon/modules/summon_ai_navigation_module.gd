@@ -1,6 +1,6 @@
 extends RefCounted
 
-const NavigationGoalProbe = preload("res://entities/shared/navigation_goal_probe.gd")
+const NAVIGATION_GOAL_PROBE_SCRIPT = preload("res://entities/shared/navigation_goal_probe.gd")
 
 var unit
 
@@ -348,7 +348,7 @@ func set_navigation_target_for_target(target: Node2D) -> void:
 	})
 
 func choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
-	return NavigationGoalProbe.choose_best_navigation_target(
+	return NAVIGATION_GOAL_PROBE_SCRIPT.choose_best_navigation_target(
 		unit._navigation_agent,
 		unit.global_position,
 		target_position,
@@ -358,7 +358,7 @@ func choose_best_navigation_target(target_position: Vector2, desired_distance: f
 	)
 
 func try_consume_nav_probe_budget() -> bool:
-	return NavigationGoalProbe.try_consume_probe_budget(&"summon_nav_probe", unit.nav_probe_ring_max_per_frame)
+	return NAVIGATION_GOAL_PROBE_SCRIPT.try_consume_probe_budget(&"summon_nav_probe", unit.nav_probe_ring_max_per_frame)
 
 func try_consume_stuck_recovery_budget() -> bool:
 	var frame: int = Engine.get_physics_frames()

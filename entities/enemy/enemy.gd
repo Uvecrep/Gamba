@@ -2,8 +2,8 @@ extends CharacterBody2D
 class_name EnemyUnit
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
-const HealthComponent = preload("res://entities/shared/health_component.gd")
-const NavigationGoalProbe = preload("res://entities/shared/navigation_goal_probe.gd")
+const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.gd")
+const NAVIGATION_GOAL_PROBE_SCRIPT = preload("res://entities/shared/navigation_goal_probe.gd")
 
 @export var move_speed: float = 90.0
 @export var repath_interval: float = 0.3
@@ -44,7 +44,7 @@ var _current_target: Node2D
 var _time_to_repath: float = 0.0
 var _time_to_next_melee_hit: float = 0.0
 var _current_health: float = 0.0
-var _health_component: HealthComponent = HealthComponent.new()
+var _health_component: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
 var _time_to_nav_goal_refresh: float = 0.0
 var _time_to_visibility_refresh: float = 0.0
 var _last_nav_goal_target: Node2D
@@ -225,7 +225,7 @@ func _set_navigation_target_for_target(target: Node2D) -> void:
 	})
 
 func _choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
-	return NavigationGoalProbe.choose_best_navigation_target(
+	return NAVIGATION_GOAL_PROBE_SCRIPT.choose_best_navigation_target(
 		_navigation_agent,
 		global_position,
 		target_position,
@@ -235,7 +235,7 @@ func _choose_best_navigation_target(target_position: Vector2, desired_distance: 
 	)
 
 func _try_consume_nav_probe_budget() -> bool:
-	return NavigationGoalProbe.try_consume_probe_budget(&"enemy_nav_probe", nav_probe_ring_max_per_frame)
+	return NAVIGATION_GOAL_PROBE_SCRIPT.try_consume_probe_budget(&"enemy_nav_probe", nav_probe_ring_max_per_frame)
 
 func _clear_navigation_target() -> void:
 	if _navigation_agent == null:
