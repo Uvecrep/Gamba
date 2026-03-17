@@ -237,7 +237,18 @@ func _perf_mark_event(event_name: String, metadata: Dictionary = {}) -> void:
 	_perf_debug.mark_event(event_name, metadata)
 
 func _try_perform_item_action(is_left : bool) -> void:
+
 	if player_inventory.inventory_item_counts[player_inventory.selected_index] == 0: return
+
+	# right click immediately drops an item
+	if not is_left:
+		# If we're dropping, place the item down. Need to have support for more actions
+		var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
+		var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
+		get_parent().add_child(dropped_pickup)
+		dropped_pickup.global_position = position + ((get_global_mouse_position() - global_position).normalized() * 100)
+		dropped_pickup.set_data(held_item_id)
+		return
 	
 	# TODO Do something with left and right click actions here
 	
@@ -255,12 +266,15 @@ func _stop_tossing() -> void:
 	var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
 	if not player_inventory.remove_items(player_inventory.selected_index,1): return
 	
-	# If we're dropping, place the item down. Need to have support for more actions
+	# If we're tossing, the pickup should be thrown.
 	var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
 	get_parent().add_child(dropped_pickup)
 	dropped_pickup.global_position = get_global_mouse_position()
-	dropped_pickup.set_data(held_item_id)
-	
+	dropped_pickup.set_data(held_item_id)# If we're dropping, place the item down. Need to have support for more actions
+	dropped_pickup.target_pos = get_global_mouse_position()
+	dropped_pickup.start_pos = global_position
+	dropped_pickup.active = true	
+	dropped_pickup.sleeping = true
 	
 	toss_reticle.visible = false
 	toss_line.visible = false

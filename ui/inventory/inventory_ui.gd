@@ -56,6 +56,7 @@ func _connect_slot_signals(slot : InventorySlot):
 	slots.append(slot)
 	# slot.slot_left_mouse_down.connect(player_ref._try_perform_item_action.bind(true))
 	slot.slot_left_mouse_down.connect(player_ref.player_inventory.set_selected_index.bind(indice))
+	slot.slot_left_mouse_down.connect(player_ref._try_perform_item_action.bind(true))
 	slot.slot_right_mouse_down.connect(player_ref.player_inventory.set_selected_index.bind(indice))
 	slot.slot_right_mouse_down.connect(player_ref._try_perform_item_action.bind(false))
 	
