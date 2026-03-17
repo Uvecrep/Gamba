@@ -51,6 +51,7 @@ var _interaction_component: PlayerInteractionComponent = PlayerInteractionCompon
 @export var pickup_packed_scene: PackedScene
 @export var thrown_lootbox_packed_scene: PackedScene
 @export var thrown_sapling_packed_scene: PackedScene
+@export var thrown_pickup_packed_scene: PackedScene
 @export var toss_reticle: Node2D
 @export var toss_line: Line2D
 var _is_tossing = false
@@ -289,17 +290,17 @@ func _stop_tossing() -> void:
 		var thrown_sapling : ThrownSapling = thrown_sapling_packed_scene.instantiate()
 		thrown_object = thrown_sapling as ThrownObject
 	else:
-		print("Throw pickup?")
+		# Maybe it's a pickup?
+		var thrown_pickup : ThrownPickup = thrown_pickup_packed_scene.instantiate()
+		thrown_pickup.pickup_item_id = held_item_id
+		thrown_object = thrown_pickup
 		
 	if not thrown_object: return
 
 	get_parent().add_child(thrown_object)
 	thrown_object.global_position = get_global_mouse_position()
-	#dropped_pickup.set_data(held_item_id)# If we're dropping, place the item down. Need to have support for more actions
 	thrown_object.target_pos = get_global_mouse_position()
 	thrown_object.start_pos = global_position
-	thrown_object.is_being_thrown = true
-
 	
 	
 	toss_reticle.visible = false

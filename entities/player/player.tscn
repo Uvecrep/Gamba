@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bb23mmd3w1v3e" path="res://entities/thrown_object/thrown_lootbox.tscn" id="3_fkugw"]
 [ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="3_sglur"]
 [ext_resource type="PackedScene" uid="uid://cbyrfoweidpqm" path="res://entities/thrown_object/thrown_sapling.tscn" id="4_8fjmc"]
+[ext_resource type="PackedScene" uid="uid://gspk8i0demvv" path="res://entities/thrown_object/thrown_pickup.tscn" id="5_qiwj3"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wdj6m"]
 size = Vector2(50, 60)
@@ -17,6 +18,7 @@ script = ExtResource("1_abrql")
 pickup_packed_scene = ExtResource("2_fkugw")
 thrown_lootbox_packed_scene = ExtResource("3_fkugw")
 thrown_sapling_packed_scene = ExtResource("4_8fjmc")
+thrown_pickup_packed_scene = ExtResource("5_qiwj3")
 toss_reticle = NodePath("TossReticle")
 toss_line = NodePath("TossLine")
 
