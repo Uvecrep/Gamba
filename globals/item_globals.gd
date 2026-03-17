@@ -3,8 +3,8 @@ extends Node
 
 
 var item_paths: Array[String] = [
-	"res://resources/items/dummy_item.tres",
 	"res://resources/items/item_lootbox_chaos.tres",
+	"res://resources/items/item_sapling.tres",
 ]
 
 var items: Dictionary[StringName, ItemData] = {}

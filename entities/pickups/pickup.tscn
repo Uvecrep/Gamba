@@ -1,14 +1,16 @@
 [gd_scene format=3 uid="uid://jyurkxlawu41"]
 
 [ext_resource type="Script" uid="uid://dto83ityng4jl" path="res://entities/pickups/pickup.gd" id="1_lg31k"]
+[ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="2_td0co"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_lg31k"]
 font_size = 4
 font_color = Color(0, 0, 0, 1)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_lg31k"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_td0co"]
+radius = 15.95
 
-[node name="Pickup" type="RigidBody2D" unique_id=971572308 node_paths=PackedStringArray("debug_item_id_label")]
+[node name="Pickup" type="RigidBody2D" unique_id=971572308 node_paths=PackedStringArray("debug_item_id_label", "texture_rect")]
 collision_layer = 16
 collision_mask = 0
 input_pickable = true
@@ -18,15 +20,19 @@ linear_damp = 0.1
 angular_damp = 1.0
 script = ExtResource("1_lg31k")
 debug_item_id_label = NodePath("Label")
+texture_rect = NodePath("TextureRect")
 metadata/_custom_type_script = "uid://dto83ityng4jl"
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=107602651]
-offset_left = -10.0
-offset_top = -10.0
-offset_right = 10.0
-offset_bottom = 10.0
+[node name="TextureRect" type="TextureRect" parent="." unique_id=2099446590]
+offset_left = -17.5
+offset_top = -17.5
+offset_right = 17.5
+offset_bottom = 17.5
+texture = ExtResource("2_td0co")
+expand_mode = 1
 
 [node name="Label" type="Label" parent="." unique_id=682097862]
+visible = false
 offset_left = -10.0
 offset_top = -10.0
 offset_right = 10.0
@@ -41,4 +47,4 @@ collision_layer = 16
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=89817170]
-shape = SubResource("RectangleShape2D_lg31k")
+shape = SubResource("CircleShape2D_td0co")
