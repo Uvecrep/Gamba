@@ -50,7 +50,8 @@ func handle_interaction_input(player: Player) -> void:
 		(nearest_interactable as MapInteractable).interact(player)
 		return
 
-	try_use_item(player)
+	# TODO Just implemented this logic living in the thrown items. Should figure that out more. This 'use_item' code will change
+	#try_use_item(player)
 
 func try_use_item(player: Player) -> bool:
 	if player.is_dead():
