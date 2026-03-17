@@ -1,6 +1,8 @@
 extends RefCounted
 class_name PlayerInteractionComponent
 
+const HARVEST_NODE_SCRIPT: Script = preload("res://entities/shared/harvest_node.gd")
+
 var _last_reported_carrying_sapling: bool = false
 
 func initialize(player: Player) -> void:
@@ -8,18 +10,13 @@ func initialize(player: Player) -> void:
 	player._emit_sapling_carried_changed(_last_reported_carrying_sapling)
 
 func handle_interaction_input(player: Player) -> void:
-	var nearest_tree: FarmTree = _find_nearest_harvestable_tree(player)
-	var nearest_crystal: CrystalNode = _find_nearest_harvestable_crystal(player)
+	var nearest_harvest_node: Node2D = _find_nearest_harvestable_node(player)
 	var nearest_phone: PhoneInteractable = _find_nearest_phone(player)
 	var nearest_map: MapInteractable = _find_nearest_map(player)
 
-	var nearest_tree_distance_sq: float = INF
-	if nearest_tree != null:
-		nearest_tree_distance_sq = player.global_position.distance_squared_to(nearest_tree.global_position)
-
-	var nearest_crystal_distance_sq: float = INF
-	if nearest_crystal != null:
-		nearest_crystal_distance_sq = player.global_position.distance_squared_to(nearest_crystal.global_position)
+	var nearest_harvest_distance_sq: float = INF
+	if nearest_harvest_node != null:
+		nearest_harvest_distance_sq = player.global_position.distance_squared_to(nearest_harvest_node.global_position)
 
 	var nearest_phone_distance_sq: float = INF
 	if nearest_phone != null:
@@ -32,13 +29,9 @@ func handle_interaction_input(player: Player) -> void:
 	var nearest_interactable: Node = null
 	var nearest_distance_sq: float = INF
 
-	if nearest_tree != null and nearest_tree_distance_sq < nearest_distance_sq:
-		nearest_interactable = nearest_tree
-		nearest_distance_sq = nearest_tree_distance_sq
-
-	if nearest_crystal != null and nearest_crystal_distance_sq < nearest_distance_sq:
-		nearest_interactable = nearest_crystal
-		nearest_distance_sq = nearest_crystal_distance_sq
+	if nearest_harvest_node != null and nearest_harvest_distance_sq < nearest_distance_sq:
+		nearest_interactable = nearest_harvest_node
+		nearest_distance_sq = nearest_harvest_distance_sq
 
 	if nearest_phone != null and nearest_phone_distance_sq < nearest_distance_sq:
 		nearest_interactable = nearest_phone
@@ -48,12 +41,8 @@ func handle_interaction_input(player: Player) -> void:
 		nearest_interactable = nearest_map
 		nearest_distance_sq = nearest_map_distance_sq
 
-	if nearest_tree != null and nearest_interactable == nearest_tree:
-		var _harvested: int = (nearest_tree as FarmTree).harvest_fruit(player.harvest_amount_per_interaction)
-		return
-
-	if nearest_crystal != null and nearest_interactable == nearest_crystal:
-		nearest_crystal.harvest_fruit()
+	if nearest_harvest_node != null and nearest_interactable == nearest_harvest_node:
+		nearest_harvest_node.call("harvest_fruit", player.harvest_amount_per_interaction)
 		return
 
 	if nearest_interactable is PhoneInteractable:
@@ -240,47 +229,28 @@ func _get_plant_position(player: Player, target_house: Node2D, tree_node: Node2D
 
 	return plant_position
 
-func _find_nearest_harvestable_tree(player: Player) -> FarmTree:
-	var trees: Array = player.get_tree().get_nodes_in_group("trees")
-	var nearest_tree: FarmTree = null
+func _find_nearest_harvestable_node(player: Player) -> Node2D:
+	var harvest_nodes: Array = player.get_tree().get_nodes_in_group("harvest_nodes")
+	var nearest_node: Node2D = null
 	var nearest_distance_sq: float = player.harvest_range * player.harvest_range
 
-	for tree in trees:
-		if not tree is FarmTree:
+	for harvest_node in harvest_nodes:
+		if not (harvest_node is HARVEST_NODE_SCRIPT):
 			continue
-		var farm_tree: FarmTree = tree as FarmTree
-		if not farm_tree.can_harvest():
+		if not (harvest_node is Node2D):
 			continue
+		if not bool(harvest_node.call("can_harvest")):
+			continue
+		var typed_node: Node2D = harvest_node as Node2D
 
-		var distance_sq: float = player.global_position.distance_squared_to(farm_tree.global_position)
+		var distance_sq: float = player.global_position.distance_squared_to(typed_node.global_position)
 		if distance_sq > nearest_distance_sq:
 			continue
 
 		nearest_distance_sq = distance_sq
-		nearest_tree = farm_tree
+		nearest_node = typed_node
 
-	return nearest_tree
-
-func _find_nearest_harvestable_crystal(player: Player) -> CrystalNode:
-	var crystals: Array = player.get_tree().get_nodes_in_group("crystals")
-	var nearest_crystal: CrystalNode = null
-	var nearest_distance_sq: float = player.harvest_range * player.harvest_range
-
-	for crystal in crystals:
-		if not crystal is CrystalNode:
-			continue
-		var crystal_node: CrystalNode = crystal as CrystalNode
-		if not crystal_node.can_harvest():
-			continue
-
-		var distance_sq: float = player.global_position.distance_squared_to(crystal_node.global_position)
-		if distance_sq > nearest_distance_sq:
-			continue
-
-		nearest_distance_sq = distance_sq
-		nearest_crystal = crystal_node
-
-	return nearest_crystal
+	return nearest_node
 
 func _find_nearest_phone(player: Player) -> PhoneInteractable:
 	var phones: Array = player.get_tree().get_nodes_in_group("phones")
