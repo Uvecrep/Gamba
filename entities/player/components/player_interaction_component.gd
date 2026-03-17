@@ -1,42 +1,35 @@
 extends RefCounted
 class_name PlayerInteractionComponent
 
+const HARVEST_NODE_SCRIPT: Script = preload("res://entities/shared/harvest_node.gd")
+
 
 func initialize(player: Player) -> void:
 	pass
 
 func handle_interaction_input(player: Player) -> void:
-	var nearest_tree: Node = _find_nearest_harvestable_tree(player)
-	var nearest_crystal: Node = _find_nearest_harvestable_crystal(player)
-	var nearest_phone: Node = _find_nearest_phone(player)
-	var nearest_map: Node = _find_nearest_map(player)
+	var nearest_harvest_node: Node2D = _find_nearest_harvestable_node(player)
+	var nearest_phone: PhoneInteractable = _find_nearest_phone(player)
+	var nearest_map: MapInteractable = _find_nearest_map(player)
 
-	var nearest_tree_distance_sq: float = INF
-	if nearest_tree is Node2D:
-		nearest_tree_distance_sq = player.global_position.distance_squared_to((nearest_tree as Node2D).global_position)
-
-	var nearest_crystal_distance_sq: float = INF
-	if nearest_crystal is Node2D:
-		nearest_crystal_distance_sq = player.global_position.distance_squared_to((nearest_crystal as Node2D).global_position)
+	var nearest_harvest_distance_sq: float = INF
+	if nearest_harvest_node != null:
+		nearest_harvest_distance_sq = player.global_position.distance_squared_to(nearest_harvest_node.global_position)
 
 	var nearest_phone_distance_sq: float = INF
-	if nearest_phone is Node2D:
-		nearest_phone_distance_sq = player.global_position.distance_squared_to((nearest_phone as Node2D).global_position)
+	if nearest_phone != null:
+		nearest_phone_distance_sq = player.global_position.distance_squared_to(nearest_phone.global_position)
 
 	var nearest_map_distance_sq: float = INF
-	if nearest_map is Node2D:
-		nearest_map_distance_sq = player.global_position.distance_squared_to((nearest_map as Node2D).global_position)
+	if nearest_map != null:
+		nearest_map_distance_sq = player.global_position.distance_squared_to(nearest_map.global_position)
 
 	var nearest_interactable: Node = null
 	var nearest_distance_sq: float = INF
 
-	if nearest_tree != null and nearest_tree_distance_sq < nearest_distance_sq:
-		nearest_interactable = nearest_tree
-		nearest_distance_sq = nearest_tree_distance_sq
-
-	if nearest_crystal != null and nearest_crystal_distance_sq < nearest_distance_sq:
-		nearest_interactable = nearest_crystal
-		nearest_distance_sq = nearest_crystal_distance_sq
+	if nearest_harvest_node != null and nearest_harvest_distance_sq < nearest_distance_sq:
+		nearest_interactable = nearest_harvest_node
+		nearest_distance_sq = nearest_harvest_distance_sq
 
 	if nearest_phone != null and nearest_phone_distance_sq < nearest_distance_sq:
 		nearest_interactable = nearest_phone
@@ -46,16 +39,15 @@ func handle_interaction_input(player: Player) -> void:
 		nearest_interactable = nearest_map
 		nearest_distance_sq = nearest_map_distance_sq
 
-	if nearest_tree != null and nearest_interactable == nearest_tree:
-		var _harvested: int = int(nearest_tree.call("harvest_fruit", player.harvest_amount_per_interaction))
+	if nearest_harvest_node != null and nearest_interactable == nearest_harvest_node:
+		nearest_harvest_node.call("harvest_fruit", player.harvest_amount_per_interaction)
 		return
 
-	if nearest_crystal != null and nearest_interactable == nearest_crystal:
-		nearest_crystal.harvest_fruit()
+	if nearest_interactable is PhoneInteractable:
+		(nearest_interactable as PhoneInteractable).interact(player)
 		return
-
-	if nearest_interactable != null and nearest_interactable.has_method("interact"):
-		nearest_interactable.call("interact", player)
+	if nearest_interactable is MapInteractable:
+		(nearest_interactable as MapInteractable).interact(player)
 		return
 
 	try_use_item(player)
@@ -206,94 +198,67 @@ func _get_plant_position(player: Player, target_house: Node2D, tree_node: Node2D
 
 	return plant_position
 
-func _find_nearest_harvestable_tree(player: Player) -> Node:
-	var trees: Array = player.get_tree().get_nodes_in_group("trees")
-	var nearest_tree: Node = null
+func _find_nearest_harvestable_node(player: Player) -> Node2D:
+	var harvest_nodes: Array = player.get_tree().get_nodes_in_group("harvest_nodes")
+	var nearest_node: Node2D = null
 	var nearest_distance_sq: float = player.harvest_range * player.harvest_range
 
-	for tree in trees:
-		if not (tree is Node2D):
+	for harvest_node in harvest_nodes:
+		if not (harvest_node is HARVEST_NODE_SCRIPT):
 			continue
-		if not tree.has_method("can_harvest") or not tree.has_method("harvest_fruit"):
+		if not (harvest_node is Node2D):
 			continue
-		if not bool(tree.call("can_harvest")):
+		if not bool(harvest_node.call("can_harvest")):
 			continue
+		var typed_node: Node2D = harvest_node as Node2D
 
-		var tree_node: Node2D = tree as Node2D
-		var distance_sq: float = player.global_position.distance_squared_to(tree_node.global_position)
+		var distance_sq: float = player.global_position.distance_squared_to(typed_node.global_position)
 		if distance_sq > nearest_distance_sq:
 			continue
 
 		nearest_distance_sq = distance_sq
-		nearest_tree = tree
+		nearest_node = typed_node
 
-	return nearest_tree
+	return nearest_node
 
-func _find_nearest_harvestable_crystal(player: Player) -> Node:
-	var crystals: Array = player.get_tree().get_nodes_in_group("crystals")
-	var nearest_crystal: Node = null
-	var nearest_distance_sq: float = player.harvest_range * player.harvest_range
-
-	for crystal in crystals:
-		if not (crystal is Node2D):
-			continue
-		if not crystal.has_method("can_harvest") or not crystal.has_method("harvest_fruit"):
-			continue
-		if not bool(crystal.call("can_harvest")):
-			continue
-
-		var crystal_node: Node2D = crystal as Node2D
-		var distance_sq: float = player.global_position.distance_squared_to(crystal_node.global_position)
-		if distance_sq > nearest_distance_sq:
-			continue
-
-		nearest_distance_sq = distance_sq
-		nearest_crystal = crystal
-
-	return nearest_crystal
-
-func _find_nearest_phone(player: Player) -> Node:
+func _find_nearest_phone(player: Player) -> PhoneInteractable:
 	var phones: Array = player.get_tree().get_nodes_in_group("phones")
-	var nearest_phone: Node = null
+	var nearest_phone: PhoneInteractable = null
 	var nearest_distance_sq: float = INF
 
 	for phone in phones:
-		if not (phone is Node2D):
+		if not phone is PhoneInteractable:
 			continue
-		if not phone.has_method("interact"):
-			continue
-		if phone.has_method("can_interact_with_player") and not bool(phone.call("can_interact_with_player", player)):
+		var phone_node: PhoneInteractable = phone as PhoneInteractable
+		if not phone_node.can_interact_with_player(player):
 			continue
 
-		var phone_node: Node2D = phone as Node2D
 		var distance_sq: float = player.global_position.distance_squared_to(phone_node.global_position)
 		if distance_sq >= nearest_distance_sq:
 			continue
 
 		nearest_distance_sq = distance_sq
-		nearest_phone = phone
+		nearest_phone = phone_node
 
 	return nearest_phone
 
-func _find_nearest_map(player: Player) -> Node:
+func _find_nearest_map(player: Player) -> MapInteractable:
 	var maps: Array = player.get_tree().get_nodes_in_group("maps")
-	var nearest_map: Node = null
+	var nearest_map: MapInteractable = null
 	var nearest_distance_sq: float = INF
 
 	for map_interactable in maps:
-		if not (map_interactable is Node2D):
+		if not map_interactable is MapInteractable:
 			continue
-		if not map_interactable.has_method("interact"):
-			continue
-		if map_interactable.has_method("can_interact_with_player") and not bool(map_interactable.call("can_interact_with_player", player)):
+		var map_node: MapInteractable = map_interactable as MapInteractable
+		if not map_node.can_interact_with_player(player):
 			continue
 
-		var map_node: Node2D = map_interactable as Node2D
 		var distance_sq: float = player.global_position.distance_squared_to(map_node.global_position)
 		if distance_sq >= nearest_distance_sq:
 			continue
 
 		nearest_distance_sq = distance_sq
-		nearest_map = map_interactable
+		nearest_map = map_node
 
 	return nearest_map

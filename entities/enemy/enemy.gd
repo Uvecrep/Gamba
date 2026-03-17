@@ -2,6 +2,8 @@ extends CharacterBody2D
 class_name EnemyUnit
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
+const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.gd")
+const NAVIGATION_GOAL_PROBE_SCRIPT = preload("res://entities/shared/navigation_goal_probe.gd")
 
 @export var move_speed: float = 90.0
 @export var repath_interval: float = 0.3
@@ -42,6 +44,7 @@ var _current_target: Node2D
 var _time_to_repath: float = 0.0
 var _time_to_next_melee_hit: float = 0.0
 var _current_health: float = 0.0
+var _health_component: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
 var _time_to_nav_goal_refresh: float = 0.0
 var _time_to_visibility_refresh: float = 0.0
 var _last_nav_goal_target: Node2D
@@ -69,8 +72,6 @@ var _perf_debug: PerfDebugService
 
 static var _vfx_spawn_frame: int = -1
 static var _vfx_spawn_count: int = 0
-static var _nav_probe_frame: int = -1
-static var _nav_probe_count: int = 0
 const MAX_VFX_SPAWNS_PER_FRAME: int = 24
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
@@ -89,7 +90,8 @@ func _ready() -> void:
 		_navigation_agent.set_navigation_map(get_world_2d().navigation_map)
 	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
 	_vfx_pool = get_node_or_null("/root/VfxPool") as VfxPool2D
-	_current_health = max_health
+	_health_component.initialize(max_health, true)
+	_current_health = _health_component.current_health
 	_time_to_repath = randf_range(0.0, maxf(repath_interval, 0.05))
 	_time_to_nav_goal_refresh = randf_range(0.0, maxf(nav_goal_update_interval, 0.05))
 	_time_to_visibility_refresh = randf_range(0.0, maxf(visibility_check_interval, 0.05))
@@ -223,49 +225,17 @@ func _set_navigation_target_for_target(target: Node2D) -> void:
 	})
 
 func _choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
-	if _navigation_agent == null:
-		return target_position
-
-	var nav_map: RID = _navigation_agent.get_navigation_map()
-	if nav_map == RID():
-		return target_position
-
-	var projected_center: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, target_position)
-	if not probe_ring:
-		return projected_center
-
-	var direction_from_target: Vector2 = (global_position - target_position).normalized()
-	if direction_from_target == Vector2.ZERO:
-		direction_from_target = Vector2.RIGHT
-
-	var desired_ring_distance: float = maxf(desired_distance, 8.0)
-	var best_candidate: Vector2 = projected_center
-	var best_score: float = projected_center.distance_to(target_position)
-	var ring_points: int = mini(maxi(nav_probe_ring_points, 4), 6)
-
-	for i in range(ring_points):
-		var angle_offset: float = TAU * float(i) / float(ring_points)
-		var ring_target: Vector2 = target_position + (direction_from_target.rotated(angle_offset) * desired_ring_distance)
-		var projected_ring: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, ring_target)
-		var candidate_score: float = projected_ring.distance_to(ring_target)
-		if candidate_score < best_score:
-			best_score = candidate_score
-			best_candidate = projected_ring
-
-	return best_candidate
+	return NAVIGATION_GOAL_PROBE_SCRIPT.choose_best_navigation_target(
+		_navigation_agent,
+		global_position,
+		target_position,
+		desired_distance,
+		probe_ring,
+		nav_probe_ring_points
+	)
 
 func _try_consume_nav_probe_budget() -> bool:
-	var frame: int = Engine.get_physics_frames()
-	if frame != _nav_probe_frame:
-		_nav_probe_frame = frame
-		_nav_probe_count = 0
-
-	var max_per_frame: int = maxi(nav_probe_ring_max_per_frame, 1)
-	if _nav_probe_count >= max_per_frame:
-		return false
-
-	_nav_probe_count += 1
-	return true
+	return NAVIGATION_GOAL_PROBE_SCRIPT.try_consume_probe_budget(&"enemy_nav_probe", nav_probe_ring_max_per_frame)
 
 func _clear_navigation_target() -> void:
 	if _navigation_agent == null:
@@ -293,8 +263,8 @@ func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: fl
 	if target is SummonUnit:
 		(target as SummonUnit).take_damage(melee_damage)
 		return
-	if target.has_method("take_damage"):
-		target.call("take_damage", melee_damage)
+	if target is House:
+		(target as House).take_damage(melee_damage)
 
 func _has_clear_path_to_target(target: Node2D) -> bool:
 	var los_start_us: int = Time.get_ticks_usec()
@@ -386,26 +356,26 @@ func _apply_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return
 
-	var previous_health: float = _current_health
-	_current_health = clampf(_current_health - amount, 0.0, max_health)
-	var applied_damage: float = previous_health - _current_health
+	_sync_health_max_from_export()
+	var applied_damage: float = _health_component.take_damage(amount)
+	_current_health = _health_component.current_health
 	if applied_damage > 0.0:
 		CombatText.spawn_damage(self, applied_damage)
 		_request_health_bar_visibility()
 	_update_health_bar()
 
-	if _current_health <= 0.0:
+	if _health_component.is_dead:
 		_die()
 
 func heal(amount: float) -> void:
 	if amount <= 0.0:
 		return
-	if _current_health <= 0.0:
+	if _health_component.is_dead:
 		return
 
-	var previous_health: float = _current_health
-	_current_health = clampf(_current_health + amount, 0.0, max_health)
-	var healed_amount: float = _current_health - previous_health
+	_sync_health_max_from_export()
+	var healed_amount: float = _health_component.heal(amount)
+	_current_health = _health_component.current_health
 	if healed_amount <= 0.0:
 		return
 
@@ -525,8 +495,8 @@ func _update_health_bar() -> void:
 	if _health_bar == null:
 		return
 
-	_health_bar.max_value = max_health
-	_health_bar.value = _current_health
+	_health_bar.max_value = _health_component.max_health
+	_health_bar.value = _health_component.current_health
 	_refresh_health_bar_visibility()
 
 func _request_health_bar_visibility(duration: float = -1.0) -> void:
@@ -544,9 +514,12 @@ func _refresh_health_bar_visibility() -> void:
 		return
 
 	var should_show: bool = always_show_health_bar or _health_bar_visible_time_left > 0.0
-	if _current_health <= 0.0:
+	if _health_component.is_dead:
 		should_show = false
 	_health_bar.visible = should_show
+
+func _sync_health_max_from_export() -> void:
+	_health_component.set_max_health(max_health)
 
 func _find_closest_target_in_groups(group_names: PackedStringArray, radius: float) -> Node2D:
 	var find_start_us: int = Time.get_ticks_usec()

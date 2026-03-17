@@ -1,37 +1,29 @@
 extends RefCounted
 class_name PlayerWorldBoundsComponent
 
+const WORLD_BOUNDS_UTIL_PATH: String = "res://scripts/world_bounds_util.gd"
+
 func initialize(player: Player) -> void:
 	player.player_bounds_padding = _get_player_bounds_padding(player)
 	configure_world_bounds(player)
 
 func configure_world_bounds(player: Player) -> void:
-	var tile_map_layer: Node = _find_world_tile_map_layer(player)
-	if tile_map_layer == null:
-		return
-	if not tile_map_layer.has_method("get_used_rect") or not tile_map_layer.has_method("map_to_local"):
-		push_warning("Player: world TileMapGround is missing required bounds methods.")
+	var tile_map_layer_node: Node = _find_world_tile_map_layer(player)
+	if not tile_map_layer_node is TileMapLayer:
 		return
 
-	var used_rect: Rect2i = tile_map_layer.call("get_used_rect")
-	if used_rect.size == Vector2i.ZERO:
+	var tile_map_layer: TileMapLayer = tile_map_layer_node as TileMapLayer
+	var world_bounds_util: Variant = load(WORLD_BOUNDS_UTIL_PATH)
+	if world_bounds_util == null:
+		push_warning("Player: world bounds utility could not be loaded.")
+		return
+
+	var world_bounds: Rect2 = world_bounds_util.get_used_rect_world_rect(tile_map_layer)
+	if world_bounds.size.x <= 0.0 or world_bounds.size.y <= 0.0:
 		push_warning("Player: world TileMapGround has no used cells; bounds not applied.")
 		return
 
-	var tile_size: Vector2 = Vector2(32.0, 32.0)
-	var tile_set: Variant = tile_map_layer.get("tile_set")
-	if tile_set is TileSet:
-		tile_size = Vector2((tile_set as TileSet).tile_size)
-
-	var top_left_local: Vector2 = tile_map_layer.call("map_to_local", used_rect.position) - (tile_size * 0.5)
-	var bottom_right_local: Vector2 = top_left_local + (Vector2(used_rect.size) * tile_size)
-
-	var top_left_global: Vector2 = tile_map_layer.to_global(top_left_local)
-	var bottom_right_global: Vector2 = tile_map_layer.to_global(bottom_right_local)
-	var min_point: Vector2 = Vector2(min(top_left_global.x, bottom_right_global.x), min(top_left_global.y, bottom_right_global.y))
-	var max_point: Vector2 = Vector2(max(top_left_global.x, bottom_right_global.x), max(top_left_global.y, bottom_right_global.y))
-
-	player.world_bounds = Rect2(min_point, max_point - min_point)
+	player.world_bounds = world_bounds
 	player.has_world_bounds = true
 	apply_camera_world_limits(player)
 	clamp_player_to_world_bounds(player)

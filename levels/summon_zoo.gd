@@ -73,10 +73,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _issue_world_move_order(world_position: Vector2) -> void:
 	if not is_instance_valid(_selection_controller):
 		return
-	if not _selection_controller.has_method("issue_move_order_world"):
+	if not _selection_controller is ZooSummonSelectionController:
 		return
 
-	_selection_controller.call("issue_move_order_world", world_position)
+	(_selection_controller as ZooSummonSelectionController).issue_move_order_world(world_position)
 
 func _ensure_navigation_region() -> void:
 	var existing_region: NavigationRegion2D = get_node_or_null("WorldNavigationRegion") as NavigationRegion2D
@@ -118,8 +118,8 @@ func _spawn_zoo_summon(identity: StringName, texture: Texture2D, spawn_position:
 	if summon == null:
 		return null
 
-	if summon.has_method("set_summon_identity"):
-		summon.call("set_summon_identity", identity)
+	if summon is SummonUnit:
+		(summon as SummonUnit).set_summon_identity(identity)
 	else:
 		summon.set("summon_identity", identity)
 
@@ -127,8 +127,8 @@ func _spawn_zoo_summon(identity: StringName, texture: Texture2D, spawn_position:
 	add_child(summon)
 	summon.global_position = spawn_position
 
-	if summon.has_method("set_hold_position"):
-		summon.call("set_hold_position", true)
+	if summon is SummonUnit:
+		(summon as SummonUnit).set_hold_position(true)
 
 	_register_spawned_summon(summon, identity, texture, spawn_position)
 	return summon

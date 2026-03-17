@@ -53,8 +53,8 @@ func _apply_identity_modifiers(summon_node: Node) -> void:
 	if summon_identity == StringName():
 		return
 
-	if summon_node.has_method("set_summon_identity"):
-		summon_node.call("set_summon_identity", summon_identity)
+	if summon_node is SummonUnit:
+		(summon_node as SummonUnit).set_summon_identity(summon_identity)
 		return
 
 	if _has_property(summon_node, "summon_identity"):

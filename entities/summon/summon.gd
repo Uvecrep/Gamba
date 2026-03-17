@@ -148,8 +148,6 @@ static var _world_vfx_spawn_frame: int = -1
 static var _world_vfx_spawn_count: int = 0
 static var _projectile_spawn_frame: int = -1
 static var _projectile_spawn_count: int = 0
-static var _nav_probe_frame: int = -1
-static var _nav_probe_count: int = 0
 static var _stuck_recovery_frame: int = -1
 static var _stuck_recovery_count: int = 0
 
@@ -171,6 +169,7 @@ func _ensure_modules() -> void:
 
 func _touch_delegated_private_state() -> void:
 	# These fields are consumed by extracted modules; touching them here avoids false "unused private" warnings.
+	_current_health = _current_health
 	_move_target_position = _move_target_position
 	_hold_toggle_enabled = _hold_toggle_enabled
 	_last_follow_nav_target = _last_follow_nav_target
@@ -188,8 +187,6 @@ func _touch_delegated_private_state() -> void:
 	_world_vfx_spawn_count = _world_vfx_spawn_count
 	_projectile_spawn_frame = _projectile_spawn_frame
 	_projectile_spawn_count = _projectile_spawn_count
-	_nav_probe_frame = _nav_probe_frame
-	_nav_probe_count = _nav_probe_count
 	_stuck_recovery_frame = _stuck_recovery_frame
 	_stuck_recovery_count = _stuck_recovery_count
 	_health_bar = _health_bar
@@ -216,7 +213,7 @@ func _ready() -> void:
 	_vfx_pool = get_node_or_null("/root/VfxPool") as VfxPool2D
 	_follow_formation_angle = randf_range(0.0, TAU)
 	_player_target = _find_player()
-	_current_health = max_health
+	_health_module.initialize_health(true)
 	_time_to_repath = randf_range(0.0, maxf(repath_interval, 0.05))
 	_time_to_nav_goal_refresh = randf_range(0.0, maxf(nav_goal_update_interval, 0.05))
 	_time_to_follow_nav_refresh = randf_range(0.0, maxf(follow_nav_target_update_interval, 0.05))
@@ -521,12 +518,8 @@ func _deal_damage_to_target(target: Node2D, damage: float, options: Dictionary =
 		(target as SummonUnit).take_hit(damage, self, options)
 		return
 
-	if target.has_method("take_hit"):
-		target.call("take_hit", damage, self, options)
-		return
-
-	if target.has_method("take_damage"):
-		target.call("take_damage", damage)
+	if target is House:
+		(target as House).take_damage(damage)
 
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
 	_ensure_modules()

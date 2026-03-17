@@ -2,6 +2,7 @@ extends RefCounted
 class_name PlayerHealthComponent
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
+const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.gd")
 const DEATH_INDICATOR_COLOR: Color = Color(1.0, 0.42, 0.42, 1.0)
 
 var _spawn_position: Vector2 = Vector2.ZERO
@@ -10,14 +11,17 @@ var _invulnerability_time_left: float = 0.0
 var _house_regen_time_left: float = 0.0
 var _death_indicator_layer: CanvasLayer
 var _death_indicator_label: Label
+var _health_state: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
 
 func initialize(player: Player) -> void:
 	_spawn_position = player.global_position
-	player.current_health = player.max_health
+	_health_state.initialize(player.max_health, true)
+	_sync_player_health(player)
 	setup_death_indicator(player)
 	update_health_bar(player)
 
 func process(player: Player, delta: float) -> void:
+	_sync_with_player_max_health(player)
 	if _invulnerability_time_left > 0.0:
 		_invulnerability_time_left = maxf(_invulnerability_time_left - delta, 0.0)
 	update_house_regen(player, delta)
@@ -40,16 +44,16 @@ func take_damage(player: Player, amount: float) -> void:
 	if _invulnerability_time_left > 0.0:
 		return
 
-	var previous_health: float = player.current_health
-	player.current_health = clampf(player.current_health - amount, 0.0, player.max_health)
-	var applied_damage: float = previous_health - player.current_health
+	_sync_with_player_max_health(player)
+	var applied_damage: float = _health_state.take_damage(amount)
+	_sync_player_health(player)
 	if applied_damage <= 0.0:
 		return
 
 	CombatText.spawn_damage(player, applied_damage)
 	update_health_bar(player)
 
-	if player.current_health <= 0.0:
+	if _health_state.is_dead:
 		begin_respawn_flow(player)
 
 func heal(player: Player, amount: float) -> void:
@@ -58,9 +62,9 @@ func heal(player: Player, amount: float) -> void:
 	if _is_dead:
 		return
 
-	var previous_health: float = player.current_health
-	player.current_health = clampf(player.current_health + amount, 0.0, player.max_health)
-	var healed_amount: float = player.current_health - previous_health
+	_sync_with_player_max_health(player)
+	var healed_amount: float = _health_state.heal(amount)
+	_sync_player_health(player)
 	if healed_amount <= 0.0:
 		return
 
@@ -74,7 +78,7 @@ func update_house_regen(player: Player, delta: float) -> void:
 	if player.house_regen_per_second <= 0.0 or player.house_regen_radius <= 0.0:
 		_house_regen_time_left = 0.0
 		return
-	if player.current_health >= player.max_health:
+	if _health_state.current_health >= _health_state.max_health:
 		_house_regen_time_left = 0.0
 		return
 
@@ -117,7 +121,9 @@ func run_respawn_timer(player: Player) -> void:
 func respawn_player(player: Player) -> void:
 	player.global_position = get_respawn_position(player)
 	player._clamp_player_to_world_bounds()
-	player.current_health = player.max_health
+	_sync_with_player_max_health(player)
+	_health_state.revive(true)
+	_sync_player_health(player)
 	_is_dead = false
 	_invulnerability_time_left = maxf(player.respawn_invulnerability_seconds, 0.0)
 	hide_death_indicator()
@@ -200,8 +206,8 @@ func update_health_bar(player: Player) -> void:
 	if player.health_bar == null:
 		return
 
-	player.health_bar.max_value = player.max_health
-	player.health_bar.value = player.current_health
+	player.health_bar.max_value = _health_state.max_health
+	player.health_bar.value = _health_state.current_health
 	player.health_bar.visible = true
 
 	if _invulnerability_time_left > 0.0 and not _is_dead:
@@ -209,3 +215,10 @@ func update_health_bar(player: Player) -> void:
 		player.health_bar.modulate = Color(1.0, 1.0, 1.0, pulse)
 	else:
 		player.health_bar.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+func _sync_with_player_max_health(player: Player) -> void:
+	_health_state.set_max_health(player.max_health)
+	_sync_player_health(player)
+
+func _sync_player_health(player: Player) -> void:
+	player.current_health = _health_state.current_health
