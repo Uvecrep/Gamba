@@ -1,5 +1,7 @@
 extends RefCounted
 
+const NavigationGoalProbe = preload("res://entities/shared/navigation_goal_probe.gd")
+
 var unit
 
 func _init(owner) -> void:
@@ -346,51 +348,17 @@ func set_navigation_target_for_target(target: Node2D) -> void:
 	})
 
 func choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
-	if unit._navigation_agent == null:
-		return target_position
-
-	var nav_map: RID = unit._navigation_agent.get_navigation_map()
-	if nav_map == RID():
-		return target_position
-
-	var projected_center: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, target_position)
-	if not probe_ring:
-		return projected_center
-
-	var direction_from_target: Vector2 = (unit.global_position - target_position).normalized()
-	if direction_from_target == Vector2.ZERO:
-		direction_from_target = Vector2.RIGHT
-
-	var desired_ring_distance: float = maxf(desired_distance, 8.0)
-	var best_candidate: Vector2 = projected_center
-	var best_score: float = projected_center.distance_to(target_position)
-	var ring_points: int = mini(maxi(unit.nav_probe_ring_points, 4), 6)
-	var ring_distances: Array[float] = [desired_ring_distance]
-
-	for ring_distance in ring_distances:
-		for i in range(ring_points):
-			var angle_offset: float = TAU * float(i) / float(ring_points)
-			var ring_target: Vector2 = target_position + (direction_from_target.rotated(angle_offset) * ring_distance)
-			var projected_ring: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, ring_target)
-			var candidate_score: float = projected_ring.distance_to(ring_target)
-			if candidate_score < best_score:
-				best_score = candidate_score
-				best_candidate = projected_ring
-
-	return best_candidate
+	return NavigationGoalProbe.choose_best_navigation_target(
+		unit._navigation_agent,
+		unit.global_position,
+		target_position,
+		desired_distance,
+		probe_ring,
+		unit.nav_probe_ring_points
+	)
 
 func try_consume_nav_probe_budget() -> bool:
-	var frame: int = Engine.get_physics_frames()
-	if frame != unit._nav_probe_frame:
-		unit._nav_probe_frame = frame
-		unit._nav_probe_count = 0
-
-	var max_per_frame: int = maxi(unit.nav_probe_ring_max_per_frame, 1)
-	if unit._nav_probe_count >= max_per_frame:
-		return false
-
-	unit._nav_probe_count += 1
-	return true
+	return NavigationGoalProbe.try_consume_probe_budget(&"summon_nav_probe", unit.nav_probe_ring_max_per_frame)
 
 func try_consume_stuck_recovery_budget() -> bool:
 	var frame: int = Engine.get_physics_frames()

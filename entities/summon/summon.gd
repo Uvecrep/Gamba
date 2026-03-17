@@ -148,8 +148,6 @@ static var _world_vfx_spawn_frame: int = -1
 static var _world_vfx_spawn_count: int = 0
 static var _projectile_spawn_frame: int = -1
 static var _projectile_spawn_count: int = 0
-static var _nav_probe_frame: int = -1
-static var _nav_probe_count: int = 0
 static var _stuck_recovery_frame: int = -1
 static var _stuck_recovery_count: int = 0
 
@@ -188,8 +186,6 @@ func _touch_delegated_private_state() -> void:
 	_world_vfx_spawn_count = _world_vfx_spawn_count
 	_projectile_spawn_frame = _projectile_spawn_frame
 	_projectile_spawn_count = _projectile_spawn_count
-	_nav_probe_frame = _nav_probe_frame
-	_nav_probe_count = _nav_probe_count
 	_stuck_recovery_frame = _stuck_recovery_frame
 	_stuck_recovery_count = _stuck_recovery_count
 	_health_bar = _health_bar

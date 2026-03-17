@@ -3,6 +3,7 @@ class_name EnemyUnit
 
 const CombatText = preload("res://scripts/floating_combat_text.gd")
 const HealthComponent = preload("res://entities/shared/health_component.gd")
+const NavigationGoalProbe = preload("res://entities/shared/navigation_goal_probe.gd")
 
 @export var move_speed: float = 90.0
 @export var repath_interval: float = 0.3
@@ -71,8 +72,6 @@ var _perf_debug: PerfDebugService
 
 static var _vfx_spawn_frame: int = -1
 static var _vfx_spawn_count: int = 0
-static var _nav_probe_frame: int = -1
-static var _nav_probe_count: int = 0
 const MAX_VFX_SPAWNS_PER_FRAME: int = 24
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
@@ -226,49 +225,17 @@ func _set_navigation_target_for_target(target: Node2D) -> void:
 	})
 
 func _choose_best_navigation_target(target_position: Vector2, desired_distance: float, probe_ring: bool) -> Vector2:
-	if _navigation_agent == null:
-		return target_position
-
-	var nav_map: RID = _navigation_agent.get_navigation_map()
-	if nav_map == RID():
-		return target_position
-
-	var projected_center: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, target_position)
-	if not probe_ring:
-		return projected_center
-
-	var direction_from_target: Vector2 = (global_position - target_position).normalized()
-	if direction_from_target == Vector2.ZERO:
-		direction_from_target = Vector2.RIGHT
-
-	var desired_ring_distance: float = maxf(desired_distance, 8.0)
-	var best_candidate: Vector2 = projected_center
-	var best_score: float = projected_center.distance_to(target_position)
-	var ring_points: int = mini(maxi(nav_probe_ring_points, 4), 6)
-
-	for i in range(ring_points):
-		var angle_offset: float = TAU * float(i) / float(ring_points)
-		var ring_target: Vector2 = target_position + (direction_from_target.rotated(angle_offset) * desired_ring_distance)
-		var projected_ring: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, ring_target)
-		var candidate_score: float = projected_ring.distance_to(ring_target)
-		if candidate_score < best_score:
-			best_score = candidate_score
-			best_candidate = projected_ring
-
-	return best_candidate
+	return NavigationGoalProbe.choose_best_navigation_target(
+		_navigation_agent,
+		global_position,
+		target_position,
+		desired_distance,
+		probe_ring,
+		nav_probe_ring_points
+	)
 
 func _try_consume_nav_probe_budget() -> bool:
-	var frame: int = Engine.get_physics_frames()
-	if frame != _nav_probe_frame:
-		_nav_probe_frame = frame
-		_nav_probe_count = 0
-
-	var max_per_frame: int = maxi(nav_probe_ring_max_per_frame, 1)
-	if _nav_probe_count >= max_per_frame:
-		return false
-
-	_nav_probe_count += 1
-	return true
+	return NavigationGoalProbe.try_consume_probe_budget(&"enemy_nav_probe", nav_probe_ring_max_per_frame)
 
 func _clear_navigation_target() -> void:
 	if _navigation_agent == null:
