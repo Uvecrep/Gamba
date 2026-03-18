@@ -67,5 +67,4 @@ script = ExtResource("1_lootbox")
 id = &"soul"
 name = "Soul Box"
 color = "Purble"
-description = "Summon the power of the purple to fight for ye"
 lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Greed_Mimic"), SubResource("Entry_Greed_CoinSprite"), SubResource("Entry_Greed_Prospector"), SubResource("Entry_Greed_GoldenGunner"), SubResource("Entry_Greed_TaxCollector")])

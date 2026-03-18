@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_c1ukm")
-id = &"lootbox_greed"
-name = "Greed Lootbox"
+id = &"lootbox_forest"
+name = "Forest Lootbox"
 texture = ExtResource("2_dvpu2")
 metadata/_custom_type_script = "uid://cpij8cky13okl"

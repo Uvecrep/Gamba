@@ -1,0 +1,221 @@
+[gd_scene format=3 uid="uid://bm5cvj0m3deey"]
+
+[ext_resource type="Script" uid="uid://bxoy6basuvdgi" path="res://ui/lootbox_preview/lootbox_preview_ui.gd" id="1_fqpsh"]
+
+[node name="LootboxPreviewUi" type="Control" unique_id=64380995 node_paths=PackedStringArray("lootbox_name_label", "lootbox_description_label", "lootbox_entries_count_label")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1920.0
+offset_bottom = -1080.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_fqpsh")
+lootbox_name_label = NodePath("ResourcePropsPanel/PanelContainer/HBoxContainer/PanelContainer2/MarginContainer/LootBoxNameLabel")
+lootbox_description_label = NodePath("ResourcePropsPanel/PanelContainer3/HBoxContainer/PanelContainer2/MarginContainer/LootBoxDescriptionLabel")
+lootbox_entries_count_label = NodePath("ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer/MarginContainer/LookboxEntriesCount")
+
+[node name="ResourcePropsPanel" type="VBoxContainer" parent="." unique_id=1156665882]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -133.0
+offset_right = 160.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="PanelContainer" type="PanelContainer" parent="ResourcePropsPanel" unique_id=1920793063]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer" unique_id=924726610]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer/HBoxContainer" unique_id=1531978190]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="ResourcePropsPanel/PanelContainer/HBoxContainer/PanelContainer" unique_id=1379912668]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Name"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer/HBoxContainer" unique_id=559442621]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer/HBoxContainer" unique_id=1623469281]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer/HBoxContainer/PanelContainer2" unique_id=1377668671]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxNameLabel" type="Label" parent="ResourcePropsPanel/PanelContainer/HBoxContainer/PanelContainer2/MarginContainer" unique_id=1499822129]
+layout_mode = 2
+text = "Gobbo Box"
+
+[node name="PanelContainer3" type="PanelContainer" parent="ResourcePropsPanel" unique_id=1690932503]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer3" unique_id=803642894]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer" unique_id=2005751614]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer/PanelContainer" unique_id=344296984]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Description"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer" unique_id=43856159]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer" unique_id=1654270530]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer/PanelContainer2" unique_id=1599042562]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxDescriptionLabel" type="Label" parent="ResourcePropsPanel/PanelContainer3/HBoxContainer/PanelContainer2/MarginContainer" unique_id=1191145312]
+layout_mode = 2
+text = "It make the gobbos. Nerd."
+text_overrun_behavior = 3
+
+[node name="PanelContainer5" type="PanelContainer" parent="ResourcePropsPanel" unique_id=1984721291]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ResourcePropsPanel/PanelContainer5" unique_id=1452729666]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer" unique_id=898093710]
+layout_mode = 2
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer" unique_id=826800873]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer/PanelContainer" unique_id=1392621850]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "Loot Entries"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer" unique_id=882205779]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer" unique_id=1067540529]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LookboxEntriesCount" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/HBoxContainer/MarginContainer" unique_id=1344049421]
+layout_mode = 2
+text = "Count: 0"
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer" unique_id=1920710414]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer" unique_id=403341968]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer" unique_id=1177422250]
+layout_mode = 2
+
+[node name="Container" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=670782668]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="IndexLabel" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2/Container" unique_id=1132182129]
+layout_mode = 0
+offset_right = 23.0
+offset_bottom = 23.0
+text = "00"
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=1340787611]
+custom_minimum_size = Vector2(116, 0)
+layout_mode = 2
+
+[node name="EntryOutcome" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2/PanelContainer" unique_id=1202759409]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "WeakGobbo"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=1743077359]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=1987967517]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2/PanelContainer2" unique_id=982147608]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxDescriptionLabel" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2/PanelContainer2/MarginContainer" unique_id=1317738996]
+layout_mode = 2
+text = "Weight: 10 (92.4%)"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer" unique_id=207013472]
+layout_mode = 2
+
+[node name="Container" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3" unique_id=459001221]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="IndexLabel" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3/Container" unique_id=1623592836]
+layout_mode = 0
+offset_right = 23.0
+offset_bottom = 23.0
+text = "01"
+
+[node name="PanelContainer" type="Panel" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3" unique_id=29855128]
+custom_minimum_size = Vector2(116, 0)
+layout_mode = 2
+
+[node name="EntryOutcome" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3/PanelContainer" unique_id=1009777253]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "StrongGobbo"
+
+[node name="Control" type="Control" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3" unique_id=402028927]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3" unique_id=6030843]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3/PanelContainer2" unique_id=1653371199]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxDescriptionLabel" type="Label" parent="ResourcePropsPanel/PanelContainer5/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3/PanelContainer2/MarginContainer" unique_id=500665751]
+layout_mode = 2
+text = "Weight: 1 (9%)"
