@@ -52,10 +52,9 @@ z_index = 1
 position = Vector2(614, 242)
 pickup_packed_scene = ExtResource("13_1fput")
 
-[node name="UI" type="CanvasLayer" parent="." unique_id=299344106 node_paths=PackedStringArray("player", "_lootbox_prompt_label", "_sapling_debug_label", "_summon_command_hint_label")]
+[node name="UI" type="CanvasLayer" parent="." unique_id=299344106 node_paths=PackedStringArray("player", "_sapling_debug_label", "_summon_command_hint_label")]
 script = ExtResource("8_hud")
 player = NodePath("../player")
-_lootbox_prompt_label = NodePath("VBoxContainer/LootboxPromptLabel")
 _sapling_debug_label = NodePath("VBoxContainer/SaplingPlantDebugLabel")
 _summon_command_hint_label = NodePath("VBoxContainer/SummonCommandHintLabel")
 
@@ -82,10 +81,6 @@ text = "MMB: Select summons | H: Hold | F: Follow | R: Auto"
 [node name="SaplingPlantDebugLabel" type="Label" parent="UI/VBoxContainer" unique_id=2067746762]
 layout_mode = 2
 text = "Sapling Can Plant: No"
-
-[node name="LootboxPromptLabel" type="Label" parent="UI/VBoxContainer" unique_id=470985317]
-layout_mode = 2
-text = "Press Q to open a lootbox"
 
 [node name="DebugInventory" parent="UI" unique_id=1649588140 node_paths=PackedStringArray("player_ref") instance=ExtResource("11_c7dyn")]
 visible = false

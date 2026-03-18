@@ -4,6 +4,9 @@ extends Node
 var lootbox_paths: Array[String] = [
 	"res://entities/lootbox/chaos_lootbox.tres",
 	"res://entities/lootbox/forest_lootbox.tres",
+	"res://entities/lootbox/elemental_lootbox.tres",
+	"res://entities/lootbox/spirit_lootbox.tres",
+	"res://entities/lootbox/greed_lootbox.tres",
 ]
 
 var lootboxes: Dictionary[StringName, Lootbox] = {}

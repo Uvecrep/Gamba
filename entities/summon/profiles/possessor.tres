@@ -1,0 +1,12 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/summon/summon_identity_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+summon_identity = &"possessor"
+move_speed = 122.0
+attack_range = 90.0
+attack_damage = 4.0
+attack_cooldown = 2.4
+max_health = 58.0

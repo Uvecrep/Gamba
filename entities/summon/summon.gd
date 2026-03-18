@@ -89,6 +89,21 @@ const ID_ACORN_SPITTER: StringName = &"acorn_spitter"
 const ID_BUSH_BOY: StringName = &"bush_boy"
 const ID_BEE_SWARM: StringName = &"bee_swarm"
 const ID_ROOTER: StringName = &"rooter"
+const ID_CINDER_IMP: StringName = &"cinder_imp"
+const ID_FROST_WISP: StringName = &"frost_wisp"
+const ID_MAGMA_BEETLE: StringName = &"magma_beetle"
+const ID_STORM_TOTEM: StringName = &"storm_totem"
+const ID_UNSTABLE_SHARD: StringName = &"unstable_shard"
+const ID_SOUL_LANTERN: StringName = &"soul_lantern"
+const ID_BANSHEE: StringName = &"banshee"
+const ID_GRAVE_HOUND: StringName = &"grave_hound"
+const ID_HEX_DOLL: StringName = &"hex_doll"
+const ID_POSSESSOR: StringName = &"possessor"
+const ID_MIMIC: StringName = &"mimic"
+const ID_COIN_SPRITE: StringName = &"coin_sprite"
+const ID_PROSPECTOR: StringName = &"prospector"
+const ID_GOLDEN_GUNNER: StringName = &"golden_gunner"
+const ID_TAX_COLLECTOR: StringName = &"tax_collector"
 const VFX_FIRE_CONE_PATH: String = "res://assets/vfx/fire_cone.png"
 const VFX_CHAIN_LIGHTNING_PATH: String = "res://assets/vfx/chain_lightning.png"
 const VFX_ACORN_PROJECTILE_PATH: String = "res://assets/vfx/acorn_projectile.png"
@@ -130,6 +145,7 @@ var _vfx_fire_cone: Texture2D
 var _vfx_chain_lightning: Texture2D
 var _vfx_acorn_projectile: Texture2D
 var _vfx_spring_projectile: Texture2D
+var _shield_status_sprite: Sprite2D = null
 var _attack_tilt_tween: Tween
 var _spatial_index: SpatialIndex2D
 var _vfx_pool: VfxPool2D
@@ -196,13 +212,14 @@ func _ready() -> void:
 	_touch_delegated_private_state()
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	_load_vfx_assets()
+	_setup_shield_status_sprite()
 	set_summon_identity(summon_identity)
 	if sprite_texture_override != null and _sprite != null:
 		_sprite.texture = sprite_texture_override
 
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
 	collision_layer = PHYSICS_LAYER_SUMMON
-	collision_mask = 0 if summon_identity == ID_GHOST else PHYSICS_LAYER_WORLD
+	collision_mask = 0 if _is_phasing_identity() else PHYSICS_LAYER_WORLD
 	add_to_group("summons")
 	if _navigation_agent != null:
 		_navigation_agent.path_desired_distance = maxf(nav_path_desired_distance, 4.0)
@@ -227,6 +244,7 @@ func _ready() -> void:
 func set_summon_identity(identity: StringName) -> void:
 	summon_identity = identity
 	_apply_summon_identity_profile()
+	collision_mask = 0 if _is_phasing_identity() else PHYSICS_LAYER_WORLD
 
 func _apply_summon_identity_profile() -> void:
 	var profile: SummonIdentityProfile = SummonProfileCatalogScript.get_profile(summon_identity)
@@ -264,6 +282,7 @@ func _physics_process(delta: float) -> void:
 		_refresh_health_bar_visibility()
 
 	_update_passive_archetype_behavior()
+	_update_shield_status_sprite()
 	var is_far_lod: bool = _is_far_from_player()
 	var repath_wait: float = maxf(repath_interval, 0.05)
 	if is_far_lod:
@@ -279,6 +298,8 @@ func _physics_process(delta: float) -> void:
 			var enemy_refresh_start_us: int = Time.get_ticks_usec()
 			if summon_identity == ID_SPARK_GOBLIN:
 				_enemy_target = _find_random_enemy_nearby(attack_range * 1.4)
+			elif summon_identity == ID_GRAVE_HOUND:
+				_enemy_target = _find_lowest_health_enemy()
 			else:
 				_enemy_target = _find_closest_enemy()
 			_perf_mark_scope(&"summon.refresh_enemy_target", enemy_refresh_start_us)
@@ -318,7 +339,13 @@ func _physics_process(delta: float) -> void:
 		_handle_non_attacker_auto()
 	elif is_instance_valid(_enemy_target):
 		var distance_to_enemy: float = global_position.distance_to(_enemy_target.global_position)
-		if distance_to_enemy <= attack_range:
+		if summon_identity == ID_COIN_SPRITE and distance_to_enemy < 120.0:
+			var flee_target: Vector2 = global_position + _enemy_target.global_position.direction_to(global_position) * 180.0
+			_move_towards(flee_target)
+			if _time_to_next_attack <= 0.0 and distance_to_enemy <= attack_range:
+				_time_to_next_attack = attack_cooldown
+				_perform_attack(_enemy_target)
+		elif distance_to_enemy <= attack_range:
 			velocity = Vector2.ZERO
 			if _time_to_next_attack <= 0.0:
 				_time_to_next_attack = attack_cooldown
@@ -468,6 +495,22 @@ func _attack_rooter(target: Node2D) -> void:
 	_ensure_modules()
 	_combat_module.attack_rooter(target)
 
+func _on_enemy_died_nearby(enemy_position: Vector2, dead_enemy: Node2D) -> void:
+	_ensure_modules()
+	_combat_module.on_enemy_died_nearby(enemy_position, dead_enemy)
+
+func _explode_unstable_shard() -> void:
+	_ensure_modules()
+	_combat_module.explode_unstable_shard()
+
+func _drop_tax_collector_gold() -> void:
+	_ensure_modules()
+	_combat_module.drop_tax_collector_gold()
+
+func is_enemy_detectable() -> bool:
+	_ensure_modules()
+	return _combat_module.is_enemy_detectable()
+
 func _get_enemies_in_radius(radius: float) -> Array[Node2D]:
 	return _get_enemies_in_radius_from_point(global_position, radius)
 
@@ -533,6 +576,14 @@ func heal(amount: float) -> void:
 	_ensure_modules()
 	_health_module.heal(amount)
 
+func grant_hit_shield() -> bool:
+	_ensure_modules()
+	return _health_module.grant_hit_shield()
+
+func has_hit_shield() -> bool:
+	_ensure_modules()
+	return _health_module.has_hit_shield()
+
 func _die() -> void:
 	_ensure_modules()
 	_health_module.die()
@@ -544,6 +595,29 @@ func _should_split_on_death() -> bool:
 func _spawn_split_children() -> void:
 	_ensure_modules()
 	_health_module.spawn_split_children()
+
+func _setup_shield_status_sprite() -> void:
+	var shield_tex: Texture2D = load("res://assets/vfx/shield.png") as Texture2D
+	if shield_tex == null:
+		return
+	_shield_status_sprite = Sprite2D.new()
+	_shield_status_sprite.texture = shield_tex
+	_shield_status_sprite.position = Vector2(0.0, -20.0)
+	_shield_status_sprite.scale = Vector2(2.6, 2.6)
+	_shield_status_sprite.z_index = 10
+	_shield_status_sprite.visible = false
+	add_child(_shield_status_sprite)
+
+func _update_shield_status_sprite() -> void:
+	if _shield_status_sprite == null:
+		return
+	var shielded: bool = _health_module != null and _health_module.has_hit_shield()
+	if shielded:
+		var pulse: float = 0.78 + 0.22 * sin(float(Time.get_ticks_msec()) / 110.0)
+		_shield_status_sprite.visible = true
+		_shield_status_sprite.modulate = Color(0.72, 0.92, 1.1, pulse)
+	else:
+		_shield_status_sprite.visible = false
 
 func _update_health_bar() -> void:
 	_ensure_modules()
@@ -578,9 +652,9 @@ func _load_vfx_assets() -> void:
 	_ensure_modules()
 	_vfx_module_impl.load_vfx_assets()
 
-func _spawn_world_vfx(texture: Texture2D, world_position: Vector2, rotation_radians: float = 0.0, sprite_scale: Vector2 = Vector2.ONE, lifetime: float = 0.2, use_corner_anchor: bool = false, corner_anchor_uv: Vector2 = Vector2.ZERO) -> void:
+func _spawn_world_vfx(texture: Texture2D, world_position: Vector2, rotation_radians: float = 0.0, sprite_scale: Vector2 = Vector2.ONE, lifetime: float = 0.2, use_corner_anchor: bool = false, corner_anchor_uv: Vector2 = Vector2.ZERO, vfx_z_index: int = 30) -> void:
 	_ensure_modules()
-	_vfx_module_impl.spawn_world_vfx(texture, world_position, rotation_radians, sprite_scale, lifetime, use_corner_anchor, corner_anchor_uv)
+	_vfx_module_impl.spawn_world_vfx(texture, world_position, rotation_radians, sprite_scale, lifetime, use_corner_anchor, corner_anchor_uv, vfx_z_index)
 
 func _can_spawn_world_vfx_this_frame() -> bool:
 	_ensure_modules()
@@ -710,6 +784,32 @@ func _find_closest_enemy() -> Node2D:
 	})
 	return closest_enemy
 
+func _find_lowest_health_enemy() -> Node2D:
+	var candidates: Array[Node2D] = _get_enemies_in_radius(maxf(enemy_target_search_radius, 200.0))
+	if candidates.is_empty():
+		return _find_closest_enemy()
+
+	var best_enemy: Node2D
+	var best_score: float = INF
+	for enemy in candidates:
+		if not is_instance_valid(enemy):
+			continue
+
+		var health_fraction: float = 1.0
+		if enemy is EnemyUnit:
+			health_fraction = (enemy as EnemyUnit).get_health_fraction()
+		var score: float = health_fraction * 10.0
+		if enemy is EnemyUnit and (enemy as EnemyUnit).is_feared():
+			score -= 1.2
+
+		if score < best_score:
+			best_score = score
+			best_enemy = enemy
+
+	if is_instance_valid(best_enemy):
+		return best_enemy
+	return _find_closest_enemy()
+
 func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
 	if not is_instance_valid(_perf_debug):
 		return
@@ -763,7 +863,18 @@ func _get_follow_nav_refresh_wait(follow_target: Vector2) -> float:
 	return _ai_navigation_module.get_follow_nav_refresh_wait(follow_target)
 
 func _is_non_attacker_identity() -> bool:
-	return summon_identity == ID_BUSH_BOY
+	return summon_identity == ID_BUSH_BOY or summon_identity == ID_SOUL_LANTERN
+
+func get_health_fraction() -> float:
+	if max_health <= 0.0:
+		return 1.0
+	return clampf(_current_health / max_health, 0.0, 1.0)
+
+func get_missing_health_ratio() -> float:
+	return 1.0 - get_health_fraction()
+
+func _is_phasing_identity() -> bool:
+	return summon_identity == ID_GHOST or summon_identity == ID_FROST_WISP or summon_identity == ID_SOUL_LANTERN or summon_identity == ID_GRAVE_HOUND or summon_identity == ID_POSSESSOR
 
 func _draw() -> void:
 	if not _is_command_selected:

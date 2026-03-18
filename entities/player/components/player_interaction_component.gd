@@ -4,7 +4,7 @@ class_name PlayerInteractionComponent
 const HARVEST_NODE_SCRIPT: Script = preload("res://entities/shared/harvest_node.gd")
 
 
-func initialize(player: Player) -> void:
+func initialize(_player: Player) -> void:
 	pass
 
 func handle_interaction_input(player: Player) -> void:
