@@ -765,7 +765,7 @@ func _handle_prospector_auto_mining() -> bool:
 		_time_to_repath = 0.0
 		return false
 
-	var harvest_range: float = maxf(target_reach_distance, 28.0)
+	var harvest_range: float = _get_prospector_harvest_range(_prospector_boulder_target)
 	var distance_to_boulder: float = global_position.distance_to(_prospector_boulder_target.global_position)
 	if distance_to_boulder > harvest_range:
 		_move_towards(_prospector_boulder_target.global_position)
@@ -811,6 +811,19 @@ func _is_harvestable_boulder(candidate: Node) -> bool:
 		return false
 
 	return bool(candidate.call("can_harvest"))
+
+func _get_prospector_harvest_range(boulder: Node2D) -> float:
+	var fallback_range: float = maxf(target_reach_distance, 56.0)
+	if not is_instance_valid(boulder):
+		return fallback_range
+
+	var configured_range: Variant = boulder.get("default_harvest_range")
+	if configured_range is float or configured_range is int:
+		var range_value: float = float(configured_range)
+		if range_value > 0.0:
+			return maxf(range_value, fallback_range)
+
+	return fallback_range
 
 func _find_closest_enemy() -> Node2D:
 	var find_start_us: int = Time.get_ticks_usec()

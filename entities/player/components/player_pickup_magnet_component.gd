@@ -6,6 +6,7 @@ func on_pickup_touched_radius(player: Player, area: Area2D, pickups_following_me
 	if pickup == null: return
 	if pickup is not Pickup: return
 	if not is_instance_valid(pickup): return
+	if not pickup.can_be_magnetized: return
 	if pickups_following_me.has(pickup): return
 	if not player.player_inventory.would_item_fit(pickup.item_id): return
 	

@@ -3,6 +3,7 @@ class_name Pickup
 
 
 @export var item_id : StringName
+@export var can_be_magnetized: bool = true
 
 @export var debug_item_id_label : Label
 @export var texture_rect : TextureRect
@@ -35,8 +36,10 @@ func _refresh_visuals() -> void:
 	var item_data : ItemData = ItemGlobals.items[item_id]
 
 	if texture_rect != null:
+		texture_rect.visible = false
 		texture_rect.texture = item_data.texture
 	if sprite_2d != null:
+		sprite_2d.visible = true
 		sprite_2d.texture = item_data.texture
 
 func _resolve_visual_nodes() -> void:
@@ -44,5 +47,7 @@ func _resolve_visual_nodes() -> void:
 		debug_item_id_label = get_node_or_null("Label") as Label
 	if texture_rect == null:
 		texture_rect = get_node_or_null("TextureRect") as TextureRect
+	if texture_rect != null:
+		texture_rect.visible = false
 	if sprite_2d == null:
 		sprite_2d = get_node_or_null("Sprite2D") as Sprite2D

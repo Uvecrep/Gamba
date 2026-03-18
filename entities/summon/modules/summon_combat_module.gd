@@ -4,6 +4,7 @@ const GOLD_PICKUP_SCENE: PackedScene = preload("res://entities/pickups/pickup.ts
 const GOLD_ITEM_ID: StringName = &"gold_coin"
 const MIMIC_DISGUISED_TEXTURE_PATH: String = "res://assets/characters/summons/greed/mimic_disguised.png"
 const STORM_TOTEM_PLANTED_TEXTURE_PATH: String = "res://assets/characters/summons/elemental/storm_totem_planted.png"
+const COIN_SPRITE_PROJECTILE_TEXTURE_PATH: String = "res://assets/objects/gold.png"
 const CINDER_IMP_FIREBALL_TEXTURE_PATH: String = "res://assets/vfx/fireball.png"
 const MAGMA_TRAIL_TEXTURE_PATH: String = "res://assets/vfx/magma_trail.png"
 const UNSTABLE_SHARD_PROJECTILE_TEXTURE_PATH: String = "res://assets/vfx/unstable_shard_projectile.png"
@@ -11,6 +12,7 @@ const BANSHEE_SCREAM_TEXTURE_PATH: String = "res://assets/vfx/banshee_scream.png
 
 static var _mimic_disguised_texture: Texture2D
 static var _storm_totem_planted_texture: Texture2D
+static var _coin_sprite_projectile_texture: Texture2D
 static var _cinder_imp_fireball_texture: Texture2D
 static var _magma_trail_texture: Texture2D
 static var _unstable_shard_projectile_texture: Texture2D
@@ -399,6 +401,7 @@ func attack_mimic(target: Node2D) -> void:
 func attack_coin_sprite(target: Node2D) -> void:
 	unit._launch_projectile_attack(target, {
 		"coin_mark_add": 1,
+		"projectile_texture": _get_coin_sprite_projectile_texture(),
 	})
 
 func attack_prospector(target: Node2D) -> void:
@@ -869,6 +872,11 @@ func _get_cinder_imp_fireball_texture() -> Texture2D:
 	if _cinder_imp_fireball_texture == null:
 		_cinder_imp_fireball_texture = load(CINDER_IMP_FIREBALL_TEXTURE_PATH) as Texture2D
 	return _cinder_imp_fireball_texture
+
+func _get_coin_sprite_projectile_texture() -> Texture2D:
+	if _coin_sprite_projectile_texture == null:
+		_coin_sprite_projectile_texture = load(COIN_SPRITE_PROJECTILE_TEXTURE_PATH) as Texture2D
+	return _coin_sprite_projectile_texture
 
 func _get_magma_trail_texture() -> Texture2D:
 	if _magma_trail_texture == null:

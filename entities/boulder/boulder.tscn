@@ -14,6 +14,7 @@ growth_interval_seconds = 16.0
 produced_lootbox_id = &"gold_coin"
 pickup_scene = ExtResource("4_pickup_scene")
 pickup_follow_target_path = NodePath("")
+pickup_impulse = Vector2(0, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 10)
