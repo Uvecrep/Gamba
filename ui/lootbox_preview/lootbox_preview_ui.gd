@@ -4,6 +4,9 @@ extends Control
 @export var lootbox_name_label : Label
 @export var lootbox_description_label : Label
 @export var lootbox_entries_count_label : Label
+@export var loot_entry_container : Control
+
+@export var loot_entry_ui_item_packed_scene : PackedScene
 
 var loaded_item_id : StringName
 var loaded_lootbox : Lootbox
@@ -39,6 +42,25 @@ func update_visuals() -> void:
 	lootbox_name_label.text = loaded_lootbox.name
 	lootbox_description_label.text = loaded_lootbox.description
 	lootbox_entries_count_label.text = str(loaded_lootbox.lootTable.size())
+
+	for child in loot_entry_container.get_children():
+		child.queue_free()
+	
+	var roll_percents : Array[float] = []
+	var total_weight : float
+	for e in loaded_lootbox.lootTable:
+		total_weight += e.weight
+	
+	for i in range(loaded_lootbox.lootTable.size()):
+		roll_percents.append(loaded_lootbox.lootTable[i].weight / total_weight)
+
+	for i in range(loaded_lootbox.lootTable.size()):
+		var new_item : LootEntryUiItem = loot_entry_ui_item_packed_scene.instantiate()
+		var weight_percent_string : String = "%.1f%%" % (roll_percents[i] * 100.0)
+		var weight_string : String = "Weight: " + str(loaded_lootbox.lootTable[i].weight) + "(" + weight_percent_string + ")"
+		new_item.set_info(i,loaded_lootbox.lootTable[i].name,str(weight_string))
+		loot_entry_container.add_child(new_item)
+
 
 # TODO: Terribly suboptimal code for searching through ALL controls to find the first inventoryslot you hover over
 func get_first_inventoryslot() -> InventorySlot:

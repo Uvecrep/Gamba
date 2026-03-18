@@ -67,5 +67,5 @@ script = ExtResource("1_lootbox")
 id = &"chaos"
 name = "Chaos Box"
 color = "Blue"
-description = "Harvested from the crystal. Contains five chaos-themed summons."
+description = "Straight from the crystal. Contains five chaos-themed summons."
 lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Chaos_BabyDragon"), SubResource("Entry_Chaos_Ghost"), SubResource("Entry_Chaos_JackInTheBox"), SubResource("Entry_Chaos_Slime"), SubResource("Entry_Chaos_SparkGoblin")])
