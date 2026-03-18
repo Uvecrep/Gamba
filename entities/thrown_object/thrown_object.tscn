@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://c7ruwts8a8ibp"]
+
+[ext_resource type="Script" uid="uid://d1ffdli2qtxp2" path="res://entities/thrown_object/thrown_object.gd" id="1_ja1aw"]
+[ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="2_6pmhi"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_are6o"]
+font_size = 4
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_86vk5"]
+radius = 15.95
+
+[node name="ThrownLootbox" type="Node2D" unique_id=2138357677]
+script = ExtResource("1_ja1aw")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=948559319]
+offset_left = -17.5
+offset_top = -17.5
+offset_right = 17.5
+offset_bottom = 17.5
+texture = ExtResource("2_6pmhi")
+expand_mode = 1
+
+[node name="Label" type="Label" parent="." unique_id=653073620]
+visible = false
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+text = "base
+pickup"
+label_settings = SubResource("LabelSettings_are6o")
+horizontal_alignment = 1
+
+[node name="Area2D" type="Area2D" parent="." unique_id=8093267]
+collision_layer = 16
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1158476554]
+shape = SubResource("CircleShape2D_86vk5")

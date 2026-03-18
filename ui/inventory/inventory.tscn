@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b815q8hl3sixl"]
 
-[ext_resource type="Script" path="res://ui/inventory/inventory_ui.gd" id="1_t68fq"]
+[ext_resource type="Script" uid="uid://vqti75yd87dr" path="res://ui/inventory/inventory_ui.gd" id="1_t68fq"]
+[ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="2_qrt2q"]
 [ext_resource type="PackedScene" uid="uid://xtfj7565v6v4" path="res://ui/inventory/inventory_slot.tscn" id="2_s83yu"]
 
 [node name="Inventory" type="Control" unique_id=1753442306 node_paths=PackedStringArray("slot_0", "slot_1", "slot_2", "slot_3", "slot_4")]
@@ -11,6 +12,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_t68fq")
+placeholder_item_texture = ExtResource("2_qrt2q")
 slot_0 = NodePath("MarginContainer/PanelContainer/InventorySlot_0")
 slot_1 = NodePath("MarginContainer/PanelContainer/InventorySlot_1")
 slot_2 = NodePath("MarginContainer/PanelContainer/InventorySlot_2")

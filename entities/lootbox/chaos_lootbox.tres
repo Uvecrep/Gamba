@@ -19,6 +19,7 @@ summon_identity = &"baby_dragon"
 [sub_resource type="Resource" id="Entry_Chaos_BabyDragon"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Chaos_BabyDragon")
+name = "Dragon"
 
 [sub_resource type="Resource" id="Outcome_Chaos_Ghost"]
 script = ExtResource("3_spawn_outcome")
@@ -28,6 +29,7 @@ summon_identity = &"ghost"
 [sub_resource type="Resource" id="Entry_Chaos_Ghost"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Chaos_Ghost")
+name = "Ghost"
 
 [sub_resource type="Resource" id="Outcome_Chaos_JackInTheBox"]
 script = ExtResource("3_spawn_outcome")
@@ -37,6 +39,7 @@ summon_identity = &"jack_in_the_box"
 [sub_resource type="Resource" id="Entry_Chaos_JackInTheBox"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Chaos_JackInTheBox")
+name = "Jack-in-the-box"
 
 [sub_resource type="Resource" id="Outcome_Chaos_Slime"]
 script = ExtResource("3_spawn_outcome")
@@ -46,6 +49,7 @@ summon_identity = &"slime"
 [sub_resource type="Resource" id="Entry_Chaos_Slime"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Chaos_Slime")
+name = "Slime"
 
 [sub_resource type="Resource" id="Outcome_Chaos_SparkGoblin"]
 script = ExtResource("3_spawn_outcome")
@@ -55,6 +59,7 @@ summon_identity = &"spark_goblin"
 [sub_resource type="Resource" id="Entry_Chaos_SparkGoblin"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Chaos_SparkGoblin")
+name = "Spark Goblin"
 
 [resource]
 script = ExtResource("1_lootbox")

@@ -5,8 +5,8 @@ class_name Lootbox
 @export var id : StringName
 ## Human readable name displayed in game UI
 @export var name : String
-@export var color : String
-@export var description : String
+@export var color : String # TODO: Unused, probably remove
+@export var description : String # TODO: Unused, probably remove
 @export var modifications : Array[LootboxMod] = []
 @export var lootTable: Array[LootEntry] = []
 

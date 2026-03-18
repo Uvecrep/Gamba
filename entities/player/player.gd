@@ -49,6 +49,9 @@ var _health_component: PlayerHealthComponent = PlayerHealthComponent.new()
 var _interaction_component: PlayerInteractionComponent = PlayerInteractionComponent.new()
 
 @export var pickup_packed_scene: PackedScene
+@export var thrown_lootbox_packed_scene: PackedScene
+@export var thrown_sapling_packed_scene: PackedScene
+@export var thrown_pickup_packed_scene: PackedScene
 @export var toss_reticle: Node2D
 @export var toss_line: Line2D
 var _is_tossing = false
@@ -244,6 +247,19 @@ func _perf_mark_event(event_name: String, metadata: Dictionary = {}) -> void:
 
 func _try_perform_item_action(_is_left : bool) -> void:
 	if player_inventory.inventory_item_counts[player_inventory.selected_index] == 0: return
+
+	# right click immediately drops an item
+	if not _is_left:
+		# If we're dropping, place the item down. Need to have support for more actions
+		var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
+		if not player_inventory.remove_items(player_inventory.selected_index,1): return
+
+
+		var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
+		get_parent().add_child(dropped_pickup)
+		dropped_pickup.global_position = position + ((get_global_mouse_position() - global_position).normalized() * 100)
+		dropped_pickup.set_data(held_item_id)
+		return
 	
 	# TODO Do something with left and right click actions here
 	
@@ -261,11 +277,35 @@ func _stop_tossing() -> void:
 	var held_item_id = player_inventory.inventory_items[player_inventory.selected_index]
 	if not player_inventory.remove_items(player_inventory.selected_index,1): return
 	
-	# If we're dropping, place the item down. Need to have support for more actions
-	var dropped_pickup : Pickup = pickup_packed_scene.instantiate()
-	get_parent().add_child(dropped_pickup)
-	dropped_pickup.global_position = get_global_mouse_position()
-	dropped_pickup.set_data(held_item_id)
+	var lootbox : Lootbox
+	if held_item_id.begins_with("lootbox_"):
+		var box_id: StringName = StringName(held_item_id.split("_")[1])
+		if not LootboxGlobals.lootboxes.has(box_id):
+			push_warning("Player: Tried to open a lootbox '" + box_id + "' which is not present in the global array")
+			return
+		lootbox = LootboxGlobals.lootboxes[box_id]
+	
+	var thrown_object : ThrownObject
+	if lootbox != null:
+		var thrown_lootbox : ThrownLootbox = thrown_lootbox_packed_scene.instantiate()
+		thrown_lootbox.player = self
+		thrown_lootbox.lootbox = lootbox
+		thrown_object = thrown_lootbox as ThrownObject
+	elif held_item_id == &"sapling":
+		var thrown_sapling : ThrownSapling = thrown_sapling_packed_scene.instantiate()
+		thrown_object = thrown_sapling as ThrownObject
+	else:
+		# Maybe it's a pickup?
+		var thrown_pickup : ThrownPickup = thrown_pickup_packed_scene.instantiate()
+		thrown_pickup.pickup_item_id = held_item_id
+		thrown_object = thrown_pickup
+		
+	if not thrown_object: return
+
+	get_parent().add_child(thrown_object)
+	thrown_object.global_position = get_global_mouse_position()
+	thrown_object.target_pos = get_global_mouse_position()
+	thrown_object.start_pos = global_position
 	
 	
 	toss_reticle.visible = false

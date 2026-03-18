@@ -33,7 +33,7 @@ func execute(context: Dictionary = {}) -> bool:
 		spawn_parent = opener
 
 	spawn_parent.add_child(summon_node)
-	summon_node.global_position = _pick_spawn_position(opener.global_position)
+	summon_node.global_position = opener.global_position
 	return true
 
 func _pick_spawn_position(origin: Vector2) -> Vector2:

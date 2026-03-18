@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://c21dkww0ffk8e"]
+
+[ext_resource type="Script" uid="uid://cpij8cky13okl" path="res://entities/item/item_data.gd" id="1_mjx5d"]
+[ext_resource type="Texture2D" uid="uid://ca5ewh1whl05e" path="res://assets/objects/sapling.png" id="2_mjx5d"]
+
+[resource]
+script = ExtResource("1_mjx5d")
+id = &"sapling"
+name = "Sapling"
+texture = ExtResource("2_mjx5d")
+metadata/_custom_type_script = "uid://cpij8cky13okl"

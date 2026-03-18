@@ -30,7 +30,7 @@ func set_info(item_name : String, _item_image : Texture2D, item_count : int) -> 
 	if (item_count == 0): item_name = ""
 	item_count_label.visible = item_count != 0
 	item_name_label.text = item_name
-	#item_image_texture_rect.texture = item_image
+	item_image_texture_rect.texture = _item_image
 	item_count_label.text = str(item_count)
 
 func _on_panel_gui_input(event: InputEvent) -> void:

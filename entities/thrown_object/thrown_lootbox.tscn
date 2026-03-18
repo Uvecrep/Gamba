@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://bb23mmd3w1v3e"]
+
+[ext_resource type="Script" uid="uid://rndb3akjehj8" path="res://entities/thrown_object/thrown_lootbox.gd" id="1_are6o"]
+[ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="2_are6o"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_86vk5"]
+font_size = 12
+font_color = Color(1, 1, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_are6o"]
+font_size = 12
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_86vk5"]
+radius = 15.95
+
+[node name="ThrownLootbox" type="Node2D" unique_id=2138357677 node_paths=PackedStringArray("rolled_item_label_debug")]
+script = ExtResource("1_are6o")
+rolled_item_label_debug = NodePath("Label")
+hightlight_label_settings = SubResource("LabelSettings_86vk5")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=948559319]
+offset_left = -17.5
+offset_top = -17.5
+offset_right = 17.5
+offset_bottom = 17.5
+texture = ExtResource("2_are6o")
+expand_mode = 1
+
+[node name="Label" type="Label" parent="." unique_id=653073620]
+visible = false
+offset_top = -34.0
+offset_right = 66.0
+offset_bottom = 3.0
+text = "Rolled item"
+label_settings = SubResource("LabelSettings_are6o")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=8093267]
+collision_layer = 16
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1158476554]
+shape = SubResource("CircleShape2D_86vk5")
