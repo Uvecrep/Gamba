@@ -4,6 +4,7 @@ const GOLD_PICKUP_SCENE: PackedScene = preload("res://entities/pickups/pickup.ts
 const GOLD_ITEM_ID: StringName = &"gold_coin"
 const MIMIC_DISGUISED_TEXTURE_PATH: String = "res://assets/characters/summons/greed/mimic_disguised.png"
 const STORM_TOTEM_PLANTED_TEXTURE_PATH: String = "res://assets/characters/summons/elemental/storm_totem_planted.png"
+const COIN_SPRITE_PROJECTILE_TEXTURE_PATH: String = "res://assets/objects/gold.png"
 const CINDER_IMP_FIREBALL_TEXTURE_PATH: String = "res://assets/vfx/fireball.png"
 const MAGMA_TRAIL_TEXTURE_PATH: String = "res://assets/vfx/magma_trail.png"
 const UNSTABLE_SHARD_PROJECTILE_TEXTURE_PATH: String = "res://assets/vfx/unstable_shard_projectile.png"
@@ -11,6 +12,7 @@ const BANSHEE_SCREAM_TEXTURE_PATH: String = "res://assets/vfx/banshee_scream.png
 
 static var _mimic_disguised_texture: Texture2D
 static var _storm_totem_planted_texture: Texture2D
+static var _coin_sprite_projectile_texture: Texture2D
 static var _cinder_imp_fireball_texture: Texture2D
 static var _magma_trail_texture: Texture2D
 static var _unstable_shard_projectile_texture: Texture2D
@@ -399,10 +401,7 @@ func attack_mimic(target: Node2D) -> void:
 func attack_coin_sprite(target: Node2D) -> void:
 	unit._launch_projectile_attack(target, {
 		"coin_mark_add": 1,
-		"chill_add": 1,
-		"chill_duration": 1.8,
-		"freeze_threshold": 999,
-		"freeze_duration": 0.0,
+		"projectile_texture": _get_coin_sprite_projectile_texture(),
 	})
 
 func attack_prospector(target: Node2D) -> void:
@@ -857,15 +856,7 @@ func _get_player_gold_count() -> int:
 	var inventory: PlayerInventory = player.player_inventory
 	if inventory == null:
 		return 0
-
-	var total_gold: int = 0
-	for slot_index in range(maxi(inventory.num_slots, 0)):
-		var slot_item_id: StringName = inventory.get_slot_item_id(slot_index)
-		if slot_item_id != GOLD_ITEM_ID and slot_item_id != &"gold":
-			continue
-		total_gold += maxi(inventory.get_slot_count(slot_index), 0)
-
-	return total_gold
+	return maxi(inventory.get_gold_count(), 0)
 
 func _get_mimic_disguised_texture() -> Texture2D:
 	if _mimic_disguised_texture == null:
@@ -881,6 +872,11 @@ func _get_cinder_imp_fireball_texture() -> Texture2D:
 	if _cinder_imp_fireball_texture == null:
 		_cinder_imp_fireball_texture = load(CINDER_IMP_FIREBALL_TEXTURE_PATH) as Texture2D
 	return _cinder_imp_fireball_texture
+
+func _get_coin_sprite_projectile_texture() -> Texture2D:
+	if _coin_sprite_projectile_texture == null:
+		_coin_sprite_projectile_texture = load(COIN_SPRITE_PROJECTILE_TEXTURE_PATH) as Texture2D
+	return _coin_sprite_projectile_texture
 
 func _get_magma_trail_texture() -> Texture2D:
 	if _magma_trail_texture == null:

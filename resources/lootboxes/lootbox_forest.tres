@@ -57,6 +57,7 @@ summon_identity = &"rooter"
 [sub_resource type="Resource" id="Entry_Forest_Rooter"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_Rooter")
+rarity_override = 2
 
 [resource]
 script = ExtResource("10_ga35c")

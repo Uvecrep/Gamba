@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cjed1s0hqjldn"]
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cxcak5tmwvdaf"]
 
-[ext_resource type="Script" uid="uid://cpij8cky13okl" path="res://entities/item/item_data.gd" id="1_b5bgq"]
-[ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="2_8bhb4"]
+[ext_resource type="Script" uid="uid://cpij8cky13okl" path="res://entities/item/item_data.gd" id="1_aphs2"]
+[ext_resource type="Texture2D" uid="uid://iftuo3yyscy6" path="res://assets/objects/lootbox_fruit.png" id="2_forest"]
 
 [resource]
-script = ExtResource("1_b5bgq")
-id = &"lootbox_chaos"
-name = "Chaos Lootbox"
-texture = ExtResource("2_8bhb4")
+script = ExtResource("1_aphs2")
+id = &"lootbox_forest"
+name = "Forest Lootbox"
+texture = ExtResource("2_forest")
 metadata/_custom_type_script = "uid://cpij8cky13okl"

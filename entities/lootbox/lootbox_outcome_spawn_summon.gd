@@ -64,6 +64,9 @@ func _apply_visual_modifiers(summon_node: Node2D) -> void:
 	if summon_texture_override == null:
 		return
 
+	if _has_property(summon_node, "sprite_texture_override"):
+		summon_node.set("sprite_texture_override", summon_texture_override)
+
 	var sprite := summon_node.get_node_or_null("Sprite2D") as Sprite2D
 	if sprite == null:
 		var fallback := summon_node.find_child("Sprite2D", true, false)

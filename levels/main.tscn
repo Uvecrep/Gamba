@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://d34vqfagsgpkm" path="res://levels/world.tscn" id="2_wdj6m"]
 [ext_resource type="PackedScene" uid="uid://domyo1x6j4x7w" path="res://entities/enemy/enemy_spawner.tscn" id="5_u7xt2"]
 [ext_resource type="PackedScene" uid="uid://b6u051drnvexw" path="res://entities/house/house.tscn" id="6_7hmax"]
-[ext_resource type="PackedScene" uid="uid://bdokkhkbr35d2" path="res://entities/crystal/blood_confluence.tscn" id="7_6yxbg"]
 [ext_resource type="PackedScene" path="res://entities/phone/phone.tscn" id="8_2v8j6"]
 [ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/hud.gd" id="8_hud"]
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
@@ -14,7 +13,8 @@
 [ext_resource type="PackedScene" uid="uid://b815q8hl3sixl" path="res://ui/inventory/inventory.tscn" id="12_1fput"]
 [ext_resource type="Script" uid="uid://b7fjvdi8rvejq" path="res://scripts/fps_counter.gd" id="12_fps"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
-[ext_resource type="PackedScene" uid="uid://b00jrxmgdmyu5" path="res://entities/enemy/enemy.tscn" id="15_4fc0e"]
+[ext_resource type="PackedScene" path="res://entities/boulder/boulder.tscn" id="14_boulder"]
+[ext_resource type="PackedScene" uid="uid://bdokkhkbr35d2" path="res://entities/crystal/blood_confluence.tscn" id="15_4fc0e"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -38,8 +38,10 @@ position = Vector2(651, 465)
 starting_lootboxes = 1
 produced_lootbox_id = &"lootbox_chaos"
 
-[node name="blood_confluence" parent="." unique_id=2107467836 instance=ExtResource("7_6yxbg")]
-position = Vector2(287, 340)
+[node name="boulder_resource" parent="." unique_id=924756373 instance=ExtResource("14_boulder")]
+position = Vector2(550.71, 476)
+pickup_follow_target_path = NodePath("../player")
+pickup_impulse = Vector2(0, -600)
 
 [node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
 position = Vector2(1869, -2514)
@@ -48,29 +50,6 @@ spawn_interval = 10.0
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
 z_index = 1
 position = Vector2(614, 242)
-interact_action = null
-summon_command_hold_action = null
-summon_command_follow_action = null
-summon_command_auto_action = null
-scroll_up_action = null
-scroll_down_action = null
-speed = null
-harvest_range = null
-harvest_amount_per_interaction = null
-summon_selection_radius = null
-summon_selection_drag_step = null
-summon_selection_preview_fill_color = null
-summon_selection_preview_line_color = null
-summon_selection_preview_line_width = null
-sapling_plant_range = null
-sapling_tree_scene = null
-max_health = null
-respawn_delay_seconds = null
-respawn_invulnerability_seconds = null
-respawn_distance_from_house = null
-house_regen_radius = null
-house_regen_per_second = null
-house_regen_tick_interval = null
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=299344106 node_paths=PackedStringArray("player", "_sapling_debug_label", "_summon_command_hint_label")]
 script = ExtResource("8_hud")
@@ -187,10 +166,6 @@ text = "Restart"
 layout_mode = 2
 text = "Quit"
 
-[node name="Pickup" parent="." unique_id=1634760408 instance=ExtResource("13_1fput")]
-position = Vector2(581, 640)
-item_id = &"dummy_item"
-
 [node name="Pickup2" parent="." unique_id=1896649483 instance=ExtResource("13_1fput")]
 position = Vector2(698, 690)
 item_id = &"lootbox_chaos"
@@ -199,25 +174,5 @@ item_id = &"lootbox_chaos"
 position = Vector2(631, 787)
 item_id = &"sapling"
 
-[node name="Pickup4" parent="." unique_id=1657756741 instance=ExtResource("13_1fput")]
-position = Vector2(523, 747)
-item_id = &"dog"
-
-[node name="Pickup5" parent="." unique_id=556914396 instance=ExtResource("13_1fput")]
-position = Vector2(836, 781)
-item_id = &"hare"
-
-[node name="Pickup6" parent="." unique_id=1581105141 instance=ExtResource("13_1fput")]
-position = Vector2(964, 858)
-item_id = &"person"
-
-[node name="Pickup7" parent="." unique_id=1852521649 instance=ExtResource("13_1fput")]
-position = Vector2(897, 955)
-item_id = &"rabbit"
-
-[node name="Pickup8" parent="." unique_id=1853630017 instance=ExtResource("13_1fput")]
-position = Vector2(789, 915)
-item_id = &"rabbit"
-
-[node name="enemy" parent="." unique_id=1720674554 instance=ExtResource("15_4fc0e")]
-position = Vector2(275, -245)
+[node name="blood_confluence" parent="." unique_id=2107467836 instance=ExtResource("15_4fc0e")]
+position = Vector2(283, 442)

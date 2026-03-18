@@ -204,6 +204,8 @@ func get_current_navigation_goal() -> Vector2:
 		return Vector2.INF
 
 	if unit._command_mode == unit.CommandMode.AUTO:
+		if unit.summon_identity == unit.ID_PROSPECTOR and is_instance_valid(unit._prospector_boulder_target):
+			return unit._prospector_boulder_target.global_position
 		if not unit._is_non_attacker_identity() and is_instance_valid(unit._enemy_target):
 			return unit._enemy_target.global_position
 		if is_instance_valid(unit._player_target):

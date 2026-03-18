@@ -60,6 +60,7 @@ summon_identity = &"unstable_shard"
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Elemental_UnstableShard")
 name = "Unstable Shard"
+rarity_override = 2
 
 [resource]
 script = ExtResource("1_lootbox")

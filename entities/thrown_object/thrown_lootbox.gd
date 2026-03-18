@@ -1,78 +1,111 @@
 extends ThrownObject
 class_name ThrownLootbox
 
-@export var rolled_item_label_debug : Label
+signal roll_visual_spawned(winning_entry: LootEntry)
+signal lootbox_roll_finished(winning_entry: LootEntry, outcome_applied: bool)
 
-@export var hightlight_label_settings : LabelSettings
+const LOOTBOX_ROLL_OVERLAY_SCENE: PackedScene = preload("res://ui/lootbox_roll/lootbox_roll_overlay.tscn")
+
+@export var roll_visual_screen_offset: Vector2 = Vector2(0.0, -84.0)
 
 var lootbox : Lootbox
 var player : Player
+var _winning_entry: LootEntry
+var _roll_started: bool = false
 
-# Meant to be overridden with whatever should happen when the object hits the ground
-func on_landed():
-	var rolled_entry: LootEntry = lootbox.roll()
-	var rolled_entry_index : int = lootbox.lootTable.find(rolled_entry)
-	print("rolled entry index: " + str(rolled_entry_index))
+func _ready() -> void:
+	if lootbox == null:
+		return
+	var item_id := StringName("lootbox_" + lootbox.id)
+	if ItemGlobals.items.has(item_id):
+		var rect := get_node_or_null("TextureRect") as TextureRect
+		if rect != null:
+			rect.texture = ItemGlobals.items[item_id].texture
 
-	var cheat_ticks = cheat(2)
-	print("cheat ticks: " + str(cheat_ticks))
-	var starting_index = posmod(rolled_entry_index - cheat(2),lootbox.lootTable.size())
+func on_landed() -> void:
+	if _roll_started:
+		return
+	_roll_started = true
 
-	print("starting index: " + str(starting_index))
-	var chosen_index = await spin_the_wheel(starting_index, 2)
-	print("chosen index:" + str(chosen_index))
-	open_lootbox_at_index(chosen_index)
+	_winning_entry = _preselect_winning_entry()
+	if _winning_entry == null:
+		queue_free()
+		return
+
+	var overlay: Node = _get_or_create_roll_overlay()
+	if overlay == null:
+		var fallback_applied: bool = _apply_winning_entry(_winning_entry)
+		lootbox_roll_finished.emit(_winning_entry, fallback_applied)
+		queue_free()
+		return
+
+	var visual: Control = overlay.call("spawn_roll_visual", self, lootbox, _winning_entry, roll_visual_screen_offset) as Control
+	if visual == null:
+		var no_visual_applied: bool = _apply_winning_entry(_winning_entry)
+		lootbox_roll_finished.emit(_winning_entry, no_visual_applied)
+		queue_free()
+		return
+
+	roll_visual_spawned.emit(_winning_entry)
+	var finished_callable: Callable = Callable(self, "_on_roll_visual_finished")
+	if not visual.is_connected("roll_finished", finished_callable):
+		visual.connect("roll_finished", finished_callable, CONNECT_ONE_SHOT)
+
+
+func _preselect_winning_entry() -> LootEntry:
+	if lootbox == null:
+		push_warning("ThrownLootbox: lootbox resource was null on land.")
+		return null
+
+	return lootbox.roll()
+
+
+func _on_roll_visual_finished(_entry: LootEntry, _reward_data: Resource) -> void:
+	var applied: bool = _apply_winning_entry(_winning_entry)
+	lootbox_roll_finished.emit(_winning_entry, applied)
 	queue_free()
 
-# Given input parameters, gives the number of ticks the wheel will cycle through.
-# This allows me to predetermine the outcome of the roll (since it need to be weighted) Teehee!
-func cheat(spin_duration : float) -> int:
-	var num_ticks : int = 0
-	var elapsed : float = 0
 
-	while elapsed < spin_duration:
-		var delay = lerp(0.05, 0.3, elapsed/spin_duration)
-		elapsed += delay
-		num_ticks += 1
-	
-	return num_ticks	
-
-func spin_the_wheel(starting_index : int, spin_duration : float) -> int:
-	rolled_item_label_debug.visible = true
-	var elapsed := 0.0
-	var index = starting_index
-
-	while elapsed < spin_duration:
-		rolled_item_label_debug.text = lootbox.lootTable[index].name
-
-		var delay = lerp(0.05, 0.3, elapsed/spin_duration)
-
-		await get_tree().create_timer(delay).timeout
-
-		elapsed += delay
-
-		index = (index + 1) % lootbox.lootTable.size()
-	
-	rolled_item_label_debug.text = lootbox.lootTable[index].name
-	rolled_item_label_debug.label_settings = hightlight_label_settings
-	await get_tree().create_timer(.3).timeout
-
-	return index
-
-func open_lootbox_at_index(index : int) -> bool:
-	var rolled_entry: LootEntry = lootbox.lootTable[index]
-	print("rolled entry name: " + rolled_entry.name)
-	if rolled_entry == null:
-		push_warning("Player: lootbox returned no LootEntry.")
+func _apply_winning_entry(entry: LootEntry) -> bool:
+	if entry == null:
+		push_warning("ThrownLootbox: lootbox returned no LootEntry.")
 		return false
-	if rolled_entry.outcome == null:
-		push_warning("Player: rolled LootEntry has no outcome.")
+	if entry.outcome == null:
+		push_warning("ThrownLootbox: rolled LootEntry has no outcome.")
 		return false
+
+	var current_scene: Node = get_tree().current_scene
+	if current_scene == null:
+		current_scene = get_parent()
 
 	var context: Dictionary = {
 		"opener": self,
-		"player": player,
-		"current_scene": player.get_tree().current_scene,
+		"player": player if is_instance_valid(player) else null,
+		"current_scene": current_scene,
 	}
 
-	return bool(rolled_entry.outcome.execute(context))
+	return bool(entry.outcome.execute(context))
+
+
+func _get_or_create_roll_overlay() -> Node:
+	var scene_root: Node = get_tree().current_scene
+	if scene_root == null:
+		scene_root = get_tree().root
+	if scene_root == null:
+		return null
+
+	var existing_overlay: Node = scene_root.get_node_or_null("LootboxRollOverlay")
+	if existing_overlay != null:
+		return existing_overlay
+
+	if LOOTBOX_ROLL_OVERLAY_SCENE == null:
+		return null
+
+	var overlay_instance: Node = LOOTBOX_ROLL_OVERLAY_SCENE.instantiate()
+	if overlay_instance == null:
+		push_warning("ThrownLootbox: Failed to instantiate LootboxRollOverlay scene.")
+		return null
+
+	overlay_instance.name = "LootboxRollOverlay"
+	scene_root.add_child(overlay_instance)
+	return overlay_instance

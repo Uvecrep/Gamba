@@ -28,6 +28,7 @@ script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Rare")
 weight = 20.0
 name = "Yellow Boi"
+rarity_override = 2
 
 [sub_resource type="Resource" id="Resource_08fi1"]
 script = ExtResource("6_kegtj")
