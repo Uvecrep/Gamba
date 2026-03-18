@@ -15,7 +15,6 @@
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
 [ext_resource type="PackedScene" path="res://entities/boulder/boulder.tscn" id="14_boulder"]
 [ext_resource type="PackedScene" uid="uid://bdokkhkbr35d2" path="res://entities/crystal/blood_confluence.tscn" id="15_4fc0e"]
-[ext_resource type="PackedScene" uid="uid://ni8po2n7s30b" path="res://entities/crystal/soul_tower.tscn" id="16_21ko3"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -177,6 +176,3 @@ item_id = &"sapling"
 
 [node name="blood_confluence" parent="." unique_id=2107467836 instance=ExtResource("15_4fc0e")]
 position = Vector2(283, 442)
-
-[node name="blood_confluence2" parent="." unique_id=910735727 instance=ExtResource("16_21ko3")]
-position = Vector2(287, 289)
