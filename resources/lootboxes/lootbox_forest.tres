@@ -19,6 +19,7 @@ summon_identity = &"acorn_spitter"
 [sub_resource type="Resource" id="Entry_Forest_AcornSpitter"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Forest_AcornSpitter")
+name = "Acorn Spitter"
 
 [sub_resource type="Resource" id="Outcome_Forest_BeeSwarm"]
 script = ExtResource("3_spawn_outcome")
@@ -28,6 +29,7 @@ summon_identity = &"bee_swarm"
 [sub_resource type="Resource" id="Entry_Forest_BeeSwarm"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Forest_BeeSwarm")
+name = "Bee Swarm"
 
 [sub_resource type="Resource" id="Outcome_Forest_BushBoy"]
 script = ExtResource("3_spawn_outcome")
@@ -37,6 +39,7 @@ summon_identity = &"bush_boy"
 [sub_resource type="Resource" id="Entry_Forest_BushBoy"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Forest_BushBoy")
+name = "Bush Boy"
 
 [sub_resource type="Resource" id="Outcome_Forest_MushroomKnight"]
 script = ExtResource("3_spawn_outcome")
@@ -46,6 +49,7 @@ summon_identity = &"mushroom_knight"
 [sub_resource type="Resource" id="Entry_Forest_MushroomKnight"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Forest_MushroomKnight")
+name = "Mushroom Knight"
 
 [sub_resource type="Resource" id="Outcome_Forest_Rooter"]
 script = ExtResource("3_spawn_outcome")
@@ -55,6 +59,7 @@ summon_identity = &"rooter"
 [sub_resource type="Resource" id="Entry_Forest_Rooter"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Forest_Rooter")
+name = "Rooter"
 
 [resource]
 script = ExtResource("1_lootbox")

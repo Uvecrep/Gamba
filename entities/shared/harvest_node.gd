@@ -6,7 +6,7 @@ class_name HarvestNode
 @export var default_harvest_range: float = 96.0
 @export var prompt_refresh_interval: float = 0.25
 @export var produced_lootbox_id: StringName
-@export var pickup_scene: PackedScene = preload("res://entities/pickups/box_pickup.tscn")
+@export var pickup_scene: PackedScene = preload("res://entities/pickups/pickup.tscn")
 @export var pickup_parent_path: NodePath = ^".."
 @export var pickup_follow_target_path: NodePath = ^"../player"
 @export var pickup_impulse: Vector2 = Vector2.UP * 600.0
@@ -162,6 +162,7 @@ func _spawn_lootbox_pickups(amount: int) -> void:
 	var follow_target: Node2D = get_node_or_null(pickup_follow_target_path) as Node2D
 	for _i in range(amount):
 		var new_box: Pickup = pickup_scene.instantiate() as Pickup
+		new_box.set_data(produced_lootbox_id)
 		if new_box == null:
 			continue
 
