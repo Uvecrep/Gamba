@@ -1,70 +1,67 @@
 [gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://cj53d4n1n247w"]
 
-[ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://entities/lootbox/lootbox.gd" id="1_lootbox"]
-[ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://entities/lootbox/loot_entry.gd" id="2_entry"]
-[ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="3_8fbr1"]
-[ext_resource type="Script" uid="uid://b8tplg8ohx7w4" path="res://entities/lootbox/lootbox_outcome_spawn_summon.gd" id="3_spawn_outcome"]
-[ext_resource type="Texture2D" uid="uid://bwh2ksx2304jn" path="res://assets/characters/summons/forest/acorn_spitter.png" id="4_acorn_spitter_texture"]
-[ext_resource type="Texture2D" uid="uid://576e77qnkd8v" path="res://assets/characters/summons/forest/bee_swarm.png" id="5_bee_swarm_texture"]
-[ext_resource type="Texture2D" uid="uid://c45blpsd2pab3" path="res://assets/characters/summons/forest/bush_boy.png" id="6_bush_boy_texture"]
-[ext_resource type="Texture2D" uid="uid://c06rctajha7as" path="res://assets/characters/summons/forest/mushroom_knight.png" id="7_mushroom_knight_texture"]
-[ext_resource type="Texture2D" uid="uid://buwmk6t3owag" path="res://assets/characters/summons/forest/rooter.png" id="8_rooter_texture"]
-[ext_resource type="Script" uid="uid://cpkrdf3d52eb1" path="res://entities/lootbox/lootbox_mod.gd" id="9_83lu2"]
+[ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://entities/lootbox/loot_entry.gd" id="1_20gbc"]
+[ext_resource type="Script" uid="uid://b8tplg8ohx7w4" path="res://entities/lootbox/lootbox_outcome_spawn_summon.gd" id="2_o7qiy"]
+[ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="3_yunhm"]
+[ext_resource type="Texture2D" uid="uid://bwh2ksx2304jn" path="res://assets/characters/summons/forest/acorn_spitter.png" id="4_jpaus"]
+[ext_resource type="Texture2D" uid="uid://576e77qnkd8v" path="res://assets/characters/summons/forest/bee_swarm.png" id="5_ryeau"]
+[ext_resource type="Texture2D" uid="uid://c45blpsd2pab3" path="res://assets/characters/summons/forest/bush_boy.png" id="6_oa364"]
+[ext_resource type="Texture2D" uid="uid://c06rctajha7as" path="res://assets/characters/summons/forest/mushroom_knight.png" id="7_w5m3n"]
+[ext_resource type="Texture2D" uid="uid://buwmk6t3owag" path="res://assets/characters/summons/forest/rooter.png" id="8_txhml"]
+[ext_resource type="Script" uid="uid://cpkrdf3d52eb1" path="res://entities/lootbox/lootbox_mod.gd" id="9_ar0fc"]
+[ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://entities/lootbox/lootbox.gd" id="10_ga35c"]
 
 [sub_resource type="Resource" id="Outcome_Forest_AcornSpitter"]
-script = ExtResource("3_spawn_outcome")
-summon_texture_override = ExtResource("4_acorn_spitter_texture")
+script = ExtResource("2_o7qiy")
+summon_texture_override = ExtResource("4_jpaus")
 summon_identity = &"acorn_spitter"
 
 [sub_resource type="Resource" id="Entry_Forest_AcornSpitter"]
-script = ExtResource("2_entry")
+script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_AcornSpitter")
 name = "Acorn Spitter"
 
 [sub_resource type="Resource" id="Outcome_Forest_BeeSwarm"]
-script = ExtResource("3_spawn_outcome")
-summon_texture_override = ExtResource("5_bee_swarm_texture")
+script = ExtResource("2_o7qiy")
+summon_texture_override = ExtResource("5_ryeau")
 summon_identity = &"bee_swarm"
 
 [sub_resource type="Resource" id="Entry_Forest_BeeSwarm"]
-script = ExtResource("2_entry")
+script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_BeeSwarm")
 name = "Bee Swarm"
 
 [sub_resource type="Resource" id="Outcome_Forest_BushBoy"]
-script = ExtResource("3_spawn_outcome")
-summon_texture_override = ExtResource("6_bush_boy_texture")
+script = ExtResource("2_o7qiy")
+summon_texture_override = ExtResource("6_oa364")
 summon_identity = &"bush_boy"
 
 [sub_resource type="Resource" id="Entry_Forest_BushBoy"]
-script = ExtResource("2_entry")
+script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_BushBoy")
-name = "Bush Boy"
 
 [sub_resource type="Resource" id="Outcome_Forest_MushroomKnight"]
-script = ExtResource("3_spawn_outcome")
-summon_texture_override = ExtResource("7_mushroom_knight_texture")
+script = ExtResource("2_o7qiy")
+summon_texture_override = ExtResource("7_w5m3n")
 summon_identity = &"mushroom_knight"
 
 [sub_resource type="Resource" id="Entry_Forest_MushroomKnight"]
-script = ExtResource("2_entry")
+script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_MushroomKnight")
-name = "Mushroom Knight"
 
 [sub_resource type="Resource" id="Outcome_Forest_Rooter"]
-script = ExtResource("3_spawn_outcome")
-summon_texture_override = ExtResource("8_rooter_texture")
+script = ExtResource("2_o7qiy")
+summon_texture_override = ExtResource("8_txhml")
 summon_identity = &"rooter"
 
 [sub_resource type="Resource" id="Entry_Forest_Rooter"]
-script = ExtResource("2_entry")
+script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_Rooter")
-name = "Rooter"
 
 [resource]
-script = ExtResource("1_lootbox")
+script = ExtResource("10_ga35c")
 id = &"forest"
 name = "Forest Box"
 color = "Green"
 description = "Harvested from trees. Contains five forest-themed summons."
-lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Forest_AcornSpitter"), SubResource("Entry_Forest_BeeSwarm"), SubResource("Entry_Forest_BushBoy"), SubResource("Entry_Forest_MushroomKnight"), SubResource("Entry_Forest_Rooter")])
+lootTable = Array[ExtResource("1_20gbc")]([SubResource("Entry_Forest_AcornSpitter"), SubResource("Entry_Forest_BeeSwarm"), SubResource("Entry_Forest_BushBoy"), SubResource("Entry_Forest_MushroomKnight"), SubResource("Entry_Forest_Rooter")])

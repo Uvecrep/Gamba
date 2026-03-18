@@ -11,6 +11,7 @@ func handle_interaction_input(player: Player) -> void:
 	var nearest_harvest_node: Node2D = _find_nearest_harvestable_node(player)
 	var nearest_phone: PhoneInteractable = _find_nearest_phone(player)
 	var nearest_map: MapInteractable = _find_nearest_map(player)
+	var nearest_blood: Node2D = _find_nearest_in_group(player, "blood_confluence")
 
 	var nearest_harvest_distance_sq: float = INF
 	if nearest_harvest_node != null:
@@ -39,6 +40,11 @@ func handle_interaction_input(player: Player) -> void:
 		nearest_interactable = nearest_map
 		nearest_distance_sq = nearest_map_distance_sq
 
+	if nearest_blood != null and player.global_position.distance_squared_to(nearest_blood.global_position) < nearest_distance_sq:
+		nearest_interactable = nearest_blood
+		nearest_distance_sq = player.global_position.distance_squared_to(nearest_blood.global_position)
+
+
 	if nearest_harvest_node != null and nearest_interactable == nearest_harvest_node:
 		nearest_harvest_node.call("harvest_fruit", player.harvest_amount_per_interaction)
 		return
@@ -49,6 +55,11 @@ func handle_interaction_input(player: Player) -> void:
 	if nearest_interactable is MapInteractable:
 		(nearest_interactable as MapInteractable).interact(player)
 		return
+	
+	if nearest_interactable is BloodConfluence:
+		(nearest_interactable as BloodConfluence).try_purchase_lootbox(player)
+		return
+
 
 	# TODO Just implemented this logic living in the thrown items. Should figure that out more. This 'use_item' code will change
 	#try_use_item(player)
@@ -263,3 +274,19 @@ func _find_nearest_map(player: Player) -> MapInteractable:
 		nearest_map = map_node
 
 	return nearest_map
+
+func _find_nearest_in_group(player: Player, group_name : String) -> Node2D:
+	var interactables: Array = player.get_tree().get_nodes_in_group(group_name)
+	
+	var nearest_distance_sq: float = INF
+	var nearest_interactable: Node2D
+
+	for node in interactables:
+		var distance_sq: float = player.global_position.distance_squared_to(node.global_position)
+		if distance_sq >= nearest_distance_sq:
+			continue
+
+		nearest_distance_sq = distance_sq
+		nearest_interactable = node
+
+	return nearest_interactable

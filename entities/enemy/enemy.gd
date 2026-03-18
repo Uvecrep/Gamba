@@ -801,6 +801,10 @@ func _die() -> void:
 	_broadcast_enemy_death()
 	if enemy_archetype == ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
 		_spawn_split_goblins()
+	# should feed bloodlust resource
+	var blood_confluence: BloodConfluence = _find_closest_target_in_group(&"blood_confluence") as BloodConfluence
+	blood_confluence._set_blood(blood_confluence.blood + 2) # TODO: Change this value for balance
+
 	queue_free()
 
 func _get_chill_speed_multiplier() -> float:

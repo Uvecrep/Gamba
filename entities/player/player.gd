@@ -32,6 +32,8 @@ class_name Player
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
 @onready var health_bar: ProgressBar = $HealthBar
 
+var gold: float = 0.0 # yellow lootbox resource
+var blood: float = 0.0 # red lootbox resource
 var current_health: float = 0.0
 
 var player_inventory: PlayerInventory = PlayerInventory.new()

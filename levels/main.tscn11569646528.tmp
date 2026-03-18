@@ -14,7 +14,6 @@
 [ext_resource type="PackedScene" uid="uid://b815q8hl3sixl" path="res://ui/inventory/inventory.tscn" id="12_1fput"]
 [ext_resource type="Script" uid="uid://b7fjvdi8rvejq" path="res://scripts/fps_counter.gd" id="12_fps"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
-[ext_resource type="PackedScene" uid="uid://b00jrxmgdmyu5" path="res://entities/enemy/enemy.tscn" id="15_4fc0e"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -218,6 +217,3 @@ item_id = &"rabbit"
 [node name="Pickup8" parent="." unique_id=1853630017 instance=ExtResource("13_1fput")]
 position = Vector2(789, 915)
 item_id = &"rabbit"
-
-[node name="enemy" parent="." unique_id=1720674554 instance=ExtResource("15_4fc0e")]
-position = Vector2(275, -245)
