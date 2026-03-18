@@ -17,12 +17,20 @@ var is_selected : bool = false
 func set_is_selected(new_is_selected : bool) -> void:
 	is_selected = new_is_selected
 	if is_selected:
-		item_name_label.add_theme_color_override("font_color", Color.YELLOW)
-		var style = item_portrait_border.get_theme_stylebox("panel").duplicate()
-		style.bg_color = Color.YELLOW
-		item_portrait_border.add_theme_stylebox_override("panel", style)		
+		var style: StyleBox = item_portrait_border.get_theme_stylebox("panel").duplicate()
+		if style is StyleBoxFlat:
+			var flat_style := style as StyleBoxFlat
+			flat_style.border_color = Color.YELLOW
+			flat_style.set_border_width_all(3)
+		else:
+			# Fallback in case a non-flat stylebox is used by the theme.
+			var outline_style := StyleBoxFlat.new()
+			outline_style.bg_color = Color.TRANSPARENT
+			outline_style.border_color = Color.YELLOW
+			outline_style.set_border_width_all(3)
+			style = outline_style
+		item_portrait_border.add_theme_stylebox_override("panel", style)
 	else:
-		item_name_label.remove_theme_color_override("font_color")
 		item_portrait_border.remove_theme_stylebox_override("panel")
 
 # TODO: Image implementation

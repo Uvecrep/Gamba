@@ -11,6 +11,17 @@ class_name Lootbox
 @export var lootTable: Array[LootEntry] = []
 
 
+func get_rollable_entries() -> Array[LootEntry]:
+	var valid_entries: Array[LootEntry] = []
+	for entry in lootTable:
+		if entry == null:
+			continue
+		if entry.weight <= 0.0:
+			continue
+		valid_entries.append(entry)
+	return valid_entries
+
+
 func roll() -> LootEntry:
 	
 	if lootTable.size() == 0:

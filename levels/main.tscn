@@ -39,6 +39,8 @@ produced_lootbox_id = &"lootbox_chaos"
 
 [node name="boulder_resource" parent="." unique_id=924756373 instance=ExtResource("14_boulder")]
 position = Vector2(550.71, 476)
+pickup_follow_target_path = NodePath("../player")
+pickup_impulse = Vector2(0, -600)
 
 [node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
 position = Vector2(1869, -2514)
@@ -163,10 +165,6 @@ text = "Restart"
 layout_mode = 2
 text = "Quit"
 
-[node name="Pickup" parent="." unique_id=1634760408 instance=ExtResource("13_1fput")]
-position = Vector2(581, 640)
-item_id = &"dummy_item"
-
 [node name="Pickup2" parent="." unique_id=1896649483 instance=ExtResource("13_1fput")]
 position = Vector2(698, 690)
 item_id = &"lootbox_chaos"
@@ -174,23 +172,3 @@ item_id = &"lootbox_chaos"
 [node name="Pickup3" parent="." unique_id=1233044806 instance=ExtResource("13_1fput")]
 position = Vector2(631, 787)
 item_id = &"sapling"
-
-[node name="Pickup4" parent="." unique_id=1657756741 instance=ExtResource("13_1fput")]
-position = Vector2(523, 747)
-item_id = &"dog"
-
-[node name="Pickup5" parent="." unique_id=556914396 instance=ExtResource("13_1fput")]
-position = Vector2(836, 781)
-item_id = &"hare"
-
-[node name="Pickup6" parent="." unique_id=1581105141 instance=ExtResource("13_1fput")]
-position = Vector2(964, 858)
-item_id = &"person"
-
-[node name="Pickup7" parent="." unique_id=1852521649 instance=ExtResource("13_1fput")]
-position = Vector2(897, 955)
-item_id = &"rabbit"
-
-[node name="Pickup8" parent="." unique_id=1853630017 instance=ExtResource("13_1fput")]
-position = Vector2(789, 915)
-item_id = &"rabbit"

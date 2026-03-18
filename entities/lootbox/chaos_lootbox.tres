@@ -60,6 +60,7 @@ summon_identity = &"spark_goblin"
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Chaos_SparkGoblin")
 name = "Spark Goblin"
+rarity_override = 2
 
 [resource]
 script = ExtResource("1_lootbox")

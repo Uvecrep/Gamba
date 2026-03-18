@@ -4,6 +4,7 @@ extends Node
 
 var item_paths: Array[String] = [
 	"res://resources/items/item_lootbox_chaos.tres",
+	"res://resources/items/item_lootbox_forest.tres",
 	"res://resources/items/item_sapling.tres",
 	"res://resources/items/item_gold_coin.tres",
 ]
