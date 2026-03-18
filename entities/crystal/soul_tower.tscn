@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://ni8po2n7s30b"]
+
+[ext_resource type="Script" uid="uid://bulp4kgg88uj8" path="res://entities/crystal/soul_tower.gd" id="1_j0el6"]
+[ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="2_guqsk"]
+[ext_resource type="Texture2D" uid="uid://dqurwl1fnfb0j" path="res://assets/objects/crystal.png" id="3_pfmyk"]
+[ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="4_3yapp"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_a2otu"]
+size = Vector2(46, 52)
+
+[node name="blood_confluence" type="StaticBody2D" unique_id=2107467836 node_paths=PackedStringArray("_lootbox_sprite", "_harvest_prompt_label")]
+script = ExtResource("1_j0el6")
+_lootbox_sprite = NodePath("LootboxSprite")
+pickup_scene = ExtResource("2_guqsk")
+_harvest_prompt_label = NodePath("HarvestPromptLabel")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1108375610]
+position = Vector2(0, 10)
+shape = SubResource("RectangleShape2D_a2otu")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2077622275]
+modulate = Color(0.36507753, 0.047473796, 0.44838822, 1)
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("3_pfmyk")
+
+[node name="LootboxSprite" type="Sprite2D" parent="." unique_id=1055617037]
+texture_filter = 1
+position = Vector2(0, 18)
+texture = ExtResource("4_3yapp")
+
+[node name="GrowthTimer" type="Timer" parent="." unique_id=1951766904]
+wait_time = 30.0
+
+[node name="HarvestPromptLabel" type="Label" parent="." unique_id=1677601674]
+z_index = 20
+offset_left = -86.0
+offset_top = 84.0
+offset_right = 90.0
+offset_bottom = 112.0
+text = "Press E to harvest"
+horizontal_alignment = 1
