@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7aymrnrwd1sq"
-path="res://.godot/imported/elemental_lootbox.png-d36ec2a82c90e0491993aed4ae1db4b6.ctex"
+path="res://.godot/imported/elemental_lootbox.png-8c14803f4369691f862c499874707d9d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/elemental_lootbox.png"
-dest_files=["res://.godot/imported/elemental_lootbox.png-d36ec2a82c90e0491993aed4ae1db4b6.ctex"]
+source_file="res://assets/objects/elemental_lootbox.png"
+dest_files=["res://.godot/imported/elemental_lootbox.png-8c14803f4369691f862c499874707d9d.ctex"]
 
 [params]
 

@@ -276,7 +276,7 @@ func choose_stuck_recovery_waypoint(goal_position: Vector2) -> Vector2:
 	return best_candidate
 
 func uses_navigation_agent() -> bool:
-	return unit.summon_identity != unit.ID_GHOST
+	return unit.summon_identity != unit.ID_GHOST and unit.summon_identity != unit.ID_FROST_WISP and unit.summon_identity != unit.ID_SOUL_LANTERN and unit.summon_identity != unit.ID_GRAVE_HOUND and unit.summon_identity != unit.ID_POSSESSOR
 
 func get_navigation_velocity(target_position: Vector2) -> Vector2:
 	if not unit._uses_navigation_agent():

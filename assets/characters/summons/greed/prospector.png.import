@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwb6qysi0g5jq"
-path="res://.godot/imported/prospector.png-c8875d14d9db48b7dd455674c24cd746.ctex"
+path="res://.godot/imported/prospector.png-ea8e497bcb2b486dffced1fab3545c81.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/prospector.png"
-dest_files=["res://.godot/imported/prospector.png-c8875d14d9db48b7dd455674c24cd746.ctex"]
+source_file="res://assets/characters/summons/greed/prospector.png"
+dest_files=["res://.godot/imported/prospector.png-ea8e497bcb2b486dffced1fab3545c81.ctex"]
 
 [params]
 

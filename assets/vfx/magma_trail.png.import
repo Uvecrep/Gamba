@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsb7hx4s20634"
-path="res://.godot/imported/magma_trail.png-5ccab2675bc04806ae2e4b81cbbd8422.ctex"
+path="res://.godot/imported/magma_trail.png-16a496c4ed992d45d65870e89ccbe1b9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/magma_trail.png"
-dest_files=["res://.godot/imported/magma_trail.png-5ccab2675bc04806ae2e4b81cbbd8422.ctex"]
+source_file="res://assets/vfx/magma_trail.png"
+dest_files=["res://.godot/imported/magma_trail.png-16a496c4ed992d45d65870e89ccbe1b9.ctex"]
 
 [params]
 

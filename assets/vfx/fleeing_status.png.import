@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdyac2vhm2rjv"
-path="res://.godot/imported/fleeing_status.png-2c2b9fc8ae5bf76693862f6a0cc5ce55.ctex"
+path="res://.godot/imported/fleeing_status.png-96f21e1f74c41083653122e121f8bb8f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/fleeing_status.png"
-dest_files=["res://.godot/imported/fleeing_status.png-2c2b9fc8ae5bf76693862f6a0cc5ce55.ctex"]
+source_file="res://assets/vfx/fleeing_status.png"
+dest_files=["res://.godot/imported/fleeing_status.png-96f21e1f74c41083653122e121f8bb8f.ctex"]
 
 [params]
 

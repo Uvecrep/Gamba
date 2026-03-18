@@ -115,6 +115,12 @@ func take_damage(amount: float) -> void:
 func heal(amount: float) -> void:
 	_health_component.heal(self, amount)
 
+func grant_hit_shield() -> bool:
+	return _health_component.grant_hit_shield(self)
+
+func has_hit_shield() -> bool:
+	return _health_component.has_hit_shield()
+
 func _update_house_regen(delta: float) -> void:
 	_health_component.update_house_regen(self, delta)
 

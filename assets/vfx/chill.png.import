@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b37edtd5uabub"
-path="res://.godot/imported/chill.png-e22e91f981adead3125f43a002ad1288.ctex"
+path="res://.godot/imported/chill.png-147d6bd2d1a9dccefb71a3942598b993.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/chill.png"
-dest_files=["res://.godot/imported/chill.png-e22e91f981adead3125f43a002ad1288.ctex"]
+source_file="res://assets/vfx/chill.png"
+dest_files=["res://.godot/imported/chill.png-147d6bd2d1a9dccefb71a3942598b993.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://caruq6b4qrnnk"
-path="res://.godot/imported/hex_doll.png-a5e64be2c848389e64179349d6f4269f.ctex"
+uid="uid://bhu21pmynu8x2"
+path="res://.godot/imported/soul_lantern.png-3e2ef1eb661d89d6ad478f5515072a02.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/summons/spirit/hex_doll.png"
-dest_files=["res://.godot/imported/hex_doll.png-a5e64be2c848389e64179349d6f4269f.ctex"]
+source_file="res://assets/characters/summons/spirit/soul_lantern.png"
+dest_files=["res://.godot/imported/soul_lantern.png-3e2ef1eb661d89d6ad478f5515072a02.ctex"]
 
 [params]
 

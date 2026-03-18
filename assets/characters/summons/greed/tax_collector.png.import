@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d00aka0ljv30k"
-path="res://.godot/imported/tax_collector.png-cae271c6c28c62e85ca6a6eeac42421b.ctex"
+path="res://.godot/imported/tax_collector.png-3f7da34f10f066322738ab4ad43e6aaf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/tax_collector.png"
-dest_files=["res://.godot/imported/tax_collector.png-cae271c6c28c62e85ca6a6eeac42421b.ctex"]
+source_file="res://assets/characters/summons/greed/tax_collector.png"
+dest_files=["res://.godot/imported/tax_collector.png-3f7da34f10f066322738ab4ad43e6aaf.ctex"]
 
 [params]
 

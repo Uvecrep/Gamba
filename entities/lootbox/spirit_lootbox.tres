@@ -1,50 +1,73 @@
-[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://blfa62qhapu8"]
+[gd_resource type="Resource" script_class="Lootbox" format=3]
 
-[ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://entities/lootbox/lootbox.gd" id="1_lootbox"]
-[ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://entities/lootbox/loot_entry.gd" id="2_entry"]
-[ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="3_summon_scene"]
-[ext_resource type="Script" uid="uid://b8tplg8ohx7w4" path="res://entities/lootbox/lootbox_outcome_spawn_summon.gd" id="4_spawn_outcome"]
-[ext_resource type="Texture2D" uid="uid://cxt3wbwk3meto" path="res://assets/characters/summons/chaos/ghost.png" id="5_ghost_texture"]
-[ext_resource type="Texture2D" uid="uid://dgsjnvayetwtl" path="res://assets/characters/summons/chaos/jack_in_the_box.png" id="6_jack_in_the_box_texture"]
-[ext_resource type="Texture2D" uid="uid://576e77qnkd8v" path="res://assets/characters/summons/forest/bee_swarm.png" id="7_bee_swarm_texture"]
+[ext_resource type="Script" path="res://entities/lootbox/lootbox.gd" id="1_lootbox"]
+[ext_resource type="Script" path="res://entities/lootbox/loot_entry.gd" id="2_entry"]
+[ext_resource type="Script" path="res://entities/lootbox/lootbox_outcome_spawn_summon.gd" id="3_spawn_outcome"]
+[ext_resource type="Texture2D" path="res://assets/characters/summons/spirit/soul_lantern.png" id="4_soul_lantern_texture"]
+[ext_resource type="Texture2D" path="res://assets/characters/summons/spirit/banshee.png" id="5_banshee_texture"]
+[ext_resource type="Texture2D" path="res://assets/characters/summons/spirit/grave_hound.png" id="6_grave_hound_texture"]
+[ext_resource type="Texture2D" path="res://assets/characters/summons/spirit/hex_doll.png" id="7_hex_doll_texture"]
+[ext_resource type="Texture2D" path="res://assets/characters/summons/spirit/possessor.png" id="8_possessor_texture"]
 
-[sub_resource type="Resource" id="Outcome_Spirit_Ghost"]
-script = ExtResource("4_spawn_outcome")
-summon_texture_override = ExtResource("5_ghost_texture")
-summon_identity = &"ghost"
+[sub_resource type="Resource" id="Outcome_Spirit_SoulLantern"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("4_soul_lantern_texture")
+summon_identity = &"soul_lantern"
 
-[sub_resource type="Resource" id="Entry_Spirit_Ghost"]
+[sub_resource type="Resource" id="Entry_Spirit_SoulLantern"]
 script = ExtResource("2_entry")
-outcome = SubResource("Outcome_Spirit_Ghost")
+outcome = SubResource("Outcome_Spirit_SoulLantern")
 weight = 1.0
-name = "Ghost"
+name = "Soul Lantern"
 
-[sub_resource type="Resource" id="Outcome_Spirit_JackInTheBox"]
-script = ExtResource("4_spawn_outcome")
-summon_texture_override = ExtResource("6_jack_in_the_box_texture")
-summon_identity = &"jack_in_the_box"
+[sub_resource type="Resource" id="Outcome_Spirit_Banshee"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("5_banshee_texture")
+summon_identity = &"banshee"
 
-[sub_resource type="Resource" id="Entry_Spirit_JackInTheBox"]
+[sub_resource type="Resource" id="Entry_Spirit_Banshee"]
 script = ExtResource("2_entry")
-outcome = SubResource("Outcome_Spirit_JackInTheBox")
+outcome = SubResource("Outcome_Spirit_Banshee")
 weight = 1.0
-name = "Jack in the Box"
+name = "Banshee"
 
-[sub_resource type="Resource" id="Outcome_Spirit_BeeSwarm"]
-script = ExtResource("4_spawn_outcome")
-summon_texture_override = ExtResource("7_bee_swarm_texture")
-summon_identity = &"bee_swarm"
+[sub_resource type="Resource" id="Outcome_Spirit_GraveHound"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("6_grave_hound_texture")
+summon_identity = &"grave_hound"
 
-[sub_resource type="Resource" id="Entry_Spirit_BeeSwarm"]
+[sub_resource type="Resource" id="Entry_Spirit_GraveHound"]
 script = ExtResource("2_entry")
-outcome = SubResource("Outcome_Spirit_BeeSwarm")
+outcome = SubResource("Outcome_Spirit_GraveHound")
 weight = 1.0
-name = "Bee Swarm"
+name = "Grave Hound"
+
+[sub_resource type="Resource" id="Outcome_Spirit_HexDoll"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("7_hex_doll_texture")
+summon_identity = &"hex_doll"
+
+[sub_resource type="Resource" id="Entry_Spirit_HexDoll"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Spirit_HexDoll")
+weight = 1.0
+name = "Hex Doll"
+
+[sub_resource type="Resource" id="Outcome_Spirit_Possessor"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("8_possessor_texture")
+summon_identity = &"possessor"
+
+[sub_resource type="Resource" id="Entry_Spirit_Possessor"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Spirit_Possessor")
+weight = 1.0
+name = "Possessor"
 
 [resource]
 script = ExtResource("1_lootbox")
 id = &"spirit"
 name = "Spirit Box"
 color = "Purple"
-description = "Contains ethereal spirit-themed summons with otherworldly powers."
-lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Spirit_Ghost"), SubResource("Entry_Spirit_JackInTheBox"), SubResource("Entry_Spirit_BeeSwarm")])
+description = "Bound to souls and curses. Contains five utility-focused spirit summons."
+lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Spirit_SoulLantern"), SubResource("Entry_Spirit_Banshee"), SubResource("Entry_Spirit_GraveHound"), SubResource("Entry_Spirit_HexDoll"), SubResource("Entry_Spirit_Possessor")])

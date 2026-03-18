@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bwyt56u4xgqwp"
-path="res://.godot/imported/spirit_lootbox.png-65e3b6947d88f4d49be1f4a6664b0736.ctex"
+path="res://.godot/imported/spirit_lootbox.png-ab51bdc71a6e099b99de2b7ed98a51e0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/spirit_lootbox.png"
-dest_files=["res://.godot/imported/spirit_lootbox.png-65e3b6947d88f4d49be1f4a6664b0736.ctex"]
+source_file="res://assets/objects/spirit_lootbox.png"
+dest_files=["res://.godot/imported/spirit_lootbox.png-ab51bdc71a6e099b99de2b7ed98a51e0.ctex"]
 
 [params]
 

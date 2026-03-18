@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b5oypxm0us8c0"
-path="res://.godot/imported/rock_attack.png-1ebab567c9291d6eaea74c516884f544.ctex"
+path="res://.godot/imported/rock_attack.png-42f8f752255b91b9e9db6a11279ba12f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/rock_attack.png"
-dest_files=["res://.godot/imported/rock_attack.png-1ebab567c9291d6eaea74c516884f544.ctex"]
+source_file="res://assets/vfx/rock_attack.png"
+dest_files=["res://.godot/imported/rock_attack.png-42f8f752255b91b9e9db6a11279ba12f.ctex"]
 
 [params]
 

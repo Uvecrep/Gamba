@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://p6vc13u8l2l7"
-path="res://.godot/imported/golden_gunner.png-24de919190cb4c1c2a22a4f605ecfdd5.ctex"
+path="res://.godot/imported/golden_gunner.png-fbbdc002bbb0c7c560e2dd15e8be885a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/golden_gunner.png"
-dest_files=["res://.godot/imported/golden_gunner.png-24de919190cb4c1c2a22a4f605ecfdd5.ctex"]
+source_file="res://assets/characters/summons/greed/golden_gunner.png"
+dest_files=["res://.godot/imported/golden_gunner.png-fbbdc002bbb0c7c560e2dd15e8be885a.ctex"]
 
 [params]
 

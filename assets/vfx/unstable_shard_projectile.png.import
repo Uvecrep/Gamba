@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://br6sathyjvqbp"
-path="res://.godot/imported/unstable_shard_projectile.png-78ba3a3e241031f0f232c9fbb0b24d49.ctex"
+path="res://.godot/imported/unstable_shard_projectile.png-2eb0f1c8aff52a50a6de25081f8398b4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/unstable_shard_projectile.png"
-dest_files=["res://.godot/imported/unstable_shard_projectile.png-78ba3a3e241031f0f232c9fbb0b24d49.ctex"]
+source_file="res://assets/vfx/unstable_shard_projectile.png"
+dest_files=["res://.godot/imported/unstable_shard_projectile.png-2eb0f1c8aff52a50a6de25081f8398b4.ctex"]
 
 [params]
 

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/summon/summon_identity_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+summon_identity = &"soul_lantern"
+move_speed = 95.0
+attack_range = 175.0
+attack_damage = 0.0
+attack_cooldown = 0.75
+max_health = 78.0
+follow_player_distance_override = 54.0

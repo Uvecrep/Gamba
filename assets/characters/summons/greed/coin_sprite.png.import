@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8nin3ttnoarw"
-path="res://.godot/imported/coin_sprite.png-aee1cfac209f44cc2273b447673d0094.ctex"
+path="res://.godot/imported/coin_sprite.png-4d02bedc80d0dfe8026f99640bcc394b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/coin_sprite.png"
-dest_files=["res://.godot/imported/coin_sprite.png-aee1cfac209f44cc2273b447673d0094.ctex"]
+source_file="res://assets/characters/summons/greed/coin_sprite.png"
+dest_files=["res://.godot/imported/coin_sprite.png-4d02bedc80d0dfe8026f99640bcc394b.ctex"]
 
 [params]
 

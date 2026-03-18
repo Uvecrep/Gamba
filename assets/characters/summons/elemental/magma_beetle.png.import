@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://yp63evibtary"
-path="res://.godot/imported/magma_beetle.png-d7f68e694d808c549c55aaeb88a46cd8.ctex"
+path="res://.godot/imported/magma_beetle.png-d313438de815ed1f5bbfce2f913fad4f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/magma_beetle.png"
-dest_files=["res://.godot/imported/magma_beetle.png-d7f68e694d808c549c55aaeb88a46cd8.ctex"]
+source_file="res://assets/characters/summons/elemental/magma_beetle.png"
+dest_files=["res://.godot/imported/magma_beetle.png-d313438de815ed1f5bbfce2f913fad4f.ctex"]
 
 [params]
 

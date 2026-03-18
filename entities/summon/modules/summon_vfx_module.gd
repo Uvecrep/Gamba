@@ -20,12 +20,16 @@ func launch_projectile_attack(target: Node2D, hit_options: Dictionary = {}) -> v
 		unit._deal_damage_to_target(target, unit.attack_damage, hit_options)
 		return
 
+	var projectile_damage: float = unit.attack_damage
+	if hit_options.has("damage_override"):
+		projectile_damage = maxf(float(hit_options.get("damage_override", unit.attack_damage)), 0.0)
+
 	var projectile: SummonAttackProjectile = SummonAttackProjectile.spawn(
 		unit.attack_projectile_scene,
 		parent_node,
 		unit.global_position,
 		target,
-		unit.attack_damage,
+		projectile_damage,
 		unit,
 		hit_options
 	)
@@ -48,7 +52,7 @@ func load_vfx_assets() -> void:
 	unit._vfx_acorn_projectile = load(unit.VFX_ACORN_PROJECTILE_PATH) as Texture2D
 	unit._vfx_spring_projectile = load(unit.VFX_SPRING_PROJECTILE_PATH) as Texture2D
 
-func spawn_world_vfx(texture: Texture2D, world_position: Vector2, rotation_radians: float = 0.0, sprite_scale: Vector2 = Vector2.ONE, lifetime: float = 0.2, use_corner_anchor: bool = false, corner_anchor_uv: Vector2 = Vector2.ZERO) -> void:
+func spawn_world_vfx(texture: Texture2D, world_position: Vector2, rotation_radians: float = 0.0, sprite_scale: Vector2 = Vector2.ONE, lifetime: float = 0.2, use_corner_anchor: bool = false, corner_anchor_uv: Vector2 = Vector2.ZERO, z_index: int = 30) -> void:
 	if texture == null:
 		return
 	if not can_spawn_world_vfx_this_frame():
@@ -68,7 +72,7 @@ func spawn_world_vfx(texture: Texture2D, world_position: Vector2, rotation_radia
 		resolved_world_position = world_position - local_anchor_offset.rotated(rotation_radians)
 
 	if is_instance_valid(unit._vfx_pool):
-		unit._vfx_pool.spawn_world_fade(parent_node, texture, resolved_world_position, rotation_radians, sprite_scale, 30, lifetime, 0.96, not use_corner_anchor)
+		unit._vfx_pool.spawn_world_fade(parent_node, texture, resolved_world_position, rotation_radians, sprite_scale, z_index, lifetime, 0.96, not use_corner_anchor)
 		return
 
 	var vfx_sprite := Sprite2D.new()
@@ -81,7 +85,7 @@ func spawn_world_vfx(texture: Texture2D, world_position: Vector2, rotation_radia
 		vfx_sprite.global_position = resolved_world_position
 	vfx_sprite.rotation = rotation_radians
 	vfx_sprite.scale = sprite_scale
-	vfx_sprite.z_index = 30
+	vfx_sprite.z_index = z_index
 	vfx_sprite.modulate = Color(1.0, 1.0, 1.0, 0.96)
 	parent_node.add_child(vfx_sprite)
 

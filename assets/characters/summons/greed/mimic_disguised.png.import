@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://o0ct2yqweq5t"
-path="res://.godot/imported/mimic_disguised.png-f876364e1b6991c344ba561f1e5ffa9c.ctex"
+path="res://.godot/imported/mimic_disguised.png-98aaa1c06ae7c570758977fc7601ffca.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/to_sort/mimic_disguised.png"
-dest_files=["res://.godot/imported/mimic_disguised.png-f876364e1b6991c344ba561f1e5ffa9c.ctex"]
+source_file="res://assets/characters/summons/greed/mimic_disguised.png"
+dest_files=["res://.godot/imported/mimic_disguised.png-98aaa1c06ae7c570758977fc7601ffca.ctex"]
 
 [params]
 

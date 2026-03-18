@@ -5,6 +5,8 @@ const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.
 var unit
 var _health_component: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
 var _is_initialized: bool = false
+var _hit_shield_stacks: int = 0
+const MAX_HIT_SHIELD_STACKS: int = 1
 
 func _init(owner) -> void:
 	unit = owner
@@ -16,6 +18,12 @@ func initialize_health(start_full: bool = true) -> void:
 
 func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) -> void:
 	_ensure_health_initialized()
+	if amount > 0.0 and _hit_shield_stacks > 0:
+		_hit_shield_stacks -= 1
+		request_health_bar_visibility(0.7)
+		update_health_bar()
+		return
+
 	var final_damage: float = amount
 	if unit.summon_identity == unit.ID_BUSH_BOY and unit._command_mode == unit.CommandMode.HOLD:
 		final_damage *= 0.6
@@ -65,9 +73,29 @@ func heal(amount: float) -> void:
 	update_health_bar()
 
 func die() -> void:
+	if unit.summon_identity == unit.ID_UNSTABLE_SHARD:
+		unit._explode_unstable_shard()
+	if unit.summon_identity == unit.ID_TAX_COLLECTOR:
+		unit._drop_tax_collector_gold()
+	_hit_shield_stacks = 0
 	if should_split_on_death():
 		spawn_split_children()
 	unit.queue_free()
+
+func grant_hit_shield() -> bool:
+	_ensure_health_initialized()
+	if _health_component.is_dead:
+		return false
+	if _hit_shield_stacks >= MAX_HIT_SHIELD_STACKS:
+		return false
+
+	_hit_shield_stacks += 1
+	request_health_bar_visibility(0.9)
+	update_health_bar()
+	return true
+
+func has_hit_shield() -> bool:
+	return _hit_shield_stacks > 0
 
 func should_split_on_death() -> bool:
 	if unit.summon_identity != unit.ID_SLIME:

@@ -17,6 +17,8 @@ const DEFAULT_ENEMY_TEXTURE_PATH: String = "res://assets/characters/enemy.png"
 const ENEMY_PROJECTILE_TEXTURE_PATH: String = "res://assets/characters/raider_projectile.png"
 const ENEMY_SCENE_PATH: String = "res://entities/enemy/enemy.tscn"
 const RANGED_PROJECTILE_SCENE: PackedScene = preload("res://entities/summon/summon_attack.tscn")
+const PICKUP_SCENE: PackedScene = preload("res://entities/pickups/pickup.tscn")
+const GOLD_ITEM_ID: StringName = &"gold_coin"
 
 @export var move_speed: float = 90.0
 @export var repath_interval: float = 0.3
@@ -69,6 +71,10 @@ const PHYSICS_LAYER_WORLD: int = 1 << 0
 const PHYSICS_LAYER_ENEMY: int = 1 << 2
 const VFX_BURN_EFFECT_PATH: String = "res://assets/vfx/burn_effect.png"
 const VFX_ROOTED_PATH: String = "res://assets/vfx/rooted.png"
+const VFX_CHILL_PATH: String = "res://assets/vfx/chill.png"
+const VFX_FREEZE_PATH: String = "res://assets/vfx/freeze.png"
+const VFX_FLEEING_STATUS_PATH: String = "res://assets/vfx/fleeing_status.png"
+const VFX_HEX_STATUS_PATH: String = "res://assets/vfx/hex_status.png"
 const VFX_HIT_MARKER_PATH: String = "res://assets/vfx/hit_marker.png"
 const VFX_KNOCKBACK_PATH: String = "res://assets/vfx/knockback.png"
 
@@ -89,6 +95,16 @@ var _sting_time_left: float = 0.0
 var _sting_max_stack_burst_damage: float = 0.0
 var _sting_hits_toward_burst: int = 0
 var _root_time_left: float = 0.0
+var _chill_stacks: int = 0
+var _chill_time_left: float = 0.0
+var _freeze_time_left: float = 0.0
+var _fear_time_left: float = 0.0
+var _fear_source_position: Vector2 = Vector2.ZERO
+var _stun_time_left: float = 0.0
+var _hex_time_left: float = 0.0
+var _hex_damage_multiplier: float = 1.0
+var _hex_spread_on_death_radius: float = 0.0
+var _coin_mark_count: int = 0
 var _status_tick_time_left: float = 0.0
 var _external_push_velocity: Vector2 = Vector2.ZERO
 var _health_bar_visible_time_left: float = 0.0
@@ -96,8 +112,16 @@ var _time_to_next_ranged_shot: float = 0.0
 var _time_to_next_heal_tick: float = 0.0
 var _burn_vfx_sprite: Sprite2D
 var _root_vfx_sprite: Sprite2D
+var _chill_vfx_sprite: Sprite2D
+var _freeze_vfx_sprite: Sprite2D
+var _fear_vfx_sprite: Sprite2D
+var _hex_vfx_sprite: Sprite2D
 var _vfx_burn_effect: Texture2D
 var _vfx_rooted: Texture2D
+var _vfx_chill: Texture2D
+var _vfx_freeze: Texture2D
+var _vfx_fleeing_status: Texture2D
+var _vfx_hex_status: Texture2D
 var _vfx_hit_marker: Texture2D
 var _vfx_knockback: Texture2D
 var _ranged_projectile_texture: Texture2D
@@ -173,6 +197,9 @@ func _physics_process(delta: float) -> void:
 	if previous_health_bar_visible_time_left > 0.0 and _health_bar_visible_time_left <= 0.0:
 		_refresh_health_bar_visibility()
 	var is_rooted: bool = _root_time_left > 0.0
+	var is_frozen: bool = _freeze_time_left > 0.0
+	var is_stunned: bool = _stun_time_left > 0.0
+	var feared_now: bool = _fear_time_left > 0.0
 	var is_far_lod: bool = _is_far_from_player()
 	var repath_wait: float = maxf(repath_interval, 0.05)
 	var visibility_wait: float = maxf(visibility_check_interval, 0.05)
@@ -217,8 +244,10 @@ func _physics_process(delta: float) -> void:
 		var is_threat_target: bool = _current_target.is_in_group("summons") or _current_target.is_in_group("players")
 		var is_ranged_archetype: bool = _is_ranged_archetype()
 		var is_healer_archetype: bool = _is_healer_archetype()
-		if is_rooted:
+		if is_rooted or is_frozen or is_stunned:
 			velocity = Vector2.ZERO
+		elif feared_now:
+			velocity = _fear_source_position.direction_to(global_position) * move_speed
 		elif is_healer_archetype and is_threat_target:
 			velocity = _get_healer_spacing_velocity(_current_target, target_distance)
 		elif is_ranged_archetype:
@@ -232,7 +261,7 @@ func _physics_process(delta: float) -> void:
 		else:
 			velocity = Vector2.ZERO
 
-		if not is_rooted:
+		if not is_rooted and not is_frozen and not is_stunned and not feared_now:
 			if is_ranged_archetype:
 				_try_ranged_attack(_current_target, target_distance, _cached_has_clear_path, allow_attack_without_clear_path)
 			elif not is_healer_archetype:
@@ -240,6 +269,9 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity = Vector2.ZERO
 		_clear_navigation_target()
+
+	if _chill_time_left > 0.0 and not is_frozen and not is_stunned:
+		velocity *= _get_chill_speed_multiplier()
 
 	velocity += _external_push_velocity
 	move_and_slide()
@@ -507,6 +539,41 @@ func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) ->
 			_root_time_left = maxf(_root_time_left, root_duration)
 			_spawn_local_vfx(_vfx_rooted, Vector2(0.0, 8.0), 0.18, Vector2(1.0, 1.0))
 
+	if options.has("chill_add"):
+		var chill_add: int = int(options.get("chill_add", 0))
+		if chill_add > 0:
+			var freeze_threshold: int = maxi(int(options.get("freeze_threshold", 5)), 1)
+			_chill_stacks = mini(_chill_stacks + chill_add, freeze_threshold)
+			_chill_time_left = maxf(_chill_time_left, float(options.get("chill_duration", 2.0)))
+			if _chill_stacks >= freeze_threshold:
+				var freeze_duration: float = float(options.get("freeze_duration", 0.0))
+				if freeze_duration > 0.0:
+					_freeze_time_left = maxf(_freeze_time_left, freeze_duration)
+
+	if options.has("fear_duration"):
+		var fear_duration: float = float(options.get("fear_duration", 0.0))
+		if fear_duration > 0.0:
+			_fear_time_left = maxf(_fear_time_left, fear_duration)
+			if is_instance_valid(source):
+				_fear_source_position = source.global_position
+
+	if options.has("stun_duration"):
+		var stun_duration: float = float(options.get("stun_duration", 0.0))
+		if stun_duration > 0.0:
+			_stun_time_left = maxf(_stun_time_left, stun_duration)
+
+	if options.has("hex_duration"):
+		var hex_duration: float = float(options.get("hex_duration", 0.0))
+		if hex_duration > 0.0:
+			_hex_time_left = maxf(_hex_time_left, hex_duration)
+			_hex_damage_multiplier = maxf(_hex_damage_multiplier, float(options.get("hex_damage_multiplier", 1.15)))
+			_hex_spread_on_death_radius = maxf(_hex_spread_on_death_radius, float(options.get("hex_spread_on_death_radius", 0.0)))
+
+	if options.has("coin_mark_add"):
+		var coin_mark_add: int = int(options.get("coin_mark_add", 0))
+		if coin_mark_add > 0:
+			_coin_mark_count = mini(_coin_mark_count + coin_mark_add, 10)
+
 	if options.has("knockback_force") and is_instance_valid(source):
 		var knockback_force: float = float(options.get("knockback_force", 0.0))
 		if knockback_force > 0.0:
@@ -521,6 +588,9 @@ func take_damage(amount: float) -> void:
 func _apply_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return
+
+	if _hex_time_left > 0.0:
+		amount *= maxf(_hex_damage_multiplier, 1.0)
 
 	_sync_health_max_from_export()
 	var applied_damage: float = _health_component.take_damage(amount)
@@ -549,10 +619,29 @@ func heal(amount: float) -> void:
 	_request_health_bar_visibility(0.75)
 	_update_health_bar()
 
+func get_health_fraction() -> float:
+	if _health_component.max_health <= 0.0:
+		return 1.0
+	return clampf(_health_component.current_health / _health_component.max_health, 0.0, 1.0)
+
+func get_missing_health_ratio() -> float:
+	return 1.0 - get_health_fraction()
+
+func is_burning() -> bool:
+	return _burn_time_left > 0.0
+
+func is_feared() -> bool:
+	return _fear_time_left > 0.0
+
 func _update_status_effects(delta: float) -> void:
 	_burn_time_left = maxf(_burn_time_left - delta, 0.0)
 	_sting_time_left = maxf(_sting_time_left - delta, 0.0)
 	_root_time_left = maxf(_root_time_left - delta, 0.0)
+	_chill_time_left = maxf(_chill_time_left - delta, 0.0)
+	_freeze_time_left = maxf(_freeze_time_left - delta, 0.0)
+	_fear_time_left = maxf(_fear_time_left - delta, 0.0)
+	_stun_time_left = maxf(_stun_time_left - delta, 0.0)
+	_hex_time_left = maxf(_hex_time_left - delta, 0.0)
 	_status_tick_time_left = maxf(_status_tick_time_left - delta, 0.0)
 
 	if _burn_time_left <= 0.0:
@@ -563,6 +652,13 @@ func _update_status_effects(delta: float) -> void:
 		_sting_dps_per_stack = 0.0
 		_sting_max_stack_burst_damage = 0.0
 		_sting_hits_toward_burst = 0
+
+	if _chill_time_left <= 0.0:
+		_chill_stacks = 0
+
+	if _hex_time_left <= 0.0:
+		_hex_damage_multiplier = 1.0
+		_hex_spread_on_death_radius = 0.0
 
 	if _status_tick_time_left > 0.0:
 		_update_status_vfx()
@@ -584,11 +680,19 @@ func _update_status_effects(delta: float) -> void:
 func _setup_status_vfx() -> void:
 	_burn_vfx_sprite = _create_persistent_status_sprite(_vfx_burn_effect, Vector2(0.0, -4.0), Vector2(1.0, 1.0))
 	_root_vfx_sprite = _create_persistent_status_sprite(_vfx_rooted, Vector2(0.0, 10.0), Vector2(1.0, 1.0))
+	_chill_vfx_sprite = _create_persistent_status_sprite(_vfx_chill, Vector2(0.0, -16.0), Vector2(1.0, 1.0))
+	_freeze_vfx_sprite = _create_persistent_status_sprite(_vfx_freeze, Vector2(0.0, -10.0), Vector2(1.0, 1.0))
+	_fear_vfx_sprite = _create_persistent_status_sprite(_vfx_fleeing_status, Vector2(0.0, -22.0), Vector2(1.0, 1.0))
+	_hex_vfx_sprite = _create_persistent_status_sprite(_vfx_hex_status, Vector2(0.0, -28.0), Vector2(1.0, 1.0))
 	_update_status_vfx()
 
 func _load_vfx_assets() -> void:
 	_vfx_burn_effect = load(VFX_BURN_EFFECT_PATH) as Texture2D
 	_vfx_rooted = load(VFX_ROOTED_PATH) as Texture2D
+	_vfx_chill = load(VFX_CHILL_PATH) as Texture2D
+	_vfx_freeze = load(VFX_FREEZE_PATH) as Texture2D
+	_vfx_fleeing_status = load(VFX_FLEEING_STATUS_PATH) as Texture2D
+	_vfx_hex_status = load(VFX_HEX_STATUS_PATH) as Texture2D
 	_vfx_hit_marker = load(VFX_HIT_MARKER_PATH) as Texture2D
 	_vfx_knockback = load(VFX_KNOCKBACK_PATH) as Texture2D
 
@@ -618,6 +722,43 @@ func _update_status_vfx() -> void:
 		if _root_vfx_sprite.visible:
 			var root_pulse: float = 0.8 + (0.2 * sin(Time.get_ticks_msec() / 110.0))
 			_root_vfx_sprite.modulate = Color(1.0, 1.0, 1.0, root_pulse)
+
+	if _chill_vfx_sprite != null:
+		_chill_vfx_sprite.visible = _chill_time_left > 0.0 and _freeze_time_left <= 0.0
+		if _chill_vfx_sprite.visible:
+			var chill_pulse: float = 0.78 + (0.22 * sin(Time.get_ticks_msec() / 100.0))
+			_chill_vfx_sprite.modulate = Color(1.0, 1.0, 1.0, chill_pulse)
+
+	if _freeze_vfx_sprite != null:
+		_freeze_vfx_sprite.visible = _freeze_time_left > 0.0
+		if _freeze_vfx_sprite.visible:
+			var freeze_pulse: float = 0.82 + (0.18 * sin(Time.get_ticks_msec() / 80.0))
+			_freeze_vfx_sprite.modulate = Color(1.0, 1.0, 1.0, freeze_pulse)
+
+	if _fear_vfx_sprite != null:
+		var fleeing_now: bool = _fear_time_left > 0.0 and _root_time_left <= 0.0 and _freeze_time_left <= 0.0 and _stun_time_left <= 0.0
+		_fear_vfx_sprite.visible = fleeing_now
+		if _fear_vfx_sprite.visible:
+			var fear_pulse: float = 0.78 + (0.22 * sin(Time.get_ticks_msec() / 95.0))
+			_fear_vfx_sprite.modulate = Color(1.0, 1.0, 1.0, fear_pulse)
+
+	if _hex_vfx_sprite != null:
+		_hex_vfx_sprite.visible = _hex_time_left > 0.0
+		if _hex_vfx_sprite.visible:
+			var hex_pulse: float = 0.8 + (0.2 * sin(Time.get_ticks_msec() / 100.0))
+			_hex_vfx_sprite.modulate = Color(1.0, 1.0, 1.0, hex_pulse)
+
+	if _sprite != null:
+		if _freeze_time_left > 0.0:
+			_sprite.modulate = Color(0.68, 0.88, 1.15, 1.0)
+		elif _hex_time_left > 0.0:
+			_sprite.modulate = Color(1.1, 0.86, 1.15, 1.0)
+		elif _fear_time_left > 0.0:
+			_sprite.modulate = Color(1.15, 0.95, 0.75, 1.0)
+		elif _chill_time_left > 0.0:
+			_sprite.modulate = Color(0.82, 0.94, 1.08, 1.0)
+		else:
+			_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func _spawn_local_vfx(texture: Texture2D, local_offset: Vector2, lifetime: float, sprite_scale: Vector2 = Vector2.ONE, rotation_radians: float = 0.0) -> void:
 	if texture == null:
@@ -655,9 +796,72 @@ func _can_spawn_vfx_this_frame() -> bool:
 	return true
 
 func _die() -> void:
+	_apply_hex_spread_on_death()
+	_drop_coin_pickups(_coin_mark_count)
+	_broadcast_enemy_death()
 	if enemy_archetype == ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
 		_spawn_split_goblins()
 	queue_free()
+
+func _get_chill_speed_multiplier() -> float:
+	if _chill_stacks <= 0:
+		return 1.0
+	var slow_ratio: float = clampf(float(_chill_stacks) * 0.08, 0.0, 0.45)
+	return 1.0 - slow_ratio
+
+func _broadcast_enemy_death() -> void:
+	if not is_inside_tree():
+		return
+
+	get_tree().call_group("summons", "_on_enemy_died_nearby", global_position, self)
+
+func _apply_hex_spread_on_death() -> void:
+	if _hex_spread_on_death_radius <= 0.0:
+		return
+	if _hex_time_left <= 0.0:
+		return
+
+	var spread_radius_sq: float = _hex_spread_on_death_radius * _hex_spread_on_death_radius
+	for candidate in get_tree().get_nodes_in_group("enemies"):
+		if not (candidate is EnemyUnit):
+			continue
+
+		var enemy_unit: EnemyUnit = candidate as EnemyUnit
+		if enemy_unit == self:
+			continue
+		if global_position.distance_squared_to(enemy_unit.global_position) > spread_radius_sq:
+			continue
+
+		enemy_unit.take_hit(0.0, null, {
+			"hex_duration": 2.0,
+			"hex_damage_multiplier": _hex_damage_multiplier,
+		})
+
+func _drop_coin_pickups(mark_count: int) -> void:
+	if mark_count <= 0:
+		return
+	if PICKUP_SCENE == null:
+		return
+
+	var parent_node: Node = get_tree().current_scene
+	if parent_node == null:
+		parent_node = get_parent()
+	if parent_node == null:
+		return
+
+	var drop_count: int = mini(mark_count, 10)
+	for index in range(drop_count):
+		var pickup_node: Node = PICKUP_SCENE.instantiate()
+		if not (pickup_node is Pickup):
+			if is_instance_valid(pickup_node):
+				pickup_node.queue_free()
+			continue
+
+		var pickup: Pickup = pickup_node as Pickup
+		parent_node.add_child(pickup)
+		pickup.set_data(GOLD_ITEM_ID)
+		var angle: float = TAU * float(index) / float(maxi(drop_count, 1))
+		pickup.global_position = global_position + (Vector2.RIGHT.rotated(angle) * randf_range(8.0, 20.0))
 
 func _spawn_split_goblins() -> void:
 	var spawn_count: int = maxi(split_spawn_count, 0)
@@ -852,11 +1056,12 @@ func _find_closest_target_in_groups(group_names: PackedStringArray, radius: floa
 	var spatial_index := _resolve_spatial_index()
 	if spatial_index != null:
 		var nearest: Node2D = spatial_index.find_closest_in_groups(global_position, group_names, radius, self)
-		_perf_mark_scope(&"enemy.find_target_in_groups", find_start_us, {
-			"path": "spatial_index",
-			"radius": radius,
-		})
-		return nearest
+		if nearest != null and _is_target_detectable(nearest):
+			_perf_mark_scope(&"enemy.find_target_in_groups", find_start_us, {
+				"path": "spatial_index",
+				"radius": radius,
+			})
+			return nearest
 
 	var closest_target: Node2D
 	var closest_distance_sq: float = INF
@@ -871,6 +1076,8 @@ func _find_closest_target_in_groups(group_names: PackedStringArray, radius: floa
 				continue
 
 			var candidate_2d := candidate as Node2D
+			if not _is_target_detectable(candidate_2d):
+				continue
 			var distance_sq := global_position.distance_squared_to(candidate_2d.global_position)
 			if has_radius_limit and distance_sq > radius_sq:
 				continue
@@ -884,6 +1091,15 @@ func _find_closest_target_in_groups(group_names: PackedStringArray, radius: floa
 		"radius": radius,
 	})
 	return closest_target
+
+func _is_target_detectable(target: Node2D) -> bool:
+	if target == null:
+		return false
+	if not target.is_in_group("summons"):
+		return true
+	if target is SummonUnit:
+		return (target as SummonUnit).is_enemy_detectable()
+	return true
 
 func _find_closest_target_in_group(group_name: StringName) -> Node2D:
 	var find_start_us: int = Time.get_ticks_usec()
