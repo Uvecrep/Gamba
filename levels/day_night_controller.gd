@@ -10,6 +10,7 @@ var first_night_starts_immediately: bool = false
 var night_waves_per_cycle: int = 3
 var night_wave_base_size: int = 6
 var night_wave_size_growth_per_night: int = 2
+var night_wave_spawn_scale: float = 0.9
 var night_wave_spacing_seconds: float = 10.0
 var day_night_transition_seconds: float = 1.8
 var day_overlay_color: Color = Color(0.06, 0.09, 0.15, 0.0)
@@ -215,7 +216,9 @@ func _spawn_next_wave() -> void:
 
 func _compute_wave_size() -> int:
 	var growth_steps: int = maxi(_night_index - 1, 0)
-	return maxi(night_wave_base_size + (growth_steps * night_wave_size_growth_per_night), 1)
+	var base_wave_size: int = maxi(night_wave_base_size + (growth_steps * night_wave_size_growth_per_night), 1)
+	var scaled_wave_size: int = int(round(float(base_wave_size) * maxf(night_wave_spawn_scale, 0.1)))
+	return maxi(scaled_wave_size, 1)
 
 
 func _get_wave_spacing_seconds(total_waves: int) -> float:

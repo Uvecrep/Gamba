@@ -17,6 +17,7 @@ class_name MainScene
 @export var night_waves_per_cycle: int = 3
 @export var night_wave_base_size: int = 6
 @export var night_wave_size_growth_per_night: int = 2
+@export var night_wave_spawn_scale: float = 0.9
 @export var night_wave_spacing_seconds: float = 10.0
 @export_group("Day/Night Visuals")
 @export var day_night_transition_seconds: float = 1.8
@@ -61,6 +62,7 @@ func _ready() -> void:
 	_day_night_controller.night_waves_per_cycle = night_waves_per_cycle
 	_day_night_controller.night_wave_base_size = night_wave_base_size
 	_day_night_controller.night_wave_size_growth_per_night = night_wave_size_growth_per_night
+	_day_night_controller.night_wave_spawn_scale = night_wave_spawn_scale
 	_day_night_controller.night_wave_spacing_seconds = night_wave_spacing_seconds
 	_day_night_controller.day_night_transition_seconds = day_night_transition_seconds
 	_day_night_controller.day_overlay_color = day_overlay_color

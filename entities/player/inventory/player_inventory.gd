@@ -5,9 +5,13 @@ signal inventory_changed()
 signal inventory_became_full()
 signal selected_index_changed(new_index : int)
 signal slot_contents_changed(index : int, item_id : StringName, count : int)
+signal gold_count_changed(current: int, previous: int)
+
+const GOLD_ITEM_IDS: Array[StringName] = [&"gold_coin", &"gold"]
 
 var selected_index : int = 2
 var num_slots : int = 5 # TODO implement changing number of slots? Static rn
+var gold_count: int = 0
 
 var inventory_items : Array[StringName] = []
 var inventory_item_counts : Array[int] = [] # A slot where count is zero is treated as empty
@@ -48,9 +52,42 @@ func set_slot_item_count(index : int, new_value: int) -> bool:
 	slot_contents_changed.emit(index, inventory_items[index], new_value)
 	return true
 
+func get_gold_count() -> int:
+	return gold_count
+
+func add_gold(amount: int) -> int:
+	if amount <= 0:
+		return 0
+
+	var previous_gold: int = gold_count
+	gold_count += amount
+	gold_count_changed.emit(gold_count, previous_gold)
+	inventory_changed.emit()
+	return amount
+
+func spend_gold(amount: int) -> bool:
+	if amount <= 0:
+		return true
+	if gold_count < amount:
+		return false
+
+	var previous_gold: int = gold_count
+	gold_count -= amount
+	gold_count_changed.emit(gold_count, previous_gold)
+	inventory_changed.emit()
+	return true
+
+func has_gold(amount: int) -> bool:
+	if amount <= 0:
+		return true
+	return gold_count >= amount
+
 func add_items(item_id: StringName, num_items: int) -> bool:
 	if item_id == &"": return false;
 	if num_items <= 0: return false
+	if is_gold_item(item_id):
+		add_gold(num_items)
+		return true
 	
 	var target_slot_index = -1
 	var filled_new_slot = false
@@ -89,9 +126,13 @@ func remove_items(index : int, num_to_remove : int, allow_insufficient_funds : b
 	return true
 
 func would_item_fit(item_id: StringName) -> bool:
+	if is_gold_item(item_id): return true
 	if _get_empty_slots().size() > 0: return true
 	if inventory_items.has(item_id): return true
 	return false
+
+func is_gold_item(item_id: StringName) -> bool:
+	return GOLD_ITEM_IDS.has(item_id)
 
 func _get_empty_slots() -> Array[int]:
 	var empty_slots : Array[int] = []

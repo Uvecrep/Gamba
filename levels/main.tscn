@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://b815q8hl3sixl" path="res://ui/inventory/inventory.tscn" id="12_1fput"]
 [ext_resource type="Script" uid="uid://b7fjvdi8rvejq" path="res://scripts/fps_counter.gd" id="12_fps"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
+[ext_resource type="PackedScene" path="res://entities/boulder/boulder.tscn" id="14_boulder"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -35,6 +36,9 @@ position = Vector2(839, 473)
 position = Vector2(651, 465)
 starting_lootboxes = 1
 produced_lootbox_id = &"lootbox_chaos"
+
+[node name="boulder_resource" parent="." unique_id=924756373 instance=ExtResource("14_boulder")]
+position = Vector2(550.71, 476)
 
 [node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
 position = Vector2(1869, -2514)

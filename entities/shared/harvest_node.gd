@@ -159,14 +159,17 @@ func _spawn_lootbox_pickups(amount: int) -> void:
 	if pickup_parent == null:
 		return
 
-	var follow_target: Node2D = get_node_or_null(pickup_follow_target_path) as Node2D
+	var follow_target: Node2D = null
+	if not pickup_follow_target_path.is_empty():
+		follow_target = get_node_or_null(pickup_follow_target_path) as Node2D
+
 	for _i in range(amount):
 		var new_box: Pickup = pickup_scene.instantiate() as Pickup
 		if new_box == null:
 			continue
 
+		new_box.set_data(produced_lootbox_id)
+		new_box.floating_towards = follow_target
 		pickup_parent.add_child(new_box)
 		new_box.global_position = global_position
 		new_box.apply_central_impulse(pickup_impulse)
-		new_box.floating_towards = follow_target
-		new_box.item_id = produced_lootbox_id

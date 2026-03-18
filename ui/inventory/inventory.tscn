@@ -3,8 +3,9 @@
 [ext_resource type="Script" uid="uid://vqti75yd87dr" path="res://ui/inventory/inventory_ui.gd" id="1_t68fq"]
 [ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="2_qrt2q"]
 [ext_resource type="PackedScene" uid="uid://xtfj7565v6v4" path="res://ui/inventory/inventory_slot.tscn" id="2_s83yu"]
+[ext_resource type="Texture2D" uid="uid://t4b160m3svwb" path="res://assets/objects/gold.png" id="3_gold"]
 
-[node name="Inventory" type="Control" unique_id=1753442306 node_paths=PackedStringArray("slot_0", "slot_1", "slot_2", "slot_3", "slot_4")]
+[node name="Inventory" type="Control" unique_id=1753442306 node_paths=PackedStringArray("slot_0", "slot_1", "slot_2", "slot_3", "slot_4", "gold_count_label")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,6 +19,7 @@ slot_1 = NodePath("MarginContainer/PanelContainer/InventorySlot_1")
 slot_2 = NodePath("MarginContainer/PanelContainer/InventorySlot_2")
 slot_3 = NodePath("MarginContainer/PanelContainer/InventorySlot_3")
 slot_4 = NodePath("MarginContainer/PanelContainer/InventorySlot_4")
+gold_count_label = NodePath("MarginContainer/PanelContainer/GoldTrackerPanel/GoldCountLabel")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=264400365]
 layout_mode = 1
@@ -56,3 +58,35 @@ offset_right = 160.0
 layout_mode = 1
 offset_left = 320.0
 offset_right = 320.0
+
+[node name="GoldTrackerPanel" type="Panel" parent="MarginContainer/PanelContainer" unique_id=1398279003]
+layout_mode = 1
+offset_left = 1120.0
+offset_top = 135.0
+offset_right = 1282.0
+offset_bottom = 199.00003
+
+[node name="GoldIcon" type="TextureRect" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=707810599]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 54.0
+offset_bottom = 54.0
+texture = ExtResource("3_gold")
+expand_mode = 1
+
+[node name="GoldLabel" type="Label" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=514417458]
+layout_mode = 0
+offset_left = 61.0
+offset_top = 17.0
+offset_right = 154.0
+offset_bottom = 45.0
+text = "Gold"
+
+[node name="GoldCountLabel" type="Label" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=804720975]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 34.0
+offset_right = 154.0
+offset_bottom = 62.0
+text = "0"

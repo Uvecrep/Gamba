@@ -572,7 +572,7 @@ func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) ->
 	if options.has("coin_mark_add"):
 		var coin_mark_add: int = int(options.get("coin_mark_add", 0))
 		if coin_mark_add > 0:
-			_coin_mark_count = mini(_coin_mark_count + coin_mark_add, 10)
+			_coin_mark_count = mini(_coin_mark_count + coin_mark_add, 3)
 
 	if options.has("knockback_force") and is_instance_valid(source):
 		var knockback_force: float = float(options.get("knockback_force", 0.0))
@@ -849,7 +849,7 @@ func _drop_coin_pickups(mark_count: int) -> void:
 	if parent_node == null:
 		return
 
-	var drop_count: int = mini(mark_count, 10)
+	var drop_count: int = mini(mark_count, 3)
 	for index in range(drop_count):
 		var pickup_node: Node = PICKUP_SCENE.instantiate()
 		if not (pickup_node is Pickup):

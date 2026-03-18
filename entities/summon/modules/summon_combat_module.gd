@@ -399,10 +399,6 @@ func attack_mimic(target: Node2D) -> void:
 func attack_coin_sprite(target: Node2D) -> void:
 	unit._launch_projectile_attack(target, {
 		"coin_mark_add": 1,
-		"chill_add": 1,
-		"chill_duration": 1.8,
-		"freeze_threshold": 999,
-		"freeze_duration": 0.0,
 	})
 
 func attack_prospector(target: Node2D) -> void:
@@ -857,15 +853,7 @@ func _get_player_gold_count() -> int:
 	var inventory: PlayerInventory = player.player_inventory
 	if inventory == null:
 		return 0
-
-	var total_gold: int = 0
-	for slot_index in range(maxi(inventory.num_slots, 0)):
-		var slot_item_id: StringName = inventory.get_slot_item_id(slot_index)
-		if slot_item_id != GOLD_ITEM_ID and slot_item_id != &"gold":
-			continue
-		total_gold += maxi(inventory.get_slot_count(slot_index), 0)
-
-	return total_gold
+	return maxi(inventory.get_gold_count(), 0)
 
 func _get_mimic_disguised_texture() -> Texture2D:
 	if _mimic_disguised_texture == null:
