@@ -9,9 +9,11 @@ var _spawn_position: Vector2 = Vector2.ZERO
 var _is_dead: bool = false
 var _invulnerability_time_left: float = 0.0
 var _house_regen_time_left: float = 0.0
+var _hit_shield_stacks: int = 0
 var _death_indicator_layer: CanvasLayer
 var _death_indicator_label: Label
 var _health_state: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
+const MAX_HIT_SHIELD_STACKS: int = 1
 
 func initialize(player: Player) -> void:
 	_spawn_position = player.global_position
@@ -42,6 +44,10 @@ func take_damage(player: Player, amount: float) -> void:
 	if _is_dead:
 		return
 	if _invulnerability_time_left > 0.0:
+		return
+	if _hit_shield_stacks > 0:
+		_hit_shield_stacks -= 1
+		update_health_bar(player)
 		return
 
 	_sync_with_player_max_health(player)
@@ -125,9 +131,23 @@ func respawn_player(player: Player) -> void:
 	_health_state.revive(true)
 	_sync_player_health(player)
 	_is_dead = false
+	_hit_shield_stacks = 0
 	_invulnerability_time_left = maxf(player.respawn_invulnerability_seconds, 0.0)
 	hide_death_indicator()
 	update_health_bar(player)
+
+func grant_hit_shield(player: Player) -> bool:
+	if _is_dead:
+		return false
+	if _hit_shield_stacks >= MAX_HIT_SHIELD_STACKS:
+		return false
+
+	_hit_shield_stacks += 1
+	update_health_bar(player)
+	return true
+
+func has_hit_shield() -> bool:
+	return _hit_shield_stacks > 0
 
 func get_respawn_position(player: Player) -> Vector2:
 	var nearest_house: Node2D = find_nearest_house_anywhere(player)
@@ -213,6 +233,9 @@ func update_health_bar(player: Player) -> void:
 	if _invulnerability_time_left > 0.0 and not _is_dead:
 		var pulse: float = 0.65 + (0.35 * sin(Time.get_ticks_msec() / 90.0))
 		player.health_bar.modulate = Color(1.0, 1.0, 1.0, pulse)
+	elif _hit_shield_stacks > 0 and not _is_dead:
+		var shield_pulse: float = 0.78 + (0.22 * sin(Time.get_ticks_msec() / 110.0))
+		player.health_bar.modulate = Color(0.72, 0.92, 1.1, shield_pulse)
 	else:
 		player.health_bar.modulate = Color(1.0, 1.0, 1.0, 1.0)
 

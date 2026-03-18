@@ -3,6 +3,8 @@ class_name ThrownLootbox
 
 @export var rolled_item_label_debug : Label
 
+@export var hightlight_label_settings : LabelSettings
+
 var lootbox : Lootbox
 var player : Player
 
@@ -52,9 +54,7 @@ func spin_the_wheel(starting_index : int, spin_duration : float) -> int:
 		index = (index + 1) % lootbox.lootTable.size()
 	
 	rolled_item_label_debug.text = lootbox.lootTable[index].name
-	var settings = rolled_item_label_debug.label_settings
-	settings.font_color = Color.YELLOW
-	rolled_item_label_debug.label_settings = settings
+	rolled_item_label_debug.label_settings = hightlight_label_settings
 	await get_tree().create_timer(.3).timeout
 
 	return index

@@ -13,19 +13,49 @@ const TEX_ACORN: Texture2D = preload("res://assets/characters/summons/forest/aco
 const TEX_BUSH: Texture2D = preload("res://assets/characters/summons/forest/bush_boy.png")
 const TEX_BEE: Texture2D = preload("res://assets/characters/summons/forest/bee_swarm.png")
 const TEX_ROOTER: Texture2D = preload("res://assets/characters/summons/forest/rooter.png")
+const TEX_CINDER_IMP: Texture2D = preload("res://assets/characters/summons/elemental/cinder_imp.png")
+const TEX_FROST_WISP: Texture2D = preload("res://assets/characters/summons/elemental/frost_wisp.png")
+const TEX_MAGMA_BEETLE: Texture2D = preload("res://assets/characters/summons/elemental/magma_beetle.png")
+const TEX_STORM_TOTEM: Texture2D = preload("res://assets/characters/summons/elemental/storm_totem.png")
+const TEX_UNSTABLE_SHARD: Texture2D = preload("res://assets/characters/summons/elemental/unstable_shard.png")
+const TEX_SOUL_LANTERN: Texture2D = preload("res://assets/characters/summons/spirit/soul_lantern.png")
+const TEX_BANSHEE: Texture2D = preload("res://assets/characters/summons/spirit/banshee.png")
+const TEX_GRAVE_HOUND: Texture2D = preload("res://assets/characters/summons/spirit/grave_hound.png")
+const TEX_HEX_DOLL: Texture2D = preload("res://assets/characters/summons/spirit/hex_doll.png")
+const TEX_POSSESSOR: Texture2D = preload("res://assets/characters/summons/spirit/possessor.png")
+const TEX_MIMIC: Texture2D = preload("res://assets/characters/summons/greed/mimic.png")
+const TEX_COIN_SPRITE: Texture2D = preload("res://assets/characters/summons/greed/coin_sprite.png")
+const TEX_PROSPECTOR: Texture2D = preload("res://assets/characters/summons/greed/prospector.png")
+const TEX_GOLDEN_GUNNER: Texture2D = preload("res://assets/characters/summons/greed/golden_gunner.png")
+const TEX_TAX_COLLECTOR: Texture2D = preload("res://assets/characters/summons/greed/tax_collector.png")
 const ID_SLIME: StringName = &"slime"
 
 const SUMMON_LAYOUT: Array[Dictionary] = [
-	{"identity": &"baby_dragon", "texture": TEX_BABY_DRAGON, "position": Vector2(-520, -180)},
-	{"identity": &"slime", "texture": TEX_SLIME, "position": Vector2(-360, -180)},
-	{"identity": &"ghost", "texture": TEX_GHOST, "position": Vector2(-200, -180)},
-	{"identity": &"spark_goblin", "texture": TEX_SPARK_GOBLIN, "position": Vector2(-40, -180)},
-	{"identity": &"jack_in_the_box", "texture": TEX_JACK, "position": Vector2(120, -180)},
-	{"identity": &"mushroom_knight", "texture": TEX_MUSHROOM, "position": Vector2(-520, 60)},
-	{"identity": &"acorn_spitter", "texture": TEX_ACORN, "position": Vector2(-360, 60)},
-	{"identity": &"bush_boy", "texture": TEX_BUSH, "position": Vector2(-200, 60)},
-	{"identity": &"bee_swarm", "texture": TEX_BEE, "position": Vector2(-40, 60)},
-	{"identity": &"rooter", "texture": TEX_ROOTER, "position": Vector2(120, 60)},
+	{"identity": &"baby_dragon", "texture": TEX_BABY_DRAGON, "position": Vector2(-520, -360)},
+	{"identity": &"slime", "texture": TEX_SLIME, "position": Vector2(-360, -360)},
+	{"identity": &"ghost", "texture": TEX_GHOST, "position": Vector2(-200, -360)},
+	{"identity": &"spark_goblin", "texture": TEX_SPARK_GOBLIN, "position": Vector2(-40, -360)},
+	{"identity": &"jack_in_the_box", "texture": TEX_JACK, "position": Vector2(120, -360)},
+	{"identity": &"mushroom_knight", "texture": TEX_MUSHROOM, "position": Vector2(-520, -180)},
+	{"identity": &"acorn_spitter", "texture": TEX_ACORN, "position": Vector2(-360, -180)},
+	{"identity": &"bush_boy", "texture": TEX_BUSH, "position": Vector2(-200, -180)},
+	{"identity": &"bee_swarm", "texture": TEX_BEE, "position": Vector2(-40, -180)},
+	{"identity": &"rooter", "texture": TEX_ROOTER, "position": Vector2(120, -180)},
+	{"identity": &"cinder_imp", "texture": TEX_CINDER_IMP, "position": Vector2(-520, 0)},
+	{"identity": &"frost_wisp", "texture": TEX_FROST_WISP, "position": Vector2(-360, 0)},
+	{"identity": &"magma_beetle", "texture": TEX_MAGMA_BEETLE, "position": Vector2(-200, 0)},
+	{"identity": &"storm_totem", "texture": TEX_STORM_TOTEM, "position": Vector2(-40, 0)},
+	{"identity": &"unstable_shard", "texture": TEX_UNSTABLE_SHARD, "position": Vector2(120, 0)},
+	{"identity": &"soul_lantern", "texture": TEX_SOUL_LANTERN, "position": Vector2(-520, 180)},
+	{"identity": &"banshee", "texture": TEX_BANSHEE, "position": Vector2(-360, 180)},
+	{"identity": &"grave_hound", "texture": TEX_GRAVE_HOUND, "position": Vector2(-200, 180)},
+	{"identity": &"hex_doll", "texture": TEX_HEX_DOLL, "position": Vector2(-40, 180)},
+	{"identity": &"possessor", "texture": TEX_POSSESSOR, "position": Vector2(120, 180)},
+	{"identity": &"mimic", "texture": TEX_MIMIC, "position": Vector2(-520, 360)},
+	{"identity": &"coin_sprite", "texture": TEX_COIN_SPRITE, "position": Vector2(-360, 360)},
+	{"identity": &"prospector", "texture": TEX_PROSPECTOR, "position": Vector2(-200, 360)},
+	{"identity": &"golden_gunner", "texture": TEX_GOLDEN_GUNNER, "position": Vector2(-40, 360)},
+	{"identity": &"tax_collector", "texture": TEX_TAX_COLLECTOR, "position": Vector2(120, 360)},
 ]
 
 @export var enemy_spawn_cooldown_seconds: float = 0.18
