@@ -12,6 +12,7 @@ func handle_interaction_input(player: Player) -> void:
 	var nearest_phone: PhoneInteractable = _find_nearest_phone(player)
 	var nearest_map: MapInteractable = _find_nearest_map(player)
 	var nearest_blood: Node2D = _find_nearest_in_group(player, "blood_confluence")
+	var nearest_soul: Node2D = _find_nearest_in_group(player, "soul_tower")
 
 	var nearest_harvest_distance_sq: float = INF
 	if nearest_harvest_node != null:
@@ -44,6 +45,9 @@ func handle_interaction_input(player: Player) -> void:
 		nearest_interactable = nearest_blood
 		nearest_distance_sq = player.global_position.distance_squared_to(nearest_blood.global_position)
 
+	if nearest_soul != null and player.global_position.distance_squared_to(nearest_soul.global_position) < nearest_distance_sq:
+		nearest_interactable = nearest_soul
+		nearest_distance_sq = player.global_position.distance_squared_to(nearest_soul.global_position)
 
 	if nearest_harvest_node != null and nearest_interactable == nearest_harvest_node:
 		nearest_harvest_node.call("harvest_fruit", player.harvest_amount_per_interaction)
@@ -58,6 +62,10 @@ func handle_interaction_input(player: Player) -> void:
 	
 	if nearest_interactable is BloodConfluence:
 		(nearest_interactable as BloodConfluence).try_purchase_lootbox(player)
+		return
+
+	if nearest_interactable is SoulTower:
+		(nearest_interactable as SoulTower).interact(player)
 		return
 
 

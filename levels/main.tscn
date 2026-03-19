@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://b815q8hl3sixl" path="res://ui/inventory/inventory.tscn" id="12_1fput"]
 [ext_resource type="Script" uid="uid://b7fjvdi8rvejq" path="res://scripts/fps_counter.gd" id="12_fps"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
+[ext_resource type="PackedScene" uid="uid://bm5cvj0m3deey" path="res://ui/lootbox_preview/lootbox_preview_ui.tscn" id="14_21ko3"]
 [ext_resource type="PackedScene" path="res://entities/boulder/boulder.tscn" id="14_boulder"]
 [ext_resource type="PackedScene" path="res://entities/crystal/blood_confluence.tscn" id="15_4fc0e"]
 
@@ -112,6 +113,8 @@ grow_horizontal = 0
 text = "Day"
 horizontal_alignment = 2
 
+[node name="LootboxPreviewUi" parent="UI" unique_id=64380995 instance=ExtResource("14_21ko3")]
+
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=696703801]
 process_mode = 2
 layer = 10
@@ -171,8 +174,11 @@ position = Vector2(698, 690)
 item_id = &"lootbox_chaos"
 
 [node name="Pickup3" parent="." unique_id=1233044806 instance=ExtResource("13_1fput")]
-position = Vector2(631, 787)
+position = Vector2(335, 682)
 item_id = &"sapling"
 
 [node name="blood_confluence" parent="." unique_id=2107467836 instance=ExtResource("15_4fc0e")]
 position = Vector2(196, 462)
+[node name="Pickup4" parent="." unique_id=971572308 instance=ExtResource("13_1fput")]
+position = Vector2(856, 677)
+item_id = &"lootbox_forest"
