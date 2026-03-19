@@ -31,7 +31,7 @@ func _ready() -> void:
 	# TODO Shouldn't need to do this, but UI is readying after the player for some reason
 	slots[player_ref.player_inventory.selected_index].set_is_selected(true)
 	for i in range(slots.size()):
-		slots[i].set_info(player_ref.player_inventory.get_slot_item_id(i), null, player_ref.player_inventory.get_slot_count(i))
+		slots[i].set_info(player_ref.player_inventory.get_slot_item_id(i), player_ref.player_inventory.get_slot_item_id(i), null, player_ref.player_inventory.get_slot_count(i))
 	_refresh_gold_count()
 
 func _on_selected_index_changed(slot_index : int) -> void:
@@ -44,15 +44,15 @@ func _on_slot_contents_changed(slot_index : int, item_id : StringName, count : i
 	assert(slot_index >= 0 && slot_index < 5, "inventory_ui._on_selected_index_changed(): Slot index was not valid")
 	
 	if count == 0:
-		slots[slot_index].set_info(&"", null, 0)
+		slots[slot_index].set_info(&"",&"", null, 0)
 		return
 
 	if not ItemGlobals.items.has(item_id):
-		slots[slot_index].set_info("id: "+item_id, placeholder_item_texture, count)
+		slots[slot_index].set_info(item_id,"id: "+item_id, placeholder_item_texture, count)
 		return
 	
 	var item_data : ItemData = ItemGlobals.items[item_id]
-	slots[slot_index].set_info(item_data.name, item_data.texture, count)
+	slots[slot_index].set_info(item_id, item_data.name, item_data.texture, count)
 
 func _on_gold_count_changed(_current: int, _previous: int) -> void:
 	_refresh_gold_count()

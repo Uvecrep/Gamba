@@ -31,6 +31,12 @@ var _night_index: int = 0
 var _waves_spawned_this_night: int = 0
 var _stopped: bool = false
 
+var soul_tower_packed_scene : PackedScene = preload("res://entities/crystal/soul_tower.tscn")
+var soul_tower : SoulTower
+var soul_tower_spawn_center : Vector2 = Vector2(812.0,206) #hardcoded to house rn
+var soul_tower_spawn_min_dist_from_center : float = 1500
+var soul_tower_spawn_max_dist_from_center : float = 2000
+
 
 func setup(enemy_spawner: EnemySpawner, label: Label, overlay: ColorRect) -> void:
 	_enemy_spawner = enemy_spawner
@@ -113,6 +119,8 @@ func _start_day_phase() -> void:
 
 	if is_instance_valid(_enemy_spawner):
 		_enemy_spawner.stop_spawning()
+
+	_place_soul_tower()
 
 	_set_tree_growth_paused(false)
 	_apply_visual_state(false, false)
@@ -238,3 +246,22 @@ func _update_label(phase_text: String) -> void:
 
 	_label.visible = true
 	_label.text = phase_text
+
+# ── soul tower logic ───────────────────────────────────────────────────────────────
+
+func _place_soul_tower() -> void:
+	if soul_tower == null:
+		soul_tower = soul_tower_packed_scene.instantiate()
+		get_parent().add_child(soul_tower)
+	
+	soul_tower.global_position = random_point_in_ring(soul_tower_spawn_center,soul_tower_spawn_min_dist_from_center,soul_tower_spawn_max_dist_from_center)
+	soul_tower.has_interacted = false
+
+func random_point_in_ring(center: Vector2, min_dist: float, max_dist: float) -> Vector2:
+	var angle = randf() * TAU
+	
+	# Important: sqrt for uniform distribution
+	var r = sqrt(randf() * (max_dist * max_dist - min_dist * min_dist) + min_dist * min_dist)
+	
+	var offset = Vector2(cos(angle), sin(angle)) * r
+	return center + offset

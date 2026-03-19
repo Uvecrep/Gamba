@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cvyli62cple7q"]
+
+[ext_resource type="Script" uid="uid://cpij8cky13okl" path="res://entities/item/item_data.gd" id="1_rkjl0"]
+[ext_resource type="Texture2D" uid="uid://0cu8newus6tc" path="res://assets/objects/soul-box.png" id="2_rkjl0"]
+
+[resource]
+script = ExtResource("1_rkjl0")
+id = &"lootbox_forest"
+name = "Forest Lootbox"
+texture = ExtResource("2_rkjl0")
+metadata/_custom_type_script = "uid://cpij8cky13okl"

@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://bvfkafebwjgl0"]
+
+[ext_resource type="Script" uid="uid://dsg1lnyldb8lt" path="res://ui/lootbox_preview/loot_entry_ui_item.gd" id="1_necv1"]
+
+[node name="LootEntryUiItem" type="HBoxContainer" unique_id=1783499892 node_paths=PackedStringArray("index_label", "name_label", "weight_label")]
+script = ExtResource("1_necv1")
+index_label = NodePath("Container/IndexLabel")
+name_label = NodePath("PanelContainer/EntryOutcome")
+weight_label = NodePath("PanelContainer2/MarginContainer/LootBoxDescriptionLabel")
+
+[node name="Container" type="Control" parent="." unique_id=428758524]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="IndexLabel" type="Label" parent="Container" unique_id=659954389]
+layout_mode = 0
+offset_right = 23.0
+offset_bottom = 23.0
+text = "00"
+
+[node name="PanelContainer" type="Panel" parent="." unique_id=1208814118]
+custom_minimum_size = Vector2(116, 0)
+layout_mode = 2
+
+[node name="EntryOutcome" type="Label" parent="PanelContainer" unique_id=478648460]
+layout_mode = 0
+offset_left = 5.0
+offset_right = 52.0
+offset_bottom = 23.0
+text = "WeakGobbo"
+
+[node name="Control" type="Control" parent="." unique_id=1054991653]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="PanelContainer2" type="PanelContainer" parent="." unique_id=1944581580]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer2" unique_id=302283379]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_right = 5
+
+[node name="LootBoxDescriptionLabel" type="Label" parent="PanelContainer2/MarginContainer" unique_id=1054428722]
+layout_mode = 2
+text = "Weight: 10 (92.4%)"

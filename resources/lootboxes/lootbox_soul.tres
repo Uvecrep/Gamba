@@ -1,0 +1,70 @@
+[gd_resource type="Resource" script_class="Lootbox" format=3 uid="uid://bw0shincdbxm4"]
+
+[ext_resource type="Script" uid="uid://dyxn4ehwu0w0d" path="res://entities/lootbox/lootbox.gd" id="1_lootbox"]
+[ext_resource type="Script" uid="uid://bf8k3eubtelf0" path="res://entities/lootbox/loot_entry.gd" id="2_entry"]
+[ext_resource type="Script" uid="uid://b8tplg8ohx7w4" path="res://entities/lootbox/lootbox_outcome_spawn_summon.gd" id="3_spawn_outcome"]
+[ext_resource type="PackedScene" uid="uid://d1i770h2w5bx1" path="res://entities/summon/summon.tscn" id="3_vugbd"]
+[ext_resource type="Texture2D" uid="uid://crj0gg7wq6bhh" path="res://assets/characters/summons/greed/mimic.png" id="4_mimic_texture"]
+[ext_resource type="Texture2D" uid="uid://c8nin3ttnoarw" path="res://assets/characters/summons/greed/coin_sprite.png" id="5_coin_sprite_texture"]
+[ext_resource type="Texture2D" uid="uid://cwb6qysi0g5jq" path="res://assets/characters/summons/greed/prospector.png" id="6_prospector_texture"]
+[ext_resource type="Texture2D" uid="uid://p6vc13u8l2l7" path="res://assets/characters/summons/greed/golden_gunner.png" id="7_golden_gunner_texture"]
+[ext_resource type="Texture2D" uid="uid://d00aka0ljv30k" path="res://assets/characters/summons/greed/tax_collector.png" id="8_tax_collector_texture"]
+[ext_resource type="Script" uid="uid://cpkrdf3d52eb1" path="res://entities/lootbox/lootbox_mod.gd" id="9_fbb3w"]
+
+[sub_resource type="Resource" id="Outcome_Greed_Mimic"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("4_mimic_texture")
+summon_identity = &"mimic"
+
+[sub_resource type="Resource" id="Entry_Greed_Mimic"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Greed_Mimic")
+name = "Mimic"
+
+[sub_resource type="Resource" id="Outcome_Greed_CoinSprite"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("5_coin_sprite_texture")
+summon_identity = &"coin_sprite"
+
+[sub_resource type="Resource" id="Entry_Greed_CoinSprite"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Greed_CoinSprite")
+name = "Coin Sprite"
+
+[sub_resource type="Resource" id="Outcome_Greed_Prospector"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("6_prospector_texture")
+summon_identity = &"prospector"
+
+[sub_resource type="Resource" id="Entry_Greed_Prospector"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Greed_Prospector")
+name = "Prospector Golem"
+
+[sub_resource type="Resource" id="Outcome_Greed_GoldenGunner"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("7_golden_gunner_texture")
+summon_identity = &"golden_gunner"
+
+[sub_resource type="Resource" id="Entry_Greed_GoldenGunner"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Greed_GoldenGunner")
+name = "Golden Gunner"
+
+[sub_resource type="Resource" id="Outcome_Greed_TaxCollector"]
+script = ExtResource("3_spawn_outcome")
+summon_texture_override = ExtResource("8_tax_collector_texture")
+summon_identity = &"tax_collector"
+
+[sub_resource type="Resource" id="Entry_Greed_TaxCollector"]
+script = ExtResource("2_entry")
+outcome = SubResource("Outcome_Greed_TaxCollector")
+name = "Tax Collector"
+rarity_override = 2
+
+[resource]
+script = ExtResource("1_lootbox")
+id = &"soul"
+name = "Soul Box"
+color = "Purble"
+lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Greed_Mimic"), SubResource("Entry_Greed_CoinSprite"), SubResource("Entry_Greed_Prospector"), SubResource("Entry_Greed_GoldenGunner"), SubResource("Entry_Greed_TaxCollector")])

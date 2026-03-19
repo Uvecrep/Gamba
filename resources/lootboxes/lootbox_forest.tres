@@ -39,6 +39,7 @@ summon_identity = &"bush_boy"
 [sub_resource type="Resource" id="Entry_Forest_BushBoy"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_BushBoy")
+name = "Bush Boy"
 
 [sub_resource type="Resource" id="Outcome_Forest_MushroomKnight"]
 script = ExtResource("2_o7qiy")
@@ -48,6 +49,7 @@ summon_identity = &"mushroom_knight"
 [sub_resource type="Resource" id="Entry_Forest_MushroomKnight"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_MushroomKnight")
+name = "Mushroom Knight"
 
 [sub_resource type="Resource" id="Outcome_Forest_Rooter"]
 script = ExtResource("2_o7qiy")
@@ -57,6 +59,7 @@ summon_identity = &"rooter"
 [sub_resource type="Resource" id="Entry_Forest_Rooter"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_Rooter")
+name = "Rooter"
 rarity_override = 2
 
 [resource]
