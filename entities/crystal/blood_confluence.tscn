@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bdokkhkbr35d2"]
 
-[ext_resource type="Script" uid="uid://c1fh6imoiwkue" path="res://entities/crystal/blood_confluence.gd" id="1_ywey7"]
+[ext_resource type="Script" path="res://entities/crystal/blood_confluence.gd" id="1_ywey7"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="2_b4axk"]
 [ext_resource type="Texture2D" uid="uid://dqurwl1fnfb0j" path="res://assets/objects/crystal.png" id="2_ublic"]
 [ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="3_o1w8l"]
