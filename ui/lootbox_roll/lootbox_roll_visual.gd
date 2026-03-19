@@ -78,7 +78,7 @@ func _start_roll_if_possible() -> void:
 		return
 
 	_winning_reward_data = _winning_entry.get_reward_data()
-	_title_label.text = "Summoner Sorting Machine"
+	_title_label.text = _source_lootbox.name if _source_lootbox != null else "Summoner Sorting Machine"
 	_result_label.text = ""
 	_build_visual_strip()
 	_update_screen_position()
