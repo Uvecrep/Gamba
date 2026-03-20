@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://8ik52w3tm085" path="res://entities/thrown_object/thrown_sapling.gd" id="1_hduq2"]
 [ext_resource type="PackedScene" uid="uid://bnb85qll64ayq" path="res://entities/tree/tree.tscn" id="2_erapf"]
 [ext_resource type="Texture2D" uid="uid://ca5ewh1whl05e" path="res://assets/objects/sapling.png" id="2_hduq2"]
+[ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="3_x43i2"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_are6o"]
 font_size = 4
@@ -14,6 +15,7 @@ radius = 15.95
 [node name="ThrownSapling" type="Node2D" unique_id=2138357677]
 script = ExtResource("1_hduq2")
 sapling_tree_packed_scene = ExtResource("2_erapf")
+pickup_packed_scene = ExtResource("3_x43i2")
 
 [node name="TextureRect" type="TextureRect" parent="." unique_id=948559319]
 offset_left = -17.5
