@@ -27,6 +27,12 @@ class_name Player
 @export var house_regen_radius: float = 180.0
 @export var house_regen_per_second: float = 2.0
 @export var house_regen_tick_interval: float = 0.5
+@export var animation_fps: float = 2.0
+@export var anim_frame_count: int = 4
+@export var idle_anim_start_column: int = 0
+@export var move_anim_start_column: int = 4
+@export var idle_layer_rows: PackedInt32Array = PackedInt32Array([0, 1, 2, 3, 4, 5, 6])
+@export var move_layer_rows: PackedInt32Array = PackedInt32Array([0, 1, 2, 3, 4, 5, 6])
 
 @onready var camera: Camera2D = $Camera2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
@@ -54,9 +60,20 @@ var _interaction_component: PlayerInteractionComponent = PlayerInteractionCompon
 @export var thrown_lootbox_packed_scene: PackedScene
 @export var thrown_sapling_packed_scene: PackedScene
 @export var thrown_pickup_packed_scene: PackedScene
+@export var sprite_base: Sprite2D
+@export var sprite_overlay: Sprite2D
+@export var sprite_layer_2: Sprite2D
+@export var sprite_layer_3: Sprite2D
+@export var sprite_layer_4: Sprite2D
+@export var sprite_layer_5: Sprite2D
+@export var sprite_layer_6: Sprite2D
 @export var toss_reticle: Node2D
 @export var toss_line: Line2D
 var _is_tossing = false
+var _animation_time_seconds: float = 0.0
+var _was_moving_last_frame: bool = false
+var _is_facing_left: bool = false
+var _visual_layers: Array[Sprite2D] = []
 
 func _ready() -> void:
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
@@ -68,6 +85,7 @@ func _ready() -> void:
 	_world_bounds_component.initialize(self)
 	_health_component.initialize(self)
 	_interaction_component.initialize(self)
+	_initialize_visual_animation()
 
 	player_inventory.inventory_changed.connect(_pickup_magnet_component.on_inventory_changed.bind(player_inventory,pickups_following_me))
 
@@ -81,6 +99,7 @@ func _process(delta: float) -> void:
 	_update_house_regen(delta)
 	
 	_update_health_bar()
+	_update_visual_animation(delta)
 	
 	if _is_tossing:
 		toss_reticle.position = get_local_mouse_position()
@@ -155,6 +174,78 @@ func _hide_death_indicator() -> void:
 
 func _update_health_bar() -> void:
 	_health_component.update_health_bar(self)
+
+func _initialize_visual_animation() -> void:
+	_visual_layers.clear()
+	if sprite_base != null:
+		_visual_layers.append(sprite_base)
+	if sprite_overlay != null:
+		_visual_layers.append(sprite_overlay)
+	if sprite_layer_2 != null:
+		_visual_layers.append(sprite_layer_2)
+	if sprite_layer_3 != null:
+		_visual_layers.append(sprite_layer_3)
+	if sprite_layer_4 != null:
+		_visual_layers.append(sprite_layer_4)
+	if sprite_layer_5 != null:
+		_visual_layers.append(sprite_layer_5)
+	if sprite_layer_6 != null:
+		_visual_layers.append(sprite_layer_6)
+
+	_animation_time_seconds = 0.0
+	_was_moving_last_frame = false
+	_set_visual_frame(false, 0)
+
+func _update_visual_animation(delta: float) -> void:
+	if _visual_layers.is_empty():
+		return
+
+	var is_moving: bool = velocity.length_squared() > 0.01
+	if is_moving != _was_moving_last_frame:
+		_animation_time_seconds = 0.0
+		_was_moving_last_frame = is_moving
+	else:
+		_animation_time_seconds += delta
+
+	if velocity.x < -0.01:
+		_is_facing_left = true
+	elif velocity.x > 0.01:
+		_is_facing_left = false
+
+	var frame_offset: int = 0
+	if anim_frame_count > 1 and animation_fps > 0.0:
+		frame_offset = int(floor(_animation_time_seconds * animation_fps)) % anim_frame_count
+
+	_set_visual_frame(is_moving, frame_offset)
+
+func _set_visual_frame(is_moving: bool, frame_offset: int) -> void:
+	var start_column: int = idle_anim_start_column
+	var layer_rows: PackedInt32Array = idle_layer_rows
+	if is_moving:
+		start_column = move_anim_start_column
+		layer_rows = move_layer_rows
+
+	var safe_frame_count: int = maxi(anim_frame_count, 1)
+	var frame_column: int = start_column + clampi(frame_offset, 0, safe_frame_count - 1)
+	for layer_index: int in range(_visual_layers.size()):
+		var row: int = layer_index
+		if layer_rows.size() > 0:
+			row = layer_rows[min(layer_index, layer_rows.size() - 1)]
+		_apply_visual_frame(_visual_layers[layer_index], frame_column, row)
+
+func _apply_visual_frame(sprite: Sprite2D, column: int, row: int) -> void:
+	if sprite == null:
+		return
+
+	var safe_column: int = maxi(column, 0)
+	var safe_row: int = maxi(row, 0)
+	if sprite.hframes > 0:
+		safe_column = clampi(safe_column, 0, sprite.hframes - 1)
+	if sprite.vframes > 0:
+		safe_row = clampi(safe_row, 0, sprite.vframes - 1)
+
+	sprite.frame_coords = Vector2i(safe_column, safe_row)
+	sprite.flip_h = _is_facing_left
 
 func _handle_interaction_input() -> void:
 	_interaction_component.handle_interaction_input(self)

@@ -803,7 +803,8 @@ func _die() -> void:
 		_spawn_split_goblins()
 	# should feed bloodlust resource
 	var blood_confluence: BloodConfluence = _find_closest_target_in_group(&"blood_confluence") as BloodConfluence
-	blood_confluence._set_blood(blood_confluence.blood + 2) # TODO: Change this value for balance
+	if is_instance_valid(blood_confluence):
+		blood_confluence._set_blood(blood_confluence.blood + 2) # TODO: Change this value for balance
 
 	queue_free()
 

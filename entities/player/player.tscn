@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bhxxgyq6e3ond"]
 
 [ext_resource type="Script" uid="uid://b5x3ag8pucgmf" path="res://entities/player/player.gd" id="1_abrql"]
-[ext_resource type="Texture2D" uid="uid://bwxhko8w27k0n" path="res://assets/characters/player.png" id="2_abrql"]
+[ext_resource type="Texture2D" uid="uid://gw4wuflvucyr" path="res://assets/characters/summoner-Sheet.png" id="2_abrql"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="2_fkugw"]
 [ext_resource type="PackedScene" uid="uid://bb23mmd3w1v3e" path="res://entities/thrown_object/thrown_lootbox.tscn" id="3_fkugw"]
 [ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="3_sglur"]
@@ -13,12 +13,19 @@ size = Vector2(50, 60)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_abrql"]
 
-[node name="player" type="CharacterBody2D" unique_id=57563531 node_paths=PackedStringArray("toss_reticle", "toss_line")]
+[node name="player" type="CharacterBody2D" unique_id=57563531 node_paths=PackedStringArray("sprite_base", "sprite_overlay", "sprite_layer_2", "sprite_layer_3", "sprite_layer_4", "sprite_layer_5", "sprite_layer_6", "toss_reticle", "toss_line")]
 script = ExtResource("1_abrql")
 pickup_packed_scene = ExtResource("2_fkugw")
 thrown_lootbox_packed_scene = ExtResource("3_fkugw")
 thrown_sapling_packed_scene = ExtResource("4_8fjmc")
 thrown_pickup_packed_scene = ExtResource("5_qiwj3")
+sprite_base = NodePath("Visuals/SpriteBase")
+sprite_overlay = NodePath("Visuals/SpriteOverlay")
+sprite_layer_2 = NodePath("Visuals/SpriteLayer2")
+sprite_layer_3 = NodePath("Visuals/SpriteLayer3")
+sprite_layer_4 = NodePath("Visuals/SpriteLayer4")
+sprite_layer_5 = NodePath("Visuals/SpriteLayer5")
+sprite_layer_6 = NodePath("Visuals/SpriteLayer6")
 toss_reticle = NodePath("TossReticle")
 toss_line = NodePath("TossLine")
 
@@ -26,11 +33,57 @@ toss_line = NodePath("TossLine")
 position = Vector2(-5, 2)
 shape = SubResource("RectangleShape2D_wdj6m")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2107561974]
+[node name="Visuals" type="Node2D" parent="." unique_id=332825914]
 z_index = 3
+
+[node name="SpriteBase" type="Sprite2D" parent="Visuals" unique_id=910228276]
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
+hframes = 8
+vframes = 7
+
+[node name="SpriteOverlay" type="Sprite2D" parent="Visuals" unique_id=1778679248]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_abrql")
+hframes = 8
+vframes = 7
+
+[node name="SpriteLayer2" type="Sprite2D" parent="Visuals" unique_id=771418263]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_abrql")
+hframes = 8
+vframes = 7
+
+[node name="SpriteLayer3" type="Sprite2D" parent="Visuals" unique_id=1603474932]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_abrql")
+hframes = 8
+vframes = 7
+
+[node name="SpriteLayer4" type="Sprite2D" parent="Visuals" unique_id=644620199]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_abrql")
+hframes = 8
+vframes = 7
+
+[node name="SpriteLayer5" type="Sprite2D" parent="Visuals" unique_id=1181147200]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_abrql")
+hframes = 8
+vframes = 7
+
+[node name="SpriteLayer6" type="Sprite2D" parent="Visuals" unique_id=529174487]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_abrql")
+hframes = 8
+vframes = 7
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=677123141]
 process_callback = 0
