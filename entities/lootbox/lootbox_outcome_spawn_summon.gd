@@ -25,6 +25,7 @@ func execute(context: Dictionary = {}) -> bool:
 	_apply_identity_modifiers(summon_node)
 	_apply_stat_modifiers(summon_node)
 	_apply_visual_modifiers(summon_node)
+	_register_bestiary_unlock(context, summon_node)
 
 	var spawn_parent: Node = opener.get_tree().current_scene
 	if spawn_parent == null:
@@ -35,6 +36,32 @@ func execute(context: Dictionary = {}) -> bool:
 	spawn_parent.add_child(summon_node)
 	summon_node.global_position = opener.global_position
 	return true
+
+func _register_bestiary_unlock(context: Dictionary, summon_node: Node) -> void:
+	var lookup_node: Node = context.get("opener", null) as Node
+	if lookup_node == null:
+		lookup_node = context.get("current_scene", null) as Node
+
+	var bestiary_globals: Node = null
+	if lookup_node != null and lookup_node.is_inside_tree():
+		bestiary_globals = lookup_node.get_node_or_null("/root/BestiaryGlobals")
+
+	if bestiary_globals == null:
+		var tree: SceneTree = Engine.get_main_loop() as SceneTree
+		if tree != null and tree.root != null:
+			bestiary_globals = tree.root.get_node_or_null("BestiaryGlobals")
+
+	if bestiary_globals == null:
+		return
+
+	var resolved_identity: StringName = summon_identity
+	if resolved_identity == StringName() and _has_property(summon_node, "summon_identity"):
+		resolved_identity = summon_node.get("summon_identity") as StringName
+	if resolved_identity == StringName():
+		return
+
+	var source_lootbox_id: StringName = context.get("lootbox_id", StringName()) as StringName
+	bestiary_globals.call("unlock_summon_entry", resolved_identity, source_lootbox_id)
 
 func _pick_spawn_position(origin: Vector2) -> Vector2:
 	var spawn_direction := Vector2.RIGHT.rotated(randf() * TAU)

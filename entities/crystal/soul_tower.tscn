@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ni8po2n7s30b"]
 
-[ext_resource type="Script" uid="uid://bulp4kgg88uj8" path="res://entities/crystal/soul_tower.gd" id="1_j0el6"]
+[ext_resource type="Script" path="res://entities/crystal/soul_tower.gd" id="1_j0el6"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="2_guqsk"]
 [ext_resource type="Texture2D" uid="uid://dqurwl1fnfb0j" path="res://assets/objects/crystal.png" id="3_pfmyk"]
 [ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="4_3yapp"]

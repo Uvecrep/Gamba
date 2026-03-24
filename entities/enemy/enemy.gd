@@ -796,6 +796,9 @@ func _can_spawn_vfx_this_frame() -> bool:
 	return true
 
 func _die() -> void:
+	var bestiary_globals: Node = get_node_or_null("/root/BestiaryGlobals")
+	if bestiary_globals != null:
+		bestiary_globals.call("unlock_enemy_entry", enemy_archetype)
 	_apply_hex_spread_on_death()
 	_drop_coin_pickups(_coin_mark_count)
 	_broadcast_enemy_death()
