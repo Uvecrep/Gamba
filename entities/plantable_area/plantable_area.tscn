@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://be8r57shygwgm"]
+
+[ext_resource type="Script" uid="uid://duv5uge3jml1y" path="res://entities/plantable_area/plantable_area.gd" id="1_lwboy"]
+[ext_resource type="Texture2D" uid="uid://3cq6yq5uoxxi" path="res://assets/objects/planter_box.png" id="2_c0251"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lwboy"]
+size = Vector2(17.812498, 17.499998)
+
+[node name="PlantableArea" type="Area2D" unique_id=1890768339]
+script = ExtResource("1_lwboy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=517076558]
+scale = Vector2(3.2, 3.2)
+shape = SubResource("RectangleShape2D_lwboy")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=336881428]
+texture = ExtResource("2_c0251")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1235541126]
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D" unique_id=1718297144]
+scale = Vector2(3.2, 3.2)
+shape = SubResource("RectangleShape2D_lwboy")
