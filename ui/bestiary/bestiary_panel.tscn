@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://cr76phtlmlcqt"]
+
+[ext_resource type="Script" uid="uid://dpordacctliiw" path="res://ui/bestiary/bestiary_panel.gd" id="1_bestiary_script"]
+
+[node name="BestiaryPanel" type="Control" unique_id=772440389]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bestiary_script")
+
+[node name="Backdrop" type="ColorRect" parent="." unique_id=1048853826]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.05, 0.08, 0.72)
+
+[node name="PanelRoot" type="PanelContainer" parent="." unique_id=1871745604]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -650.0
+offset_top = -340.0
+offset_right = 650.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelRoot" unique_id=2113329215]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="RootVBox" type="VBoxContainer" parent="PanelRoot/MarginContainer" unique_id=1159878113]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderRow" type="HBoxContainer" parent="PanelRoot/MarginContainer/RootVBox" unique_id=782170924]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="PanelRoot/MarginContainer/RootVBox/HeaderRow" unique_id=1763879218]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Bestiary"
+
+[node name="HintLabel" type="Label" parent="PanelRoot/MarginContainer/RootVBox/HeaderRow" unique_id=2078344142]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "B: Open/Close Bestiary"
+horizontal_alignment = 2
+
+[node name="TabBar" type="TabBar" parent="PanelRoot/MarginContainer/RootVBox" unique_id=648979472]
+layout_mode = 2
+
+[node name="PageRow" type="HBoxContainer" parent="PanelRoot/MarginContainer/RootVBox" unique_id=466215685]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="PrevPageButton" type="Button" parent="PanelRoot/MarginContainer/RootVBox/PageRow" unique_id=487871788]
+layout_mode = 2
+text = "<"
+
+[node name="PageLabel" type="Label" parent="PanelRoot/MarginContainer/RootVBox/PageRow" unique_id=392329445]
+layout_mode = 2
+text = "Page 1/1"
+
+[node name="NextPageButton" type="Button" parent="PanelRoot/MarginContainer/RootVBox/PageRow" unique_id=137003145]
+layout_mode = 2
+text = ">"
+
+[node name="CardGrid" type="GridContainer" parent="PanelRoot/MarginContainer/RootVBox" unique_id=1617890809]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="PromptPanel" type="PanelContainer" parent="." unique_id=1013214629]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -258.0
+offset_right = 320.0
+offset_bottom = -200.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="PromptPanel" unique_id=138782963]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="PromptVBox" type="VBoxContainer" parent="PromptPanel/MarginContainer" unique_id=138029826]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PromptLabel" type="Label" parent="PromptPanel/MarginContainer/PromptVBox" unique_id=167377519]
+layout_mode = 2
+text = "New bestiary entry unlocked. Press B to check the bestiary."
+horizontal_alignment = 1

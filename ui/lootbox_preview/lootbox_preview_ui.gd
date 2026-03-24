@@ -47,9 +47,12 @@ func update_visuals() -> void:
 		child.queue_free()
 	
 	var roll_percents : Array[float] = []
-	var total_weight : float
+	var total_weight : float = 0.0
 	for e in loaded_lootbox.lootTable:
 		total_weight += e.weight
+
+	if total_weight <= 0.0:
+		return
 	
 	for i in range(loaded_lootbox.lootTable.size()):
 		roll_percents.append(loaded_lootbox.lootTable[i].weight / total_weight)

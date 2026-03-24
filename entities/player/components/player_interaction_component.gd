@@ -172,6 +172,7 @@ func open_lootbox(player: Player, lootbox: Lootbox) -> bool:
 		"opener": player,
 		"player": player,
 		"current_scene": player.get_tree().current_scene,
+		"lootbox_id": lootbox.id,
 	}
 
 	return bool(rolled_entry.outcome.execute(context))

@@ -61,10 +61,10 @@ offset_right = 320.0
 
 [node name="GoldTrackerPanel" type="Panel" parent="MarginContainer/PanelContainer" unique_id=1398279003]
 layout_mode = 1
-offset_left = 1120.0
+offset_left = 1123.0
 offset_top = 135.0
-offset_right = 1282.0
-offset_bottom = 199.00003
+offset_right = 1234.0
+offset_bottom = 198.0
 
 [node name="GoldIcon" type="TextureRect" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=707810599]
 layout_mode = 0
@@ -77,16 +77,18 @@ expand_mode = 1
 
 [node name="GoldLabel" type="Label" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=514417458]
 layout_mode = 0
-offset_left = 61.0
-offset_top = 17.0
-offset_right = 154.0
-offset_bottom = 45.0
+offset_left = 55.0
+offset_top = 9.0
+offset_right = 101.0
+offset_bottom = 37.0
 text = "Gold"
+horizontal_alignment = 1
 
 [node name="GoldCountLabel" type="Label" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=804720975]
 layout_mode = 0
-offset_left = 90.0
-offset_top = 34.0
-offset_right = 154.0
-offset_bottom = 62.0
+offset_left = 59.0
+offset_top = 32.0
+offset_right = 99.0
+offset_bottom = 60.0
 text = "0"
+horizontal_alignment = 1

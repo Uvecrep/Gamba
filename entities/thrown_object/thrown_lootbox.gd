@@ -82,6 +82,7 @@ func _apply_winning_entry(entry: LootEntry) -> bool:
 		"opener": self,
 		"player": player if is_instance_valid(player) else null,
 		"current_scene": current_scene,
+		"lootbox_id": lootbox.id if lootbox != null else StringName(),
 	}
 
 	return bool(entry.outcome.execute(context))

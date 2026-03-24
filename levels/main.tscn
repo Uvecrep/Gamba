@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
 [ext_resource type="PackedScene" uid="uid://bm5cvj0m3deey" path="res://ui/lootbox_preview/lootbox_preview_ui.tscn" id="14_21ko3"]
 [ext_resource type="PackedScene" path="res://entities/boulder/boulder.tscn" id="14_boulder"]
+[ext_resource type="PackedScene" path="res://ui/bestiary/bestiary_panel.tscn" id="16_bestiary"]
 [ext_resource type="PackedScene" uid="uid://bdokkhkbr35d2" path="res://entities/crystal/blood_confluence.tscn" id="15_4fc0e"]
 [ext_resource type="PackedScene" uid="uid://be8r57shygwgm" path="res://entities/plantable_area/plantable_area.tscn" id="15_s07ge"]
 
@@ -119,6 +120,8 @@ text = "Day"
 horizontal_alignment = 2
 
 [node name="LootboxPreviewUi" parent="UI" unique_id=64380995 instance=ExtResource("14_21ko3")]
+
+[node name="BestiaryPanel" parent="UI" unique_id=1581440024 instance=ExtResource("16_bestiary")]
 
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=696703801]
 process_mode = 2
