@@ -17,6 +17,7 @@ var lootbox_cost_in_blood : float = 5
 func _ready() -> void:
 	add_to_group("blood_confluence")
 	add_to_group("interactable")
+	_refresh_lootbox_sprite_texture()
 	_update_visuals()
 
 func try_purchase_lootbox(player : Player) -> bool:
@@ -47,3 +48,20 @@ func _update_visuals() -> void:
 
 	_blood_count_label.text = "blood: " + str(blood)
 	_box_cost_label.text = "box cost: " + str(lootbox_cost_in_blood)
+
+
+func _refresh_lootbox_sprite_texture() -> void:
+	if _lootbox_sprite == null:
+		return
+	if produced_lootbox_id == StringName():
+		return
+	if ItemGlobals == null:
+		return
+
+	var item: ItemData = ItemGlobals.items.get(produced_lootbox_id, null) as ItemData
+	if item == null:
+		return
+	if item.texture == null:
+		return
+
+	_lootbox_sprite.texture = item.texture
