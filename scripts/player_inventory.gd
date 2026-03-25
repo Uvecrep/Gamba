@@ -36,6 +36,8 @@ func set_lootbox_count(lootbox : Lootbox, value: int) -> void:
 	if not _lootboxes.has(lootbox):
 		# TODO: Maybe lootboxes with the same ID should be grouped together
 		# Reason being you might have two lootboxes with the same ID, but different mods?
+		# Ian: Not sure where we landed with this, I made upgrades apply to a whole box type rather than individual boxes
+		# Maybe need to revisit this idea for mods if we have time
 		_lootboxes.append(lootbox)
 		_lootbox_counts.append(0)
 	
@@ -70,8 +72,6 @@ func add_lootboxes(lootbox: Lootbox, amount: int) -> int:
 	if amount <= 0: return 0
 
 	if not _lootboxes.has(lootbox):
-		# TODO: Maybe lootboxes with the same ID should be grouped together
-		# Reason being you might have two lootboxes with the same ID, but different mods?
 		_lootboxes.append(lootbox)
 		_lootbox_counts.append(0)
 
@@ -87,7 +87,7 @@ func try_spend_lootboxes(lootbox : Lootbox, amount: int) -> bool:
 		return false
 	var lootbox_index = _lootboxes.find(lootbox)
 	var lootbox_count = _lootbox_counts[lootbox_index]
-	# TODO If we don't have enough lootboxes, should we still spend as many as we can?
+	# TODO If we don't have enough lootboxes, should we still spend as many as we can? | Ian: We should not spend if we cannot afford. Great success. (borat reference btw)
 	if lootbox_count < amount:
 		return false
 

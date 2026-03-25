@@ -1,6 +1,9 @@
 class_name DayNightController
 extends Node
 
+signal day_started(day_number: int)
+signal night_started(night_number: int)
+
 # Config — set by main.gd before add_child() so _ready sees them,
 # or call initialize() after changing them.
 var enable_day_night_cycle: bool = true
@@ -125,6 +128,7 @@ func _start_day_phase() -> void:
 	_set_tree_growth_paused(false)
 	_apply_visual_state(false, false)
 	_update_label("Day")
+	day_started.emit(maxi(_night_index + 1, 1))
 	_start_phase_timer(day_duration_seconds)
 
 
@@ -139,6 +143,7 @@ func _start_night_phase() -> void:
 	_set_tree_growth_paused(true)
 	_apply_visual_state(true, false)
 	_update_label("Night %d" % _night_index)
+	night_started.emit(_night_index)
 	_spawn_next_wave()
 	_start_phase_timer(night_duration_seconds)
 

@@ -10,7 +10,7 @@ func on_landed():
 	var to_plant_in : PlantableArea = _get_plant_location()
 	
 	# Spawn pickup if you didn't hit an area
-	# TODO maybe I should not let player throw at all in that case
+	# TODO maybe I should not let player throw at all in that case | Ian: Yeah, that feels more intuitive to me too
 	if not to_plant_in: 
 		var new_pickup: Pickup = pickup_packed_scene.instantiate()
 		get_parent().add_child(new_pickup)

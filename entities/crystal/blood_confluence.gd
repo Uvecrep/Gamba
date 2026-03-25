@@ -1,53 +1,80 @@
-# TODO: I'm not extending harvestnode, this might be weird
-extends Node2D
+extends HarvestNode
 class_name BloodConfluence
 
 
 @export var _lootbox_sprite: Sprite2D
-@export var _harvest_prompt_label: Label
 @export var _blood_count_label: Label
 @export var _box_cost_label: Label
-@export var pickup_scene: PackedScene
 
-var produced_lootbox_id: StringName = "lootbox_elemental"
+@export var lootbox_cost_in_blood: int = 5
 
-var blood : float = 0
-var lootbox_cost_in_blood : float = 5
+var blood: float:
+	get:
+		return float(get_harvest_count())
+	set(value):
+		_set_blood(value)
+
+func _get_harvest_capacity() -> int:
+	return 1_000_000
+
+func _get_growth_amount_per_tick() -> int:
+	return 0
 
 func _ready() -> void:
+	produced_lootbox_id = &"lootbox_elemental"
+	harvest_prompt_action = &"interact"
+	super._ready()
+	set_growth_paused(true)
+
 	add_to_group("blood_confluence")
 	add_to_group("interactable")
 	_refresh_lootbox_sprite_texture()
 	_update_visuals()
 
-func try_purchase_lootbox(player : Player) -> bool:
-	if blood < lootbox_cost_in_blood: return false
-	
-	_set_blood(blood - lootbox_cost_in_blood)
+func try_purchase_lootbox(_player : Player) -> bool:
+	if not can_harvest():
+		return false
 
-	var new_box: Pickup = pickup_scene.instantiate() as Pickup
-	new_box.set_data(produced_lootbox_id)
-
-	get_parent().add_child(new_box)
-	new_box.global_position = global_position
-	new_box.apply_central_impulse(Vector2.UP * 600.0)
-	new_box.floating_towards = player
-	new_box.item_id = produced_lootbox_id
-
+	_spawn_lootbox_pickups(1)
+	_set_harvest_count(get_harvest_count() - lootbox_cost_in_blood)
 	return true
 
+func can_harvest() -> bool:
+	return get_harvest_count() >= lootbox_cost_in_blood
+
+func harvest_fruit(_amount: int = 1) -> int:
+	if not can_harvest():
+		return 0
+
+	_spawn_lootbox_pickups(1)
+	_set_harvest_count(get_harvest_count() - lootbox_cost_in_blood)
+	return 1
+
 func _set_blood(_new_blood: float) -> void:
-	blood = _new_blood
+	_set_harvest_count(maxi(int(round(_new_blood)), 0))
+
+func _on_harvest_count_changed(_previous_count: int, _current_count: int) -> void:
 	_update_visuals()
 
 func _update_visuals() -> void:
 	if _lootbox_sprite != null:
-		_lootbox_sprite.visible = blood >= lootbox_cost_in_blood
-	if _harvest_prompt_label != null:
-		_harvest_prompt_label.visible = blood >= lootbox_cost_in_blood
+		_lootbox_sprite.visible = can_harvest()
 
-	_blood_count_label.text = "blood: " + str(blood)
-	_box_cost_label.text = "box cost: " + str(lootbox_cost_in_blood)
+	if _blood_count_label != null:
+		_blood_count_label.text = "blood: " + str(get_harvest_count())
+	if _box_cost_label != null:
+		_box_cost_label.text = "box cost: " + str(lootbox_cost_in_blood)
+
+func _update_harvest_prompt() -> void:
+	if _harvest_prompt_label == null:
+		return
+
+	var should_show: bool = can_harvest() and _is_any_player_in_harvest_range()
+	_harvest_prompt_label.visible = should_show
+	if not should_show:
+		return
+
+	_harvest_prompt_label.text = "Press %s to convert" % _harvest_hint_text
 
 
 func _refresh_lootbox_sprite_texture() -> void:
