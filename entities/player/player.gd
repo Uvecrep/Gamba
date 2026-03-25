@@ -250,17 +250,8 @@ func _apply_visual_frame(sprite: Sprite2D, column: int, row: int) -> void:
 func _handle_interaction_input() -> void:
 	_interaction_component.handle_interaction_input(self)
 
-func _try_use_item() -> bool:
-	return _interaction_component.try_use_item(self)
-
-func _try_plant_sapling_near_house() -> bool:
-	return _interaction_component.try_plant_sapling_near_house(self)
-
 func can_plant_sapling_here() -> bool:
 	return _interaction_component.can_plant_sapling_here(self)
-
-func _open_lootbox(lootbox: Lootbox) -> bool:
-	return _interaction_component.open_lootbox(self, lootbox)
 
 func _configure_world_bounds() -> void:
 	_world_bounds_component.configure_world_bounds(self)
@@ -354,8 +345,7 @@ func _try_perform_item_action(_is_left : bool) -> void:
 		dropped_pickup.set_data(held_item_id)
 		return
 	
-	# TODO Do something with left and right click actions here
-	
+	# TODO Do something with left and right click actions here | Ian: Do we need to? the flow right now works with the right click drop vs left click throw
 	_begin_tossing()
 
 func _begin_tossing() -> void:
