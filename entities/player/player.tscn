@@ -44,7 +44,7 @@ toss_reticle = NodePath("TossReticle")
 toss_line = NodePath("TossLine")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1986886271]
-position = Vector2(-5, 2)
+scale = Vector2(1, 1.28)
 shape = SubResource("RectangleShape2D_wdj6m")
 
 [node name="Visuals" type="Node2D" parent="." unique_id=332825914]
