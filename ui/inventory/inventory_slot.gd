@@ -5,6 +5,8 @@ class_name InventorySlot
 signal slot_left_mouse_down()
 signal slot_right_mouse_down()
 signal slot_mouse_up()
+signal slot_mouse_entered()
+signal slot_mouse_exited()
 
 @export var item_image_texture_rect : TextureRect
 @export var item_name_label : Label
@@ -17,7 +19,9 @@ var item_id : StringName
 var is_selected : bool = false
 
 func _ready() -> void:
-	get_node("./Control").add_to_group("InventorySlot")
+	click_detection_box.add_to_group("InventorySlot")
+	click_detection_box.mouse_entered.connect(_on_click_detection_box_mouse_entered)
+	click_detection_box.mouse_exited.connect(_on_click_detection_box_mouse_exited)
 
 
 func set_is_selected(new_is_selected : bool) -> void:
@@ -56,3 +60,9 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 			slot_right_mouse_down.emit()
 		if not event.pressed:
 			slot_mouse_up.emit()
+
+func _on_click_detection_box_mouse_entered() -> void:
+	slot_mouse_entered.emit()
+
+func _on_click_detection_box_mouse_exited() -> void:
+	slot_mouse_exited.emit()
