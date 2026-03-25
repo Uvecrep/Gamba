@@ -33,7 +33,7 @@ var _stopped: bool = false
 
 var soul_tower_packed_scene : PackedScene = preload("res://entities/crystal/soul_tower.tscn")
 var soul_tower : SoulTower
-var soul_tower_spawn_center : Vector2 = Vector2(812.0,206) #hardcoded to house rn
+var soul_tower_spawn_center : Vector2 = Vector2(32,-32) #hardcoded to house rn
 var soul_tower_spawn_min_dist_from_center : float = 1500
 var soul_tower_spawn_max_dist_from_center : float = 2000
 

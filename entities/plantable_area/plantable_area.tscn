@@ -10,14 +10,15 @@ size = Vector2(17.812498, 17.499998)
 script = ExtResource("1_lwboy")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=517076558]
-scale = Vector2(3.2, 3.2)
+scale = Vector2(6.4, 6.4)
 shape = SubResource("RectangleShape2D_lwboy")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=336881428]
+scale = Vector2(2, 2)
 texture = ExtResource("2_c0251")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1235541126]
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D" unique_id=1718297144]
-scale = Vector2(3.2, 3.2)
+scale = Vector2(6.4, 6.4)
 shape = SubResource("RectangleShape2D_lwboy")

@@ -24,7 +24,8 @@ corner_radius_bottom_left = 5
 script = ExtResource("1_k80ea")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1518183757]
-position = Vector2(0, 6)
+position = Vector2(0, 25.745)
+scale = Vector2(2.345, 2.345)
 shape = SubResource("RectangleShape2D_2ikcc")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1831104327]
