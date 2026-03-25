@@ -239,6 +239,8 @@ func _find_nearest_harvestable_node(player: Player) -> Node2D:
 	for harvest_node in harvest_nodes:
 		if not (harvest_node is HARVEST_NODE_SCRIPT):
 			continue
+		if harvest_node is BloodConfluence:
+			continue
 		if not (harvest_node is Node2D):
 			continue
 		if not bool(harvest_node.call("can_harvest")):
