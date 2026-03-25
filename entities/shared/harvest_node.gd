@@ -170,6 +170,7 @@ func _spawn_lootbox_pickups(amount: int) -> void:
 			continue
 
 		new_box.set_data(produced_lootbox_id)
+		new_box.should_bob = false
 		new_box.floating_towards = follow_target
 		pickup_parent.add_child(new_box)
 		new_box.global_position = global_position

@@ -15,6 +15,7 @@ var bob_amplitude: float = 2.3
 var bob_speed: float = 0.4
 var bob_start_position: Vector2
 var bob_time: float
+var should_bob: bool = true
 
 var floating_towards : Node2D
 
@@ -30,6 +31,8 @@ func set_data(new_item_id : StringName) -> void:
 	_refresh_visuals()
 
 func _process(_delta: float) -> void:
+	if not should_bob: return
+	if bob_time == 0: bob_start_position = position
 	bob_time += _delta
 	var offset_y = sin(bob_time * bob_speed * PI * 2) * bob_amplitude
 	position.y = bob_start_position.y + offset_y
