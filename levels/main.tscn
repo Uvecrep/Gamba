@@ -202,3 +202,7 @@ position = Vector2(5600, -32)
 
 [node name="EnemyWaveSpawnPointNorth" parent="." unique_id=438271700 instance=ExtResource("20_fd7wu")]
 position = Vector2(32, -6752)
+
+[node name="Pickup4" parent="." unique_id=971572308 instance=ExtResource("13_1fput")]
+position = Vector2(544, -352)
+item_id = &"sapling"

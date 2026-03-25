@@ -38,6 +38,9 @@ func _get_plant_location() -> PlantableArea:
 	for result in results:
 		var collider = result.collider
 		if collider is PlantableArea:
-			return collider
+			var plantable = collider as PlantableArea
+			if not plantable.is_occupied:
+				plantable.is_occupied = true
+				return collider
 	
 	return null
