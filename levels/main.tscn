@@ -47,7 +47,7 @@ pickup_follow_target_path = NodePath("../player")
 pickup_impulse = Vector2(0, -600)
 
 [node name="EnemySpawner" parent="." unique_id=134363691 instance=ExtResource("5_u7xt2")]
-position = Vector2(32, -3808)
+position = Vector2(32, -32)
 spawn_interval = 10.0
 
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]

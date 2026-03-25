@@ -58,13 +58,15 @@ func spawn_wave(enemy_count: int, ignore_alive_cap: bool = false) -> int:
 	if requested_count <= 0:
 		return 0
 
+	var wave_spawn_point = _pick_spawn_position()
+
 	var spawned_count: int = 0
 	var alive_count: int = _get_alive_enemy_count()
 	for _i in requested_count:
 		if not ignore_alive_cap and alive_count >= max_alive_enemies:
 			break
 
-		if _spawn_single_enemy():
+		if _spawn_single_enemy(wave_spawn_point):
 			spawned_count += 1
 			alive_count += 1
 
@@ -78,7 +80,7 @@ func _on_spawn_timer_timeout() -> void:
 	if _get_alive_enemy_count() >= max_alive_enemies:
 		return
 
-	_spawn_single_enemy()
+	_spawn_single_enemy(global_position)
 
 func _get_alive_enemy_count() -> int:
 	var alive_count: int = 0
@@ -88,7 +90,7 @@ func _get_alive_enemy_count() -> int:
 
 	return alive_count
 
-func _spawn_single_enemy() -> bool:
+func _spawn_single_enemy(spawn_position : Vector2) -> bool:
 	if enemy_scene == null:
 		return false
 
@@ -98,7 +100,7 @@ func _spawn_single_enemy() -> bool:
 	if enemy is EnemyUnit:
 		(enemy as EnemyUnit).set_enemy_archetype(_pick_spawn_archetype())
 
-	enemy.global_position = _pick_spawn_position()
+	enemy.global_position = spawn_position
 	if get_parent() != null:
 		get_parent().add_child(enemy)
 	else:

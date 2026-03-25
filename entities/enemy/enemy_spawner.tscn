@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://445ll3r46mhy" path="res://assets/objects/enemy_tower.png" id="3_4q7ap"]
 
 [node name="EnemySpawner" type="Node2D" unique_id=1632124706]
+visible = false
 script = ExtResource("1_ihm03")
 enemy_scene = ExtResource("2_0v8m4")
 
@@ -20,10 +21,10 @@ autostart = true
 [node name="SpawnPoints" type="Node2D" parent="." unique_id=1462486555]
 
 [node name="SpawnPointLeft" type="Marker2D" parent="SpawnPoints" unique_id=2138696044]
-position = Vector2(-380, -220)
+position = Vector2(-4000, 0)
 
 [node name="SpawnPointRight" type="Marker2D" parent="SpawnPoints" unique_id=1362932414]
-position = Vector2(420, -210)
+position = Vector2(4000, 0)
 
-[node name="SpawnPointBottom" type="Marker2D" parent="SpawnPoints" unique_id=1099449168]
-position = Vector2(0, 310)
+[node name="SpawnPointTop" type="Marker2D" parent="SpawnPoints" unique_id=1099449168]
+position = Vector2(0, -4000)
