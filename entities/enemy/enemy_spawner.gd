@@ -5,8 +5,11 @@ class_name EnemySpawner
 @export var spawn_interval: float = 15
 @export var max_alive_enemies: int = 8
 @export var auto_start: bool = true
-@export var spawn_points_root_path: NodePath = NodePath("SpawnPoints")
 @export var randomize_enemy_archetypes: bool = true
+
+@export var wave_spawn_points: Array[Node2D]
+var wave_spawn_point_radius: float = 200
+
 @export var spawn_archetype_pool: PackedStringArray = [
 	"basic_raider",
 	"basic_raider",
@@ -26,6 +29,8 @@ func _ready() -> void:
 
 	if enemy_scene == null:
 		push_warning("EnemySpawner needs enemy_scene set for wave spawns.")
+	if wave_spawn_points == null or wave_spawn_points.is_empty():
+		push_warning("EnemySpawner needs wave spawn points to be set")
 
 	_spawn_timer.wait_time = spawn_interval
 	if not _spawn_timer.timeout.is_connected(_on_spawn_timer_timeout):
@@ -60,13 +65,14 @@ func spawn_wave(enemy_count: int, ignore_alive_cap: bool = false) -> int:
 
 	var wave_spawn_point = _pick_spawn_position()
 
+
 	var spawned_count: int = 0
 	var alive_count: int = _get_alive_enemy_count()
 	for _i in requested_count:
 		if not ignore_alive_cap and alive_count >= max_alive_enemies:
 			break
 
-		if _spawn_single_enemy(wave_spawn_point):
+		if _spawn_single_enemy(random_point_in_circle(wave_spawn_point, wave_spawn_point_radius)):
 			spawned_count += 1
 			alive_count += 1
 
@@ -101,10 +107,8 @@ func _spawn_single_enemy(spawn_position : Vector2) -> bool:
 		(enemy as EnemyUnit).set_enemy_archetype(_pick_spawn_archetype())
 
 	enemy.global_position = spawn_position
-	if get_parent() != null:
-		get_parent().add_child(enemy)
-	else:
-		add_child(enemy)
+
+	get_parent().add_child(enemy)
 
 	return true
 
@@ -120,16 +124,12 @@ func _pick_spawn_archetype() -> StringName:
 	return StringName(entry)
 
 func _pick_spawn_position() -> Vector2:
-	var spawn_root: Node = get_node_or_null(spawn_points_root_path)
-	if spawn_root == null:
-		return global_position
+	if wave_spawn_points == null or wave_spawn_points.is_empty(): return global_position
 
-	var points: Array = spawn_root.get_children()
-	if points.is_empty():
-		return global_position
-
-	var random_point: Node = points[randi() % points.size()]
-	if random_point is Node2D:
-		return random_point.global_position
-
-	return global_position
+	var random_point: Node = wave_spawn_points[randi() % wave_spawn_points.size()]
+	return random_point.global_position
+	
+func random_point_in_circle(center: Vector2, radius: float) -> Vector2:
+	var angle = randf() * TAU
+	var distance = sqrt(randf()) * radius
+	return center + Vector2(cos(angle), sin(angle)) * distance
