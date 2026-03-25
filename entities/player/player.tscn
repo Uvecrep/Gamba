@@ -27,8 +27,11 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[node name="player" type="CharacterBody2D" unique_id=57563531 node_paths=PackedStringArray("sprite_base", "sprite_overlay", "sprite_layer_2", "sprite_layer_3", "sprite_layer_4", "sprite_layer_5", "sprite_layer_6", "toss_reticle", "toss_line")]
+[node name="player" type="CharacterBody2D" unique_id=57563531 node_paths=PackedStringArray("camera_mouse_offset_node", "camera", "sprite_base", "sprite_overlay", "sprite_layer_2", "sprite_layer_3", "sprite_layer_4", "sprite_layer_5", "sprite_layer_6", "toss_reticle", "toss_line")]
+collision_mask = 129
 script = ExtResource("1_abrql")
+camera_mouse_offset_node = NodePath("CameraMouseOffset")
+camera = NodePath("CameraMouseOffset/Camera2D")
 pickup_packed_scene = ExtResource("2_fkugw")
 thrown_lootbox_packed_scene = ExtResource("3_fkugw")
 thrown_sapling_packed_scene = ExtResource("4_8fjmc")
@@ -99,11 +102,6 @@ texture = ExtResource("2_abrql")
 hframes = 8
 vframes = 7
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=677123141]
-process_callback = 0
-position_smoothing_enabled = true
-position_smoothing_speed = 8.0
-
 [node name="PickupMagnetRadius" type="Area2D" parent="." unique_id=1306884590]
 collision_layer = 0
 collision_mask = 16
@@ -142,6 +140,13 @@ texture = ExtResource("3_sglur")
 [node name="TossLine" type="Line2D" parent="." unique_id=1004722858]
 visible = false
 points = PackedVector2Array(10, 10, 100, 100)
+
+[node name="CameraMouseOffset" type="Node2D" parent="." unique_id=349965652]
+
+[node name="Camera2D" type="Camera2D" parent="CameraMouseOffset" unique_id=677123141]
+process_callback = 0
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
 
 [connection signal="area_entered" from="PickupMagnetRadius" to="." method="_on_pickup_touched_radius"]
 [connection signal="area_entered" from="PickupCollectRadius" to="." method="_on_pickup_touched_me"]

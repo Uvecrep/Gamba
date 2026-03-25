@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://788e657uh5fw"]
+
+[ext_resource type="Texture2D" uid="uid://cr76nc2fivill" path="res://assets/characters/enemy.png" id="1_mabpa"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_66eko"]
+font_color = Color(0, 0, 0, 1)
+
+[node name="EnemyWaveSpawnPoint" type="Node2D" unique_id=52541839]
+
+[node name="Label" type="Label" parent="." unique_id=1517649039]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -71.5
+offset_top = -45.455
+offset_right = 71.5
+offset_bottom = -22.455002
+grow_horizontal = 2
+grow_vertical = 0
+text = "Wave Spawn Point"
+label_settings = SubResource("LabelSettings_66eko")
+horizontal_alignment = 1
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1857312024]
+texture = ExtResource("1_mabpa")

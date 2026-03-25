@@ -18,6 +18,8 @@
 [ext_resource type="PackedScene" uid="uid://bdokkhkbr35d2" path="res://entities/crystal/blood_confluence.tscn" id="15_4fc0e"]
 [ext_resource type="PackedScene" uid="uid://be8r57shygwgm" path="res://entities/plantable_area/plantable_area.tscn" id="15_s07ge"]
 [ext_resource type="PackedScene" uid="uid://cr76phtlmlcqt" path="res://ui/bestiary/bestiary_panel.tscn" id="16_bestiary"]
+[ext_resource type="PackedScene" uid="uid://b00jrxmgdmyu5" path="res://entities/enemy/enemy.tscn" id="19_j7211"]
+[ext_resource type="PackedScene" uid="uid://788e657uh5fw" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -52,7 +54,7 @@ spawn_interval = 10.0
 
 [node name="player" parent="." unique_id=57563531 instance=ExtResource("1_2262g")]
 z_index = 1
-position = Vector2(32, 317.62)
+position = Vector2(3000, 317.62)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=299344106 node_paths=PackedStringArray("player", "_sapling_debug_label", "_summon_command_hint_label")]
 script = ExtResource("8_hud")
@@ -187,7 +189,13 @@ item_id = &"sapling"
 position = Vector2(-480, 672)
 
 [node name="PlantableArea" parent="." unique_id=1816183555 instance=ExtResource("15_s07ge")]
-position = Vector2(480, -416)
+position = Vector2(928, -224)
 
 [node name="PlantableArea2" parent="." unique_id=1890768339 instance=ExtResource("15_s07ge")]
-position = Vector2(-416, -416)
+position = Vector2(-864, -224)
+
+[node name="enemy" parent="." unique_id=1720674554 instance=ExtResource("19_j7211")]
+position = Vector2(-672, -608)
+
+[node name="EnemyWaveSpawnPoint" parent="." unique_id=52541839 instance=ExtResource("20_fd7wu")]
+position = Vector2(-5344, 32)

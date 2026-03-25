@@ -34,7 +34,8 @@ class_name Player
 @export var idle_layer_rows: PackedInt32Array = PackedInt32Array([0, 1, 2, 3, 4, 5, 6])
 @export var move_layer_rows: PackedInt32Array = PackedInt32Array([0, 1, 2, 3, 4, 5, 6])
 
-@onready var camera: Camera2D = $Camera2D
+@export var camera_mouse_offset_node: Node2D
+@export var camera: Camera2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
 @onready var health_bar: ProgressBar = $HealthBar
 
@@ -78,8 +79,6 @@ var _visual_layers: Array[Sprite2D] = []
 func _ready() -> void:
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
-	collision_layer = Const.COLLISION_LAYERS.PLAYER
-	collision_mask = Const.COLLISION_LAYERS.WORLD
 	add_to_group("players")
 
 	_world_bounds_component.initialize(self)
@@ -113,7 +112,7 @@ func _physics_process(_delta: float) -> void:
 	_summon_command_component.physics_update(self)
 	get_input()
 	move_and_slide()
-	_clamp_player_to_world_bounds()
+	#_clamp_player_to_world_bounds()
 	_handle_summon_command_shortcuts()
 
 	if Input.is_action_just_pressed(interact_action):
@@ -268,8 +267,8 @@ func _configure_world_bounds() -> void:
 func _apply_camera_world_limits() -> void:
 	_world_bounds_component.apply_camera_world_limits(self)
 
-func _clamp_player_to_world_bounds() -> void:
-	_world_bounds_component.clamp_player_to_world_bounds(self)
+#func _clamp_player_to_world_bounds() -> void:
+#	_world_bounds_component.clamp_player_to_world_bounds(self)
 
 func _get_node_bounds_padding(node_2d: Node2D) -> Vector2:
 	return _world_bounds_component.get_node_bounds_padding(node_2d)

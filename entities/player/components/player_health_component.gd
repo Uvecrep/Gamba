@@ -126,7 +126,7 @@ func run_respawn_timer(player: Player) -> void:
 
 func respawn_player(player: Player) -> void:
 	player.global_position = get_respawn_position(player)
-	player._clamp_player_to_world_bounds()
+	#player._clamp_player_to_world_bounds()
 	_sync_with_player_max_health(player)
 	_health_state.revive(true)
 	_sync_player_health(player)

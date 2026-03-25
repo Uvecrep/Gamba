@@ -1,6 +1,8 @@
 extends RefCounted
 class_name PlayerMovementComponent
 
+var camera_mouse_offset : Vector2
+
 func get_input(player: Player) -> void:
 	var input_direction: Vector2 = Input.get_vector("left", "right", "up", "down")
 	player.velocity = input_direction * player.speed
@@ -25,4 +27,5 @@ func handle_scroll_and_camera(player: Player) -> void:
 
 	var mouse_pos: Vector2 = viewport.get_mouse_position() - (viewport.get_visible_rect().size * 0.5)
 	# Keep current camera behavior while movement/camera code lives outside Player.
-	player.camera.offset = mouse_pos * 0.1
+	player.camera.position = mouse_pos * 0.1
+	#player._clamp_player_to_world_bounds()

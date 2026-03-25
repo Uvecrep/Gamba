@@ -26,7 +26,7 @@ func configure_world_bounds(player: Player) -> void:
 	player.world_bounds = world_bounds
 	player.has_world_bounds = true
 	apply_camera_world_limits(player)
-	clamp_player_to_world_bounds(player)
+	#clamp_player_to_world_bounds(player)
 
 func apply_camera_world_limits(player: Player) -> void:
 	if player.camera == null or not player.has_world_bounds:
@@ -39,31 +39,32 @@ func apply_camera_world_limits(player: Player) -> void:
 	player.camera.limit_smoothed = true
 	player.camera.reset_smoothing()
 
-func clamp_player_to_world_bounds(player: Player) -> void:
-	if not player.has_world_bounds:
-		return
+# func clamp_player_to_world_bounds(player: Player) -> void:
+# 	return
+# 	if not player.has_world_bounds:
+# 		return
 
-	var min_position: Vector2 = player.world_bounds.position + player.player_bounds_padding
-	var max_position: Vector2 = player.world_bounds.end - player.player_bounds_padding
+# 	var min_position: Vector2 = player.world_bounds.position + player.player_bounds_padding
+# 	var max_position: Vector2 = player.world_bounds.end - player.player_bounds_padding
 
-	if min_position.x > max_position.x:
-		var center_x: float = (player.world_bounds.position.x + player.world_bounds.end.x) * 0.5
-		min_position.x = center_x
-		max_position.x = center_x
-	if min_position.y > max_position.y:
-		var center_y: float = (player.world_bounds.position.y + player.world_bounds.end.y) * 0.5
-		min_position.y = center_y
-		max_position.y = center_y
+# 	if min_position.x > max_position.x:
+# 		var center_x: float = (player.world_bounds.position.x + player.world_bounds.end.x) * 0.5
+# 		min_position.x = center_x
+# 		max_position.x = center_x
+# 	if min_position.y > max_position.y:
+# 		var center_y: float = (player.world_bounds.position.y + player.world_bounds.end.y) * 0.5
+# 		min_position.y = center_y
+# 		max_position.y = center_y
 
-	var clamped_position: Vector2 = player.global_position.clamp(min_position, max_position)
-	if clamped_position.is_equal_approx(player.global_position):
-		return
+# 	var clamped_position: Vector2 = player.global_position.clamp(min_position, max_position)
+# 	if clamped_position.is_equal_approx(player.global_position):
+# 		return
 
-	if not is_equal_approx(clamped_position.x, player.global_position.x):
-		player.velocity.x = 0.0
-	if not is_equal_approx(clamped_position.y, player.global_position.y):
-		player.velocity.y = 0.0
-	player.global_position = clamped_position
+# 	if not is_equal_approx(clamped_position.x, player.global_position.x):
+# 		player.velocity.x = 0.0
+# 	if not is_equal_approx(clamped_position.y, player.global_position.y):
+# 		player.velocity.y = 0.0
+# 	player.global_position = clamped_position
 
 func get_node_bounds_padding(node_2d: Node2D) -> Vector2:
 	if node_2d == null:
