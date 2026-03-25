@@ -11,6 +11,7 @@ func handle_interaction_input(player: Player) -> void:
 	var nearest_harvest_node: Node2D = _find_nearest_harvestable_node(player)
 	var nearest_phone: PhoneInteractable = _find_nearest_phone(player)
 	var nearest_map: MapInteractable = _find_nearest_map(player)
+	var nearest_shop: ShopInteractable = _find_nearest_shop(player)
 	var nearest_blood: Node2D = _find_nearest_in_group(player, "blood_confluence")
 	var nearest_soul: Node2D = _find_nearest_in_group(player, "soul_tower")
 
@@ -26,6 +27,10 @@ func handle_interaction_input(player: Player) -> void:
 	if nearest_map != null:
 		nearest_map_distance_sq = player.global_position.distance_squared_to(nearest_map.global_position)
 
+	var nearest_shop_distance_sq: float = INF
+	if nearest_shop != null:
+		nearest_shop_distance_sq = player.global_position.distance_squared_to(nearest_shop.global_position)
+
 	var nearest_interactable: Node = null
 	var nearest_distance_sq: float = INF
 
@@ -40,6 +45,10 @@ func handle_interaction_input(player: Player) -> void:
 	if nearest_map != null and nearest_map_distance_sq < nearest_distance_sq:
 		nearest_interactable = nearest_map
 		nearest_distance_sq = nearest_map_distance_sq
+
+	if nearest_shop != null and nearest_shop_distance_sq < nearest_distance_sq:
+		nearest_interactable = nearest_shop
+		nearest_distance_sq = nearest_shop_distance_sq
 
 	if nearest_blood != null and player.global_position.distance_squared_to(nearest_blood.global_position) < nearest_distance_sq:
 		nearest_interactable = nearest_blood
@@ -58,6 +67,9 @@ func handle_interaction_input(player: Player) -> void:
 		return
 	if nearest_interactable is MapInteractable:
 		(nearest_interactable as MapInteractable).interact(player)
+		return
+	if nearest_interactable is ShopInteractable:
+		(nearest_interactable as ShopInteractable).interact(player)
 		return
 	
 	if nearest_interactable is BloodConfluence:
@@ -283,6 +295,27 @@ func _find_nearest_map(player: Player) -> MapInteractable:
 		nearest_map = map_node
 
 	return nearest_map
+
+func _find_nearest_shop(player: Player) -> ShopInteractable:
+	var shops: Array = player.get_tree().get_nodes_in_group("shops")
+	var nearest_shop: ShopInteractable = null
+	var nearest_distance_sq: float = INF
+
+	for shop_interactable in shops:
+		if not shop_interactable is ShopInteractable:
+			continue
+		var shop_node: ShopInteractable = shop_interactable as ShopInteractable
+		if not shop_node.can_interact_with_player(player):
+			continue
+
+		var distance_sq: float = player.global_position.distance_squared_to(shop_node.global_position)
+		if distance_sq >= nearest_distance_sq:
+			continue
+
+		nearest_distance_sq = distance_sq
+		nearest_shop = shop_node
+
+	return nearest_shop
 
 func _find_nearest_in_group(player: Player, group_name : String) -> Node2D:
 	var interactables: Array = player.get_tree().get_nodes_in_group(group_name)

@@ -1,0 +1,213 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://entities/shop/shop.gd" id="1_shop_script"]
+[ext_resource type="Texture2D" path="res://assets/objects/greed_lootbox.png" id="2_shop_texture"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_shop"]
+size = Vector2(42, 44)
+
+[node name="shop" type="StaticBody2D"]
+script = ExtResource("1_shop_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 10)
+shape = SubResource("RectangleShape2D_shop")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(2, 2)
+texture = ExtResource("2_shop_texture")
+
+[node name="InteractPrompt" type="Label" parent="."]
+visible = false
+z_index = 20
+offset_left = -104.0
+offset_top = 58.0
+offset_right = 104.0
+offset_bottom = 86.0
+text = "Press E to browse upgrades"
+horizontal_alignment = 1
+
+[node name="ShopLayer" type="CanvasLayer" parent="."]
+visible = false
+layer = 6
+
+[node name="ShopWindow" type="PanelContainer" parent="ShopLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -260.0
+offset_right = 430.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ShopLayer/ShopWindow"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ShopLayer/ShopWindow/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Lootbox Broker"
+horizontal_alignment = 1
+
+[node name="GoldLabel" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Gold: --"
+horizontal_alignment = 1
+
+[node name="CardsRow" type="HBoxContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="Card1" type="PanelContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow"]
+custom_minimum_size = Vector2(260, 220)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card1"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card1/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card1/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Upgrade"
+autowrap_mode = 2
+
+[node name="Description" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card1/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 2
+text = "Description"
+
+[node name="Cost" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card1/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Cost: 0 gold"
+
+[node name="BuyButton" type="Button" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card1/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Buy"
+
+[node name="Card2" type="PanelContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow"]
+custom_minimum_size = Vector2(260, 220)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card2"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card2/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card2/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Upgrade"
+autowrap_mode = 2
+
+[node name="Description" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card2/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 2
+text = "Description"
+
+[node name="Cost" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card2/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Cost: 0 gold"
+
+[node name="BuyButton" type="Button" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card2/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Buy"
+
+[node name="Card3" type="PanelContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow"]
+custom_minimum_size = Vector2(260, 220)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card3"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card3/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card3/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Upgrade"
+autowrap_mode = 2
+
+[node name="Description" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card3/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 2
+text = "Description"
+
+[node name="Cost" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card3/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Cost: 0 gold"
+
+[node name="BuyButton" type="Button" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card3/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Buy"
+
+[node name="GreedRow" type="HBoxContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BuyGreedButton" type="Button" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/GreedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Buy Greed Lootbox"
+
+[node name="GreedCostLabel" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/GreedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 2
+text = "Cost: 20 gold"
+
+[node name="StatusLabel" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Choose an upgrade card or buy a Greed lootbox."
+autowrap_mode = 2
+
+[node name="CloseHint" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Press E to close shop"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Close"
