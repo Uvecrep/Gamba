@@ -11,6 +11,11 @@ const PICKUP_OUTLINE_SHADER: Shader = preload("res://entities/pickups/pickup_out
 @export var texture_rect : TextureRect
 @export var sprite_2d : Sprite2D
 
+var bob_amplitude: float = 2.3
+var bob_speed: float = 0.4
+var bob_start_position: Vector2
+var bob_time: float
+
 var floating_towards : Node2D
 
 func _ready() -> void:
@@ -23,6 +28,11 @@ func set_data(new_item_id : StringName) -> void:
 	if debug_item_id_label != null:
 		debug_item_id_label.text = String(new_item_id)
 	_refresh_visuals()
+
+func _process(_delta: float) -> void:
+	bob_time += _delta
+	var offset_y = sin(bob_time * bob_speed * PI * 2) * bob_amplitude
+	position.y = bob_start_position.y + offset_y
 
 func _physics_process(_delta: float) -> void:
 	apply_force(-linear_velocity * .2) # Apply drag
@@ -44,6 +54,8 @@ func _refresh_visuals() -> void:
 		sprite_2d.visible = true
 		sprite_2d.texture = item_data.texture
 
+# This is a goofy pattern. If a variable is marked as an export and not properly set in scene it should be expected to fail, cause errors, etc
+# Having this kind of fallback code is basically writing the node path in two seperate places
 func _resolve_visual_nodes() -> void:
 	if debug_item_id_label == null:
 		debug_item_id_label = get_node_or_null("Label") as Label
