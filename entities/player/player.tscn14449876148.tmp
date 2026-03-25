@@ -4,9 +4,9 @@
 [ext_resource type="Texture2D" uid="uid://gw4wuflvucyr" path="res://assets/characters/summoner-Sheet.png" id="2_abrql"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="2_fkugw"]
 [ext_resource type="PackedScene" uid="uid://bb23mmd3w1v3e" path="res://entities/thrown_object/thrown_lootbox.tscn" id="3_fkugw"]
+[ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="3_sglur"]
 [ext_resource type="PackedScene" uid="uid://cbyrfoweidpqm" path="res://entities/thrown_object/thrown_sapling.tscn" id="4_8fjmc"]
 [ext_resource type="PackedScene" uid="uid://gspk8i0demvv" path="res://entities/thrown_object/thrown_pickup.tscn" id="5_qiwj3"]
-[ext_resource type="Texture2D" uid="uid://2l273uahv3xf" path="res://assets/throw_reticle_x.png" id="7_wvtmh"]
 [ext_resource type="Texture2D" uid="uid://cjb5dxopcaqdv" path="res://assets/dashed_line.png" id="8_26q78"]
 [ext_resource type="Shader" uid="uid://b05odqusa0l3d" path="res://ui/toss/toss_dashed_line.gdshader" id="9_bectd"]
 [ext_resource type="Script" uid="uid://bjx1r8tpoagrt" path="res://ui/toss/toss_dashed_line.gd" id="10_wvtmh"]
@@ -34,7 +34,7 @@ corner_radius_bottom_left = 5
 shader = ExtResource("9_bectd")
 shader_parameter/fade_top = 0.10000000475
 shader_parameter/fade_bottom = 0.1
-shader_parameter/speed = 5.0
+shader_parameter/speed = 0.5
 shader_parameter/animate = true
 
 [node name="player" type="CharacterBody2D" unique_id=57563531 node_paths=PackedStringArray("camera_mouse_offset_node", "camera", "sprite_base", "sprite_overlay", "sprite_layer_2", "sprite_layer_3", "sprite_layer_4", "sprite_layer_5", "sprite_layer_6", "toss_reticle", "toss_line", "toss_line_texture")]
@@ -141,24 +141,12 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_26q78")
 value = 100.0
 show_percentage = false
 
-[node name="TossLineTexture" type="TextureRect" parent="." unique_id=1725882989 node_paths=PackedStringArray("line_to_follow")]
-visible = false
-material = SubResource("ShaderMaterial_wvtmh")
-offset_left = -5.5
-offset_right = 5.5
-offset_bottom = 19.0
-pivot_offset = Vector2(5.5, 0)
-texture = ExtResource("8_26q78")
-stretch_mode = 1
-script = ExtResource("10_wvtmh")
-line_to_follow = NodePath("../TossLine")
-
 [node name="TossReticle" type="Node2D" parent="." unique_id=1440640529]
 visible = false
 
 [node name="Sprite2D" type="Sprite2D" parent="TossReticle" unique_id=1343234261]
-scale = Vector2(2, 2)
-texture = ExtResource("7_wvtmh")
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("3_sglur")
 
 [node name="TossLine" type="Line2D" parent="." unique_id=1004722858]
 visible = false
@@ -171,6 +159,17 @@ texture = ExtResource("8_26q78")
 process_callback = 0
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+
+[node name="TossLineTexture" type="TextureRect" parent="." unique_id=1725882989 node_paths=PackedStringArray("line_to_follow")]
+material = SubResource("ShaderMaterial_wvtmh")
+offset_left = -5.5
+offset_right = 5.5
+offset_bottom = 200.0
+pivot_offset = Vector2(5.5, 0)
+texture = ExtResource("8_26q78")
+stretch_mode = 1
+script = ExtResource("10_wvtmh")
+line_to_follow = NodePath("../TossLine")
 
 [connection signal="area_entered" from="PickupMagnetRadius" to="." method="_on_pickup_touched_radius"]
 [connection signal="area_entered" from="PickupCollectRadius" to="." method="_on_pickup_touched_me"]

@@ -70,6 +70,7 @@ var _interaction_component: PlayerInteractionComponent = PlayerInteractionCompon
 @export var sprite_layer_6: Sprite2D
 @export var toss_reticle: Node2D
 @export var toss_line: Line2D
+@export var toss_line_texture: TextureRect
 var _is_tossing = false
 var _animation_time_seconds: float = 0.0
 var _was_moving_last_frame: bool = false
@@ -362,6 +363,7 @@ func _begin_tossing() -> void:
 	
 	toss_reticle.visible = true
 	toss_line.visible = true
+	toss_line_texture.visible = true
 	_is_tossing = true
 
 func _stop_tossing() -> void:
@@ -403,3 +405,4 @@ func _stop_tossing() -> void:
 	toss_reticle.visible = false
 	toss_line.visible = false
 	_is_tossing = false
+	toss_line_texture.visible = false
