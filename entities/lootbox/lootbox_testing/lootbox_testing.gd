@@ -31,8 +31,8 @@ func load_loot_box_resource(path: String) -> void:
 func reload_Lootbox_ui() -> void:
 	LootboxPathLabel.text = LoadedLootbox.resource_path if LoadedLootbox != null else "none"
 	LootboxNameLabel.text = LoadedLootbox.name if LoadedLootbox != null else "none"
-	LootboxColorLabel.text = LoadedLootbox.color if LoadedLootbox != null else "none"
-	LootboxDescriptionLabel.text = LoadedLootbox.description if LoadedLootbox != null else "none"
+	LootboxColorLabel.text = "n/a"
+	LootboxDescriptionLabel.text = "Open this lootbox to discover summons." if LoadedLootbox != null else "none"
 	RollButton.disabled = LoadedLootbox == null
 
 func _on_load_button_pressed() -> void:

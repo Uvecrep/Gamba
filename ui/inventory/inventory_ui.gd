@@ -1,7 +1,7 @@
 extends Control
 class_name InventoryUi
 
-# TODO: remove this and put in scene manager
+# TODO: remove this and put in scene manager | Ian: I like this, but should be a part of a larger refactor I think, for now we leave it and just keep our stuff coupled tightly
 @export var player_ref : Player
 
 # Used in case of an invalid item ID so the slot isn't empty
@@ -28,7 +28,8 @@ func _ready() -> void:
 	player_ref.player_inventory.slot_contents_changed.connect(_on_slot_contents_changed)
 	player_ref.player_inventory.gold_count_changed.connect(_on_gold_count_changed)
 	
-	# TODO Shouldn't need to do this, but UI is readying after the player for some reason
+	# TODO Shouldn't need to do this, but UI is readying after the player for some reason | Ian: LMAO the tree readys things bottom up if you look at the scene tree, so since ui is further down the list it gets init'd first (idk why, its just how it works)
+	# Proper fix imo is initing what we can through code instead so we have total control of the order here, remove the black box or whatever
 	slots[player_ref.player_inventory.selected_index].set_is_selected(true)
 	for i in range(slots.size()):
 		slots[i].set_info(player_ref.player_inventory.get_slot_item_id(i), player_ref.player_inventory.get_slot_item_id(i), null, player_ref.player_inventory.get_slot_count(i))

@@ -377,11 +377,27 @@ func _build_tab_intro_text(tab_id: StringName) -> String:
 	if lootbox_globals != null:
 		var lootboxes: Dictionary = lootbox_globals.get("lootboxes")
 		var lootbox: Lootbox = lootboxes.get(StringName(box_id), null) as Lootbox
-		if lootbox != null and not String(lootbox.description).is_empty():
-			description = lootbox.description
+		if lootbox != null:
+			description = _box_description_hint(StringName(box_id), lootbox)
 
 	var source_hint: String = _box_source_hint(StringName(box_id))
 	return "%s\n\n%s\n\nHow to get it:\n%s" % [tab_name, description, source_hint]
+
+
+func _box_description_hint(box_id: StringName, _lootbox: Lootbox) -> String:
+	match box_id:
+		&"chaos":
+			return "A volatile cache with aggressive summon rolls and unpredictable outcomes."
+		&"forest":
+			return "A nature-aligned lootbox with grounded summon outcomes from forest progression."
+		&"elemental":
+			return "An arcane lootbox tuned toward elemental-themed summon outcomes."
+		&"greed":
+			return "A high-value lootbox focused on economy-leaning summon rewards."
+		&"soul":
+			return "A mystical lootbox linked to soul-focused progression paths."
+		_:
+			return "Open this lootbox to discover summons."
 
 
 func _box_source_hint(box_id: StringName) -> String:

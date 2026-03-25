@@ -24,6 +24,7 @@ func _process(_delta: float) -> void:
 		if not LootboxGlobals.lootboxes.has(box_id):
 			return
 		lootbox = LootboxGlobals.lootboxes[box_id]
+		loaded_item_id = StringName(mouseover_slot.item_id)
 	
 	if lootbox == null: return
 
@@ -40,7 +41,7 @@ func load_lootbox(new_lootbox : Lootbox) -> void:
 
 func update_visuals() -> void:
 	lootbox_name_label.text = loaded_lootbox.name
-	lootbox_description_label.text = loaded_lootbox.description
+	lootbox_description_label.text = _description_for_loaded_lootbox()
 	lootbox_entries_count_label.text = str(loaded_lootbox.lootTable.size())
 
 	for child in loot_entry_container.get_children():
@@ -65,7 +66,7 @@ func update_visuals() -> void:
 		loot_entry_container.add_child(new_item)
 
 
-# TODO: Terribly suboptimal code for searching through ALL controls to find the first inventoryslot you hover over
+# TODO: Terribly suboptimal code for searching through ALL controls to find the first inventory slot you hover over
 func get_first_inventoryslot() -> InventorySlot:
 	var results = get_all_controls_under_mouse()
 	for c in results:
@@ -94,3 +95,27 @@ func _collect_controls(node: Node, mouse_pos: Vector2, results: Array):
 	
 	for child in node.get_children():
 		_collect_controls(child, mouse_pos, results)
+
+
+func _description_for_loaded_lootbox() -> String:
+	if loaded_item_id == StringName():
+		return "Open this lootbox to discover summons."
+
+	var item_id_text: String = String(loaded_item_id)
+	if not item_id_text.begins_with("lootbox_"):
+		return "Open this lootbox to discover summons."
+
+	var box_id: StringName = StringName(item_id_text.trim_prefix("lootbox_"))
+	match box_id:
+		&"chaos":
+			return "A volatile cache with aggressive summon rolls and unpredictable outcomes."
+		&"forest":
+			return "A nature-aligned lootbox with grounded summon outcomes from forest progression."
+		&"elemental":
+			return "An arcane lootbox tuned toward elemental-themed summon outcomes."
+		&"greed":
+			return "A high-value lootbox focused on economy-leaning summon rewards."
+		&"soul":
+			return "A mystical lootbox linked to soul-focused progression paths."
+		_:
+			return "Open this lootbox to discover summons."
