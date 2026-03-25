@@ -61,6 +61,7 @@ var _day_night_controller: DayNightController
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("shops")
 	_action_hint_text = INPUT_HINT_UTIL.resolve_action_hint(interact_action)
 	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
@@ -131,6 +132,9 @@ func _set_shop_open(should_open: bool) -> void:
 		_close_hint_label.text = "Press %s to close shop" % _action_hint_text
 	if should_open and _card_buy_buttons.size() > 0 and _card_buy_buttons[0] != null:
 		_card_buy_buttons[0].grab_focus()
+
+func is_shop_open() -> bool:
+	return _is_open
 
 func _on_buy_card_pressed(card_index: int) -> void:
 	if card_index < 0 or card_index >= _offers.size():

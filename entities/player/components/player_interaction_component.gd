@@ -8,6 +8,15 @@ func initialize(_player: Player) -> void:
 	pass
 
 func handle_interaction_input(player: Player) -> void:
+	for map_interactable in player.get_tree().get_nodes_in_group("maps"):
+		if not (map_interactable is MapInteractable):
+			continue
+		var open_map: MapInteractable = map_interactable as MapInteractable
+		if not open_map.is_map_open():
+			continue
+		open_map.interact(player)
+		return
+
 	var nearest_harvest_node: Node2D = _find_nearest_harvestable_node(player)
 	var nearest_phone: PhoneInteractable = _find_nearest_phone(player)
 	var nearest_map: MapInteractable = _find_nearest_map(player)

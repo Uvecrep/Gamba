@@ -39,6 +39,8 @@ var _prompt_fade_tween: Tween
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	add_to_group("bestiary_panels")
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -87,6 +89,10 @@ func set_panel_open(open: bool) -> void:
 	if open:
 		_clear_prompt_notifications()
 		_refresh_cards()
+
+
+func is_panel_open() -> bool:
+	return _is_panel_open
 
 
 func open_to_entry(tab_id: StringName, entry_id: StringName) -> void:

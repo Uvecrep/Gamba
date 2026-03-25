@@ -8,9 +8,11 @@ class_name MapInteractable
 const MAP_STATUS_HINT: String = "Click or drag to select. Right-click to move. Use Hold, Follow, or Auto for selected summons."
 const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
 const PROXIMITY_PROMPT_UTIL: GDScript = preload("res://scripts/proximity_prompt_util.gd")
+const INTERACT_REOPEN_BLOCK_MS: int = 150
 
 var _action_hint_text: String = "E"
 var _map_open: bool = false
+var _reopen_block_until_msec: int = 0
 var _prompt_refresh_time_left: float = 0.0
 var _spatial_index: SpatialIndex2D
 
@@ -28,6 +30,7 @@ var _spatial_index: SpatialIndex2D
 @onready var _close_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/CloseButton") as Button
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("maps")
 	_action_hint_text = INPUT_HINT_UTIL.resolve_action_hint(interact_action)
 	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
@@ -63,18 +66,20 @@ func _process(delta: float) -> void:
 	_update_prompt()
 	_schedule_prompt_refresh()
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not _map_open:
-		return
-	if not event.is_action_pressed(interact_action) and not event.is_action_pressed(&"ui_cancel"):
-		return
+func _input(event: InputEvent) -> void:
+	if _try_handle_close_input(event):
+		get_viewport().set_input_as_handled()
 
-	_set_map_open(false)
-	get_viewport().set_input_as_handled()
+func _unhandled_input(event: InputEvent) -> void:
+	if _try_handle_close_input(event):
+		get_viewport().set_input_as_handled()
 
 func interact(player: Node2D) -> void:
 	if _map_open:
-		_set_map_open(false)
+		_close_map_with_reopen_guard()
+		return
+
+	if Time.get_ticks_msec() < _reopen_block_until_msec:
 		return
 
 	if player != null and not can_interact_with_player(player):
@@ -107,6 +112,19 @@ func _set_map_open(should_open: bool) -> void:
 
 	if should_open and is_instance_valid(_hold_selected_button):
 		_hold_selected_button.grab_focus()
+
+func _try_handle_close_input(event: InputEvent) -> bool:
+	if not _map_open:
+		return false
+	if not event.is_action_pressed(interact_action) and not event.is_action_pressed(&"ui_cancel"):
+		return false
+
+	_close_map_with_reopen_guard()
+	return true
+
+func _close_map_with_reopen_guard() -> void:
+	_reopen_block_until_msec = Time.get_ticks_msec() + INTERACT_REOPEN_BLOCK_MS
+	_set_map_open(false)
 
 func _on_hold_selected_pressed() -> void:
 	if _minimap == null:
@@ -158,7 +176,7 @@ func _on_auto_selected_pressed() -> void:
 	_on_selection_changed(_get_selected_count())
 
 func _on_close_pressed() -> void:
-	_set_map_open(false)
+	_close_map_with_reopen_guard()
 
 func _on_selection_changed(selected_count: int) -> void:
 	if _selection_label != null:
