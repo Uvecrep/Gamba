@@ -11,6 +11,7 @@ func on_pickup_touched_radius(player: Player, area: Area2D, pickups_following_me
 	if not player.player_inventory.would_item_fit(pickup.item_id): return
 	
 	pickup.floating_towards = player
+	pickup.should_bob = false
 	pickups_following_me.append(pickup)
 
 func on_pickup_touched_me(player: Player, area: Area2D, pickups_following_me: Array[Pickup]) -> void:
@@ -34,4 +35,6 @@ func on_inventory_changed(player_inventory: PlayerInventory, pickups_following_m
 			continue
 		if not player_inventory.would_item_fit(pickup.item_id):
 			pickup.floating_towards = null
+			pickup.should_bob = true
+			pickup.bob_start_position = pickup.position
 			pickups_following_me.remove_at(i)
