@@ -18,8 +18,8 @@
 [ext_resource type="PackedScene" uid="uid://bdokkhkbr35d2" path="res://entities/crystal/blood_confluence.tscn" id="15_4fc0e"]
 [ext_resource type="PackedScene" uid="uid://be8r57shygwgm" path="res://entities/plantable_area/plantable_area.tscn" id="15_s07ge"]
 [ext_resource type="PackedScene" uid="uid://cr76phtlmlcqt" path="res://ui/bestiary/bestiary_panel.tscn" id="16_bestiary"]
-[ext_resource type="PackedScene" uid="uid://788e657uh5fw" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
 [ext_resource type="PackedScene" path="res://entities/shop/shop.tscn" id="17_shop"]
+[ext_resource type="PackedScene" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")

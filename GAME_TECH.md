@@ -4,3 +4,4 @@ collision layers -
 3 - enemy
 4 - summon
 5 - pickup
+8 - player-only walls
