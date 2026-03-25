@@ -176,7 +176,7 @@ func _add_intro_card() -> void:
 	_card_grid.add_child(card)
 
 	var content: VBoxContainer = _create_card_content(card)
-	var title: Label = _create_card_title("About This Tab")
+	var title: Label = _create_card_title("About")
 	content.add_child(title)
 
 	var body: Label = Label.new()

@@ -6,6 +6,20 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2ikcc"]
 size = Vector2(88, 80)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fts8e"]
+bg_color = Color(1, 0.33068085, 0.3654721, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_edf2c"]
+bg_color = Color(6.256998e-07, 0.7229678, 0.2866741, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [node name="house" type="StaticBody2D" unique_id=1849396205]
 script = ExtResource("1_k80ea")
 
@@ -24,5 +38,7 @@ offset_top = -88.0
 offset_right = 62.0
 offset_bottom = -80.0
 mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_fts8e")
+theme_override_styles/fill = SubResource("StyleBoxFlat_edf2c")
 value = 100.0
 show_percentage = false

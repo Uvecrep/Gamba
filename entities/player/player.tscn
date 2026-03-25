@@ -13,6 +13,20 @@ size = Vector2(50, 60)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_abrql"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qiwj3"]
+bg_color = Color(1, 0.33068085, 0.3654721, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_26q78"]
+bg_color = Color(6.256998e-07, 0.7229678, 0.2866741, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [node name="player" type="CharacterBody2D" unique_id=57563531 node_paths=PackedStringArray("sprite_base", "sprite_overlay", "sprite_layer_2", "sprite_layer_3", "sprite_layer_4", "sprite_layer_5", "sprite_layer_6", "toss_reticle", "toss_line")]
 script = ExtResource("1_abrql")
 pickup_packed_scene = ExtResource("2_fkugw")
@@ -108,11 +122,13 @@ scale = Vector2(2.805, 2.805)
 shape = SubResource("CircleShape2D_abrql")
 
 [node name="HealthBar" type="ProgressBar" parent="." unique_id=383812078]
-offset_left = -30.0
-offset_top = -36.0
-offset_right = 28.0
-offset_bottom = -28.0
+offset_left = -29.0
+offset_top = -76.035
+offset_right = 29.0
+offset_bottom = -68.035
 mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_qiwj3")
+theme_override_styles/fill = SubResource("StyleBoxFlat_26q78")
 value = 100.0
 show_percentage = false
 
