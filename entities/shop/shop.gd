@@ -24,6 +24,7 @@ var _spatial_index: SpatialIndex2D
 var _current_player: Player
 var _shop_purchase_count: int = 0
 var _offers: Array[Dictionary] = []
+var _sold_card_indices: Dictionary = {}
 var _last_offer_day: int = -1
 var _day_night_controller: DayNightController
 
@@ -134,6 +135,10 @@ func _set_shop_open(should_open: bool) -> void:
 func _on_buy_card_pressed(card_index: int) -> void:
 	if card_index < 0 or card_index >= _offers.size():
 		return
+	if _sold_card_indices.has(card_index):
+		_set_status("That card is sold out for today.")
+		_refresh_shop_ui()
+		return
 	if _current_player == null:
 		_set_status("No player selected for this shop session.")
 		return
@@ -152,6 +157,7 @@ func _on_buy_card_pressed(card_index: int) -> void:
 		return
 
 	_shop_purchase_count += 1
+	_sold_card_indices[card_index] = true
 	_set_status("Purchased: %s" % String(offer.get("title", "Upgrade")))
 	_refresh_shop_ui()
 
@@ -210,15 +216,22 @@ func _refresh_shop_ui() -> void:
 			_card_description_labels[index].text = String(offer.get("description", "")) if has_offer else ""
 		if index < _card_cost_labels.size() and _card_cost_labels[index] != null:
 			if has_offer:
-				_card_cost_labels[index].text = "Cost: %d gold" % int(offer.get("cost", 0))
+				if _sold_card_indices.has(index):
+					_card_cost_labels[index].text = "Sold Out"
+				else:
+					_card_cost_labels[index].text = "Cost: %d gold" % int(offer.get("cost", 0))
 			else:
 				_card_cost_labels[index].text = ""
 
 		if index < _card_buy_buttons.size() and _card_buy_buttons[index] != null:
 			if has_offer:
-				var can_afford: bool = _can_afford(int(offer.get("cost", 0)))
-				_card_buy_buttons[index].disabled = not can_afford
-				_card_buy_buttons[index].text = "Buy"
+				if _sold_card_indices.has(index):
+					_card_buy_buttons[index].disabled = true
+					_card_buy_buttons[index].text = "Sold Out"
+				else:
+					var can_afford: bool = _can_afford(int(offer.get("cost", 0)))
+					_card_buy_buttons[index].disabled = not can_afford
+					_card_buy_buttons[index].text = "Buy"
 			else:
 				_card_buy_buttons[index].disabled = true
 				_card_buy_buttons[index].text = "Unavailable"
@@ -283,6 +296,7 @@ func _on_day_started(day_number: int) -> void:
 
 func _reroll_offers(day_number: int = -1) -> void:
 	_offers.clear()
+	_sold_card_indices.clear()
 	if day_number > 0:
 		_last_offer_day = day_number
 	else:
