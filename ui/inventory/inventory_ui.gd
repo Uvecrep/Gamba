@@ -31,8 +31,6 @@ func _ready() -> void:
 	player_ref.player_inventory.slot_contents_changed.connect(_on_slot_contents_changed)
 	player_ref.player_inventory.gold_count_changed.connect(_on_gold_count_changed)
 	
-	# TODO Shouldn't need to do this, but UI is readying after the player for some reason | Ian: LMAO the tree readys things bottom up if you look at the scene tree, so since ui is further down the list it gets init'd first (idk why, its just how it works)
-	# Proper fix imo is initing what we can through code instead so we have total control of the order here, remove the black box or whatever
 	slots[player_ref.player_inventory.selected_index].set_is_selected(true)
 	for i in range(slots.size()):
 		slots[i].set_info(player_ref.player_inventory.get_slot_item_id(i), player_ref.player_inventory.get_slot_item_id(i), null, player_ref.player_inventory.get_slot_count(i))
