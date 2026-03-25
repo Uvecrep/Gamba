@@ -10,7 +10,7 @@ signal gold_count_changed(current: int, previous: int)
 const GOLD_ITEM_IDS: Array[StringName] = [&"gold_coin", &"gold"]
 
 var selected_index : int = 2
-var num_slots : int = 5 # TODO implement changing number of slots? Static rn
+var num_slots : int = 5 # TODO implement changing number of slots? Static rn | Ian: Static seems fine, honestly 5 is a really comfortable number with how many items we have, if we started adjusting more we'd probably need to add chests and stuff too
 var gold_count: int = 0
 
 var inventory_items : Array[StringName] = []
@@ -103,7 +103,7 @@ func add_items(item_id: StringName, num_items: int) -> bool:
 		if empty_slots.find(selected_index) != -1: 
 			target_slot_index = selected_index
 		else:
-			target_slot_index = empty_slots[0] # TODO: Should maybe have a smarter way of determining this
+			target_slot_index = empty_slots[0] # TODO: Should maybe have a smarter way of determining this | Ian: Maybe, but this seems fine for now. 
 		inventory_items[target_slot_index] = item_id
 		filled_new_slot = true
 	
