@@ -1,6 +1,8 @@
 extends RigidBody2D
 class_name Pickup
 
+const PICKUP_OUTLINE_SHADER: Shader = preload("res://entities/pickups/pickup_outline_white.gdshader")
+
 
 @export var item_id : StringName
 @export var can_be_magnetized: bool = true
@@ -51,3 +53,16 @@ func _resolve_visual_nodes() -> void:
 		texture_rect.visible = false
 	if sprite_2d == null:
 		sprite_2d = get_node_or_null("Sprite2D") as Sprite2D
+	_ensure_outline_material()
+
+func _ensure_outline_material() -> void:
+	if sprite_2d == null:
+		return
+
+	var existing_material := sprite_2d.material as ShaderMaterial
+	if existing_material != null and existing_material.shader == PICKUP_OUTLINE_SHADER:
+		return
+
+	var outline_material := ShaderMaterial.new()
+	outline_material.shader = PICKUP_OUTLINE_SHADER
+	sprite_2d.material = outline_material
