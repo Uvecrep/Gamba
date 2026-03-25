@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bxorybuqsh7pp" path="res://entities/enemy/enemy_spawner.gd" id="1_ihm03"]
 [ext_resource type="PackedScene" uid="uid://b00jrxmgdmyu5" path="res://entities/enemy/enemy.tscn" id="2_0v8m4"]
-[ext_resource type="Texture2D" path="res://assets/objects/enemy_tower.png" id="3_4q7ap"]
+[ext_resource type="Texture2D" uid="uid://445ll3r46mhy" path="res://assets/objects/enemy_tower.png" id="3_4q7ap"]
 
 [node name="EnemySpawner" type="Node2D" unique_id=1632124706]
 script = ExtResource("1_ihm03")

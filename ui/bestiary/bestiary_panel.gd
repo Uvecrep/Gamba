@@ -512,6 +512,9 @@ func _on_entry_pressed(entry_id: StringName) -> void:
 
 func _on_bestiary_entry_unlocked(entry_id: StringName, _entry_type: StringName, _source_tab_id: StringName, prompt_player: bool) -> void:
 	_refresh_tab_indicators()
+	if not _is_panel_open: 
+		_select_tab(_source_tab_id)
+	
 	if _selected_entry_id == entry_id:
 		_select_entry(entry_id)
 	else:
