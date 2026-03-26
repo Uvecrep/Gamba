@@ -7,9 +7,11 @@ const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.
 signal destroyed
 
 @export var max_health: float = 500.0
+@export var under_attack_sound_cooldown: float = 0.85
 
 var _current_health: float = 0.0
 var _health_component: HealthComponent = HEALTH_COMPONENT_SCRIPT.new()
+var _under_attack_sound_time_left: float = 0.0
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 
@@ -18,6 +20,9 @@ func _ready() -> void:
 	_health_component.initialize(max_health, true)
 	_current_health = _health_component.current_health
 	_update_health_bar()
+
+func _process(delta: float) -> void:
+	_under_attack_sound_time_left = maxf(_under_attack_sound_time_left - delta, 0.0)
 
 func take_damage(amount: float) -> void:
 	if amount <= 0.0:
@@ -30,6 +35,9 @@ func take_damage(amount: float) -> void:
 	_current_health = _health_component.current_health
 	if applied_damage > 0.0:
 		CombatText.spawn_damage(self, applied_damage)
+		if _under_attack_sound_time_left <= 0.0:
+			Audio.play_sfx(&"world_house_under_attack", -7.0)
+			_under_attack_sound_time_left = maxf(under_attack_sound_cooldown, 0.1)
 	_update_health_bar()
 
 	if _health_component.is_dead:

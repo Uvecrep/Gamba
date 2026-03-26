@@ -56,6 +56,13 @@ func take_damage(player: Player, amount: float) -> void:
 	if applied_damage <= 0.0:
 		return
 
+	if applied_damage >= 30.0:
+		Audio.play_sfx(&"player_damage_heavy", -4.0)
+	elif applied_damage >= 16.0:
+		Audio.play_sfx(&"player_damage_medium", -5.0)
+	else:
+		Audio.play_sfx(&"player_damage_light", -6.0)
+
 	CombatText.spawn_damage(player, applied_damage)
 	update_health_bar(player)
 
@@ -133,6 +140,7 @@ func respawn_player(player: Player) -> void:
 	_is_dead = false
 	_hit_shield_stacks = 0
 	_invulnerability_time_left = maxf(player.respawn_invulnerability_seconds, 0.0)
+	Audio.play_sfx(&"player_respawn", -5.0)
 	hide_death_indicator()
 	update_health_bar(player)
 

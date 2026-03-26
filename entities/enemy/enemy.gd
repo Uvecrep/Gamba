@@ -363,6 +363,8 @@ func _update_healer_aura(_delta: float) -> void:
 
 	for ally in _find_nearby_allied_enemies(healer_aura_radius, healer_max_allies_per_tick):
 		ally.heal(heal_amount)
+	if heal_amount > 0.0:
+		Audio.play_sfx(&"enemy_healer_cast", -9.0)
 
 func _find_nearby_allied_enemies(radius: float, max_targets: int) -> Array[EnemyUnit]:
 	var allies: Array[EnemyUnit] = []
@@ -416,6 +418,13 @@ func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: fl
 
 	_time_to_next_melee_hit = melee_attack_cooldown
 	_play_attack_tilt()
+	match enemy_archetype:
+		ENEMY_ARCHETYPE_TANK_RAIDER:
+			Audio.play_sfx(&"enemy_heavy_step", -6.0)
+		ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
+			Audio.play_sfx(&"enemy_trenchcoat_attack", -5.0)
+		ENEMY_ARCHETYPE_GOBLIN:
+			Audio.play_sfx(&"enemy_goblin_attack", -5.0)
 	if target is Player:
 		(target as Player).take_damage(melee_damage)
 		return
@@ -463,6 +472,7 @@ func _try_ranged_attack(target: Node2D, target_distance: float, has_clear_path: 
 	if projectile != null:
 		_time_to_next_ranged_shot = ranged_attack_cooldown
 		_play_attack_tilt()
+		Audio.play_sfx(&"enemy_ranged_shot", -6.0)
 
 func _has_clear_path_to_target(target: Node2D) -> bool:
 	var los_start_us: int = Time.get_ticks_usec()
@@ -796,6 +806,12 @@ func _can_spawn_vfx_this_frame() -> bool:
 	return true
 
 func _die() -> void:
+	match enemy_archetype:
+		ENEMY_ARCHETYPE_GOBLIN:
+			Audio.play_sfx(&"enemy_goblin_death", -5.0)
+		ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
+			Audio.play_sfx(&"enemy_trenchcoat_death", -5.0)
+
 	var bestiary_globals: Node = get_node_or_null("/root/BestiaryGlobals")
 	if bestiary_globals != null:
 		bestiary_globals.call("unlock_enemy_entry", enemy_archetype)

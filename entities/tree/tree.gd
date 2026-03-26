@@ -35,8 +35,10 @@ func _get_starting_harvest_count() -> int:
 func _get_harvest_capacity() -> int:
 	return max_fruit
 
-func _on_harvest_count_changed(_previous_count: int, current_count: int) -> void:
+func _on_harvest_count_changed(previous_count: int, current_count: int) -> void:
 	_update_fruit_visuals(current_count)
+	if current_count > previous_count:
+		Audio.play_sfx(&"world_fruit_ready", -10.0)
 	fruit_count_changed.emit(current_count, max_fruit)
 
 func set_growth_paused(is_paused: bool) -> void:

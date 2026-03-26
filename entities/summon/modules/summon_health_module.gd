@@ -73,12 +73,14 @@ func heal(amount: float) -> void:
 	update_health_bar()
 
 func die() -> void:
+	Audio.play_sfx(&"combat_summon_death", -6.0)
 	if unit.summon_identity == unit.ID_UNSTABLE_SHARD:
 		unit._explode_unstable_shard()
 	if unit.summon_identity == unit.ID_TAX_COLLECTOR:
 		unit._drop_tax_collector_gold()
 	_hit_shield_stacks = 0
 	if should_split_on_death():
+		Audio.play_sfx(&"combat_summon_split", -5.0)
 		spawn_split_children()
 	unit.queue_free()
 

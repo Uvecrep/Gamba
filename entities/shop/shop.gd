@@ -124,6 +124,10 @@ func interact(player: Player) -> void:
 
 func _set_shop_open(should_open: bool) -> void:
 	_is_open = should_open
+	if should_open:
+		Audio.play_ui(&"ui_panel_open")
+	else:
+		Audio.play_ui(&"ui_panel_close")
 	if _shop_layer != null:
 		_shop_layer.visible = should_open
 	if _shop_panel != null:
@@ -138,8 +142,10 @@ func is_shop_open() -> bool:
 
 func _on_buy_card_pressed(card_index: int) -> void:
 	if card_index < 0 or card_index >= _offers.size():
+		Audio.play_ui(&"ui_inventory_invalid")
 		return
 	if _sold_card_indices.has(card_index):
+		Audio.play_ui(&"ui_inventory_invalid")
 		_set_status("That card is sold out for today.")
 		_refresh_shop_ui()
 		return
@@ -150,18 +156,21 @@ func _on_buy_card_pressed(card_index: int) -> void:
 	var offer: Dictionary = _offers[card_index]
 	var card_cost: int = int(offer.get("cost", 0))
 	if not _try_spend_gold(card_cost):
+		Audio.play_ui(&"ui_inventory_invalid")
 		_set_status("Not enough gold for that upgrade.")
 		_refresh_shop_ui()
 		return
 
 	if not _apply_offer(offer):
 		_refund_gold(card_cost)
+		Audio.play_ui(&"ui_inventory_invalid")
 		_set_status("Upgrade failed. Your gold was refunded.")
 		_refresh_shop_ui()
 		return
 
 	_shop_purchase_count += 1
 	_sold_card_indices[card_index] = true
+	Audio.play_ui(&"ui_button_click")
 	_set_status("Purchased: %s" % String(offer.get("title", "Upgrade")))
 	_refresh_shop_ui()
 
@@ -170,15 +179,18 @@ func _on_buy_greed_pressed() -> void:
 		_set_status("No player selected for this shop session.")
 		return
 	if not _try_spend_gold(greed_lootbox_cost):
+		Audio.play_ui(&"ui_inventory_invalid")
 		_set_status("Not enough gold for a Greed lootbox.")
 		_refresh_shop_ui()
 		return
 	if not _current_player.player_inventory.add_items(GREED_LOOTBOX_ITEM_ID, 1):
 		_refund_gold(greed_lootbox_cost)
+		Audio.play_ui(&"ui_inventory_invalid")
 		_set_status("Inventory full. Could not add a Greed lootbox.")
 		_refresh_shop_ui()
 		return
 
+	Audio.play_ui(&"ui_button_click")
 	_set_status("Purchased 1 Greed lootbox.")
 	_refresh_shop_ui()
 

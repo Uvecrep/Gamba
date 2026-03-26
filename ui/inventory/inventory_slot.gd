@@ -55,14 +55,18 @@ func set_info(new_item_id : StringName, item_name : String, _item_image : Textur
 func _on_panel_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			Audio.play_ui(&"ui_slot_select")
 			slot_left_mouse_down.emit()
 		if event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+			Audio.play_ui(&"ui_slot_select")
 			slot_right_mouse_down.emit()
 		if not event.pressed:
 			slot_mouse_up.emit()
 
 func _on_click_detection_box_mouse_entered() -> void:
+	Audio.play_ui(&"ui_slot_hover_enter", -6.0)
 	slot_mouse_entered.emit()
 
 func _on_click_detection_box_mouse_exited() -> void:
+	Audio.play_ui(&"ui_slot_hover_exit", -7.0)
 	slot_mouse_exited.emit()

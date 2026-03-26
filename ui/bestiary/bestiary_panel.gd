@@ -533,6 +533,7 @@ func _on_entry_pressed(entry_id: StringName) -> void:
 
 
 func _on_bestiary_entry_unlocked(entry_id: StringName, _entry_type: StringName, _source_tab_id: StringName, prompt_player: bool) -> void:
+	Audio.play_ui(&"ui_bestiary_unlock")
 	_refresh_tab_indicators()
 	if not _is_panel_open: 
 		_select_tab(_source_tab_id)
@@ -587,6 +588,8 @@ func _clear_prompt_notifications() -> void:
 
 
 func _on_bestiary_entry_new_state_changed(_entry_id: StringName, _is_new: bool) -> void:
+	if _is_new:
+		Audio.play_ui(&"ui_bestiary_new")
 	_refresh_tab_indicators()
 	refresh_cards_if_visible()
 	if not _is_panel_open:

@@ -25,6 +25,7 @@ Balance="*res://globals/balance.gd"
 SpatialIndex="*res://globals/spatial_index.gd"
 VfxPool="*res://globals/vfx_pool.gd"
 PerfDebug="*res://globals/perf_debug.gd"
+Audio="*res://globals/audio.gd"
 
 [display]
 

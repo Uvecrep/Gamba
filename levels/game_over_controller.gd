@@ -44,16 +44,22 @@ func on_house_destroyed() -> void:
 	if is_instance_valid(_day_night_controller):
 		_day_night_controller.stop()
 
+	Audio.play_sfx(&"world_game_over", -2.0)
+	Audio.play_music(&"music_game_over", -6.0)
+	Audio.stop_ambience()
+
 	_set_visible(true)
 	get_tree().paused = true
 
 
 func _on_restart_pressed() -> void:
+	Audio.play_ui(&"ui_button_click")
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 
 func _on_quit_pressed() -> void:
+	Audio.play_ui(&"ui_button_click")
 	get_tree().paused = false
 	get_tree().quit()
 

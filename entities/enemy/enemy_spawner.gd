@@ -69,6 +69,7 @@ func spawn_wave(enemy_count: int, ignore_alive_cap: bool = false) -> int:
 	var requested_count: int = maxi(enemy_count, 0)
 	if requested_count <= 0:
 		return 0
+	Audio.play_sfx(&"world_enemy_spawn", -5.0)
 
 	var wave_spawn_point = _pick_spawn_position()
 
@@ -92,6 +93,7 @@ func _on_spawn_timer_timeout() -> void:
 	# Keep early waves readable by capping total active enemies.
 	if _get_alive_enemy_count() >= max_alive_enemies:
 		return
+	Audio.play_sfx(&"world_enemy_spawn", -9.0)
 
 	_spawn_single_enemy(global_position)
 

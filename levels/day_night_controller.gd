@@ -128,6 +128,9 @@ func _start_day_phase() -> void:
 	_set_tree_growth_paused(false)
 	_apply_visual_state(false, false)
 	_update_label("Day")
+	Audio.play_sfx(&"world_day_start", -3.0)
+	Audio.play_music(&"music_day", -8.0)
+	Audio.play_ambience(&"ambience_day", -13.0)
 	day_started.emit(maxi(_night_index + 1, 1))
 	_start_phase_timer(day_duration_seconds)
 
@@ -143,6 +146,9 @@ func _start_night_phase() -> void:
 	_set_tree_growth_paused(true)
 	_apply_visual_state(true, false)
 	_update_label("Night %d" % _night_index)
+	Audio.play_sfx(&"world_night_start", -3.0)
+	Audio.play_music(&"music_night_light", -8.0)
+	Audio.play_ambience(&"ambience_night", -13.0)
 	night_started.emit(_night_index)
 	_spawn_next_wave()
 	_start_phase_timer(night_duration_seconds)
@@ -207,6 +213,7 @@ func _spawn_next_wave() -> void:
 
 	var total_waves: int = maxi(night_waves_per_cycle, 1)
 	if _waves_spawned_this_night >= total_waves:
+		Audio.play_sfx(&"world_wave_clear")
 		return
 
 	var wave_size: int = _compute_wave_size()
@@ -214,6 +221,13 @@ func _spawn_next_wave() -> void:
 		_enemy_spawner.spawn_wave(wave_size, true)
 
 	_waves_spawned_this_night += 1
+	if _waves_spawned_this_night == 1:
+		Audio.play_sfx(&"world_wave_coming", -2.0)
+	elif _waves_spawned_this_night == maxi(int(ceil(float(total_waves) * 0.5)), 2):
+		Audio.play_sfx(&"world_wave_mid", -2.0)
+
+	if _waves_spawned_this_night >= total_waves:
+		Audio.play_music(&"music_wave_peak", -8.0)
 	_update_label("Night %d  Wave %d/%d" % [_night_index, _waves_spawned_this_night, total_waves])
 
 	if _waves_spawned_this_night >= total_waves:
