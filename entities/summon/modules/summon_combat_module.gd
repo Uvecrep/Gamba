@@ -425,11 +425,15 @@ func on_enemy_died_nearby(enemy_position: Vector2, _dead_enemy: Node2D) -> void:
 	if unit.summon_identity != unit.ID_TAX_COLLECTOR:
 		return
 
-	var growth_radius_sq: float = 230.0 * 230.0
+	var runtime_config: Dictionary = Balance.get_summon_runtime_config(unit.summon_identity)
+	var growth_radius: float = float(runtime_config.get("tax_collector_growth_radius", 230.0))
+	var growth_radius_sq: float = growth_radius * growth_radius
 	if unit.global_position.distance_squared_to(enemy_position) > growth_radius_sq:
 		return
 
-	_tax_collector_bonus_damage = minf(_tax_collector_bonus_damage + 0.5, 45.0)
+	var bonus_damage_per_enemy: float = float(runtime_config.get("tax_collector_bonus_damage_per_enemy", 0.5))
+	var bonus_damage_cap: float = float(runtime_config.get("tax_collector_bonus_damage_cap", 45.0))
+	_tax_collector_bonus_damage = minf(_tax_collector_bonus_damage + bonus_damage_per_enemy, bonus_damage_cap)
 
 func explode_unstable_shard() -> void:
 	if unit.summon_identity != unit.ID_UNSTABLE_SHARD:
@@ -501,10 +505,13 @@ func drop_tax_collector_gold() -> void:
 	if unit.summon_identity != unit.ID_TAX_COLLECTOR:
 		return
 
-	var drop_count: int = int(floor(_tax_collector_bonus_damage * 0.45))
+	var runtime_config: Dictionary = Balance.get_summon_runtime_config(unit.summon_identity)
+	var gold_drop_scale: float = float(runtime_config.get("tax_collector_gold_drop_scale", 0.45))
+	var gold_drop_cap: int = int(runtime_config.get("tax_collector_gold_drop_cap", 12))
+	var drop_count: int = int(floor(_tax_collector_bonus_damage * gold_drop_scale))
 	if _tax_collector_bonus_damage > 0.0:
 		drop_count = maxi(drop_count, 1)
-	drop_count = mini(drop_count, 12)
+	drop_count = mini(drop_count, gold_drop_cap)
 	if drop_count <= 0:
 		return
 

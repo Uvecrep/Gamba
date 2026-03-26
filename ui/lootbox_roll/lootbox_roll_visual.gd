@@ -78,6 +78,7 @@ func _start_roll_if_possible() -> void:
 		return
 
 	_winning_reward_data = _winning_entry.get_reward_data()
+	Audio.play_sfx(&"lootbox_open_start")
 	_title_label.text = _source_lootbox.name if _source_lootbox != null else "Summoner Sorting Machine"
 	_result_label.text = ""
 	_build_visual_strip()
@@ -168,6 +169,7 @@ func _start_roll_animation() -> void:
 
 func _on_roll_tween_finished() -> void:
 	_is_running = false
+	Audio.play_sfx(&"lootbox_settle")
 	var winner_card: Control = _get_card(_winning_strip_index)
 	if winner_card != null:
 		if winner_card.has_method("play_win_pop"):
@@ -178,6 +180,10 @@ func _on_roll_tween_finished() -> void:
 		_result_label.text = "Awarded: %s" % String(_winning_reward_data.call("get_display_name_or_fallback"))
 	else:
 		_result_label.text = "Awarded: Mystery Reward"
+
+	var rarity_value: int = int(_winning_reward_data.get("rarity")) if _winning_reward_data != null else 0
+	Audio.play_lootbox_reveal_for_rarity(rarity_value)
+	Audio.play_ui(&"ui_lootbox_reward")
 	_play_win_flash()
 
 	var settle_timer: SceneTreeTimer = get_tree().create_timer(maxf(settle_hold_time, 0.05))
@@ -235,6 +241,7 @@ func _update_center_tick() -> void:
 
 	if _last_center_index >= 0 and _is_running:
 		# Tiny marker pulse each time a card crosses center.
+		Audio.play_ui_tick_throttled(38)
 		_center_marker.scale = Vector2(1.0, 1.22)
 		var pulse_tween: Tween = create_tween()
 		pulse_tween.tween_property(_center_marker, "scale", Vector2.ONE, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)

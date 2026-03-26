@@ -13,6 +13,8 @@ func on_pickup_touched_radius(player: Player, area: Area2D, pickups_following_me
 	pickup.floating_towards = player
 	pickup.should_bob = false
 	pickups_following_me.append(pickup)
+	if pickups_following_me.size() == 1:
+		Audio.start_sfx_loop(&"world_magnetized_pickup_loop", -10.0)
 
 func on_pickup_touched_me(player: Player, area: Area2D, pickups_following_me: Array[Pickup]) -> void:
 	var pickup := area.get_parent()
@@ -21,11 +23,19 @@ func on_pickup_touched_me(player: Player, area: Area2D, pickups_following_me: Ar
 	if not is_instance_valid(pickup): return
 
 	if player.player_inventory.add_items(pickup.item_id, 1):
+		if pickup.item_id == &"gold_coin" or pickup.item_id == &"gold":
+			Audio.play_sfx(&"player_pickup_coin", -6.0)
+		elif LootboxGlobals != null and LootboxGlobals.lootboxes.has(pickup.item_id):
+			Audio.play_sfx(&"lootbox_pickup", -4.0)
+		else:
+			Audio.play_sfx(&"player_pickup_generic", -8.0)
 		pickup.floating_towards = null
 		pickup.queue_free()
 		var index: int = pickups_following_me.find(pickup)
 		if index >= 0:
 			pickups_following_me.remove_at(index)
+		if pickups_following_me.is_empty():
+			Audio.stop_sfx_loop()
 
 func on_inventory_changed(player_inventory: PlayerInventory, pickups_following_me: Array[Pickup]) -> void:
 	for i in range(pickups_following_me.size() - 1, -1, -1):
@@ -38,3 +48,5 @@ func on_inventory_changed(player_inventory: PlayerInventory, pickups_following_m
 			pickup.should_bob = true
 			pickup.bob_start_position = pickup.position
 			pickups_following_me.remove_at(i)
+	if pickups_following_me.is_empty():
+		Audio.stop_sfx_loop()

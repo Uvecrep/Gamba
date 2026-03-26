@@ -8,6 +8,15 @@ func initialize(_player: Player) -> void:
 	pass
 
 func handle_interaction_input(player: Player) -> void:
+	for map_interactable in player.get_tree().get_nodes_in_group("maps"):
+		if not (map_interactable is MapInteractable):
+			continue
+		var open_map: MapInteractable = map_interactable as MapInteractable
+		if not open_map.is_map_open():
+			continue
+		open_map.interact(player)
+		return
+
 	var nearest_harvest_node: Node2D = _find_nearest_harvestable_node(player)
 	var nearest_phone: PhoneInteractable = _find_nearest_phone(player)
 	var nearest_map: MapInteractable = _find_nearest_map(player)
@@ -60,23 +69,32 @@ func handle_interaction_input(player: Player) -> void:
 
 	if nearest_harvest_node != null and nearest_interactable == nearest_harvest_node:
 		nearest_harvest_node.call("harvest_fruit", player.harvest_amount_per_interaction)
+		if nearest_harvest_node is BoulderResource:
+			Audio.play_sfx(&"world_boulder_harvest")
+		else:
+			Audio.play_sfx(&"player_interact_tree")
 		return
 
 	if nearest_interactable is PhoneInteractable:
+		Audio.play_sfx(&"player_interact_phone")
 		(nearest_interactable as PhoneInteractable).interact(player)
 		return
 	if nearest_interactable is MapInteractable:
+		Audio.play_sfx(&"player_interact_map")
 		(nearest_interactable as MapInteractable).interact(player)
 		return
 	if nearest_interactable is ShopInteractable:
+		Audio.play_sfx(&"player_interact_shop")
 		(nearest_interactable as ShopInteractable).interact(player)
 		return
 	
 	if nearest_interactable is BloodConfluence:
+		Audio.play_sfx(&"world_blood_purchase")
 		(nearest_interactable as BloodConfluence).try_purchase_lootbox(player)
 		return
 
 	if nearest_interactable is SoulTower:
+		Audio.play_sfx(&"world_crystal_interaction")
 		(nearest_interactable as SoulTower).interact(player)
 		return
 

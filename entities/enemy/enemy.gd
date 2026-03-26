@@ -363,6 +363,8 @@ func _update_healer_aura(_delta: float) -> void:
 
 	for ally in _find_nearby_allied_enemies(healer_aura_radius, healer_max_allies_per_tick):
 		ally.heal(heal_amount)
+	if heal_amount > 0.0:
+		Audio.play_sfx(&"enemy_healer_cast", -9.0)
 
 func _find_nearby_allied_enemies(radius: float, max_targets: int) -> Array[EnemyUnit]:
 	var allies: Array[EnemyUnit] = []
@@ -416,6 +418,13 @@ func _try_melee_attack(target: Node2D, target_distance: float, stop_distance: fl
 
 	_time_to_next_melee_hit = melee_attack_cooldown
 	_play_attack_tilt()
+	match enemy_archetype:
+		ENEMY_ARCHETYPE_TANK_RAIDER:
+			Audio.play_sfx(&"enemy_heavy_step", -6.0)
+		ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
+			Audio.play_sfx(&"enemy_trenchcoat_attack", -5.0)
+		ENEMY_ARCHETYPE_GOBLIN:
+			Audio.play_sfx(&"enemy_goblin_attack", -5.0)
 	if target is Player:
 		(target as Player).take_damage(melee_damage)
 		return
@@ -463,6 +472,7 @@ func _try_ranged_attack(target: Node2D, target_distance: float, has_clear_path: 
 	if projectile != null:
 		_time_to_next_ranged_shot = ranged_attack_cooldown
 		_play_attack_tilt()
+		Audio.play_sfx(&"enemy_ranged_shot", -6.0)
 
 func _has_clear_path_to_target(target: Node2D) -> bool:
 	var los_start_us: int = Time.get_ticks_usec()
@@ -796,6 +806,12 @@ func _can_spawn_vfx_this_frame() -> bool:
 	return true
 
 func _die() -> void:
+	match enemy_archetype:
+		ENEMY_ARCHETYPE_GOBLIN:
+			Audio.play_sfx(&"enemy_goblin_death", -5.0)
+		ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
+			Audio.play_sfx(&"enemy_trenchcoat_death", -5.0)
+
 	var bestiary_globals: Node = get_node_or_null("/root/BestiaryGlobals")
 	if bestiary_globals != null:
 		bestiary_globals.call("unlock_enemy_entry", enemy_archetype)
@@ -906,52 +922,23 @@ func _get_enemy_scene() -> PackedScene:
 func _apply_enemy_archetype(archetype: StringName) -> void:
 	var resolved_archetype: StringName = _normalize_enemy_archetype(archetype)
 	enemy_archetype = resolved_archetype
-
-	match resolved_archetype:
-		ENEMY_ARCHETYPE_FAST_RAIDER:
-			move_speed = 145.0
-			max_health = 65.0
-			melee_damage = 14.0
-			melee_attack_cooldown = 0.85
-		ENEMY_ARCHETYPE_TANK_RAIDER:
-			move_speed = 58.0
-			max_health = 240.0
-			melee_damage = 9.0
-			melee_attack_cooldown = 1.1
-		ENEMY_ARCHETYPE_RANGED_RAIDER:
-			move_speed = 84.0
-			max_health = 70.0
-			melee_damage = 0.0
-			ranged_damage = 13.0
-			ranged_attack_range = 360.0
-			ranged_attack_cooldown = 1.35
-		ENEMY_ARCHETYPE_HEALING_RAIDER:
-			move_speed = 76.0
-			max_health = 85.0
-			melee_damage = 0.0
-			healer_heal_per_second = 14.0
-			healer_aura_radius = 230.0
-			healer_keep_away_distance = 180.0
-		ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
-			move_speed = 95.0
-			max_health = 260.0
-			melee_damage = 20.0
-			melee_attack_cooldown = 0.9
-		ENEMY_ARCHETYPE_GOBLIN:
-			move_speed = 102.0
-			max_health = 95.0
-			melee_damage = 13.0
-			melee_attack_cooldown = 0.9
-		_:
-			move_speed = 90.0
-			max_health = 100.0
-			melee_damage = 15.0
-			melee_attack_cooldown = 1.0
+	var stats: Dictionary = Balance.get_enemy_archetype_stats(resolved_archetype)
+	move_speed = float(stats.get("move_speed", 90.0))
+	max_health = float(stats.get("max_health", 100.0))
+	melee_damage = float(stats.get("melee_damage", 15.0))
+	melee_attack_cooldown = float(stats.get("melee_attack_cooldown", 1.0))
+	ranged_damage = float(stats.get("ranged_damage", 0.0))
+	ranged_attack_range = float(stats.get("ranged_attack_range", 340.0))
+	ranged_attack_cooldown = float(stats.get("ranged_attack_cooldown", 1.3))
+	healer_keep_away_distance = float(stats.get("healer_keep_away_distance", 170.0))
+	healer_aura_radius = float(stats.get("healer_aura_radius", 220.0))
+	healer_heal_per_second = float(stats.get("healer_heal_per_second", 0.0))
+	split_spawn_count = int(stats.get("split_spawn_count", 4))
 
 	if _navigation_agent != null:
 		_navigation_agent.max_speed = maxf(move_speed, 1.0)
 
-	var texture_path: String = _get_archetype_texture_path(resolved_archetype)
+	var texture_path: String = String(stats.get("texture_path", _get_archetype_texture_path(resolved_archetype)))
 	var enemy_texture: Texture2D = _load_texture_cached(texture_path)
 	if enemy_texture == null:
 		enemy_texture = _load_texture_cached("res://assets/characters/raider.png")

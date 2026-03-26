@@ -20,6 +20,7 @@ var _spatial_index: SpatialIndex2D
 @onready var _close_hint_label: Label = get_node_or_null("DialogLayer/PhoneDialog/MarginContainer/VBoxContainer/CloseHint") as Label
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("phones")
 	_action_hint_text = INPUT_HINT_UTIL.resolve_action_hint(interact_action)
 	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
@@ -34,6 +35,15 @@ func _process(delta: float) -> void:
 
 	_update_prompt()
 	_schedule_prompt_refresh()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _dialog_open:
+		return
+	if not event.is_action_pressed(interact_action) and not event.is_action_pressed(&"ui_cancel"):
+		return
+
+	_set_dialog_open(false)
+	get_viewport().set_input_as_handled()
 
 func interact(_player: Node2D) -> void:
 	if _dialog_open:
@@ -59,6 +69,9 @@ func _set_dialog_open(should_open: bool) -> void:
 		_dialog_panel.visible = should_open
 	if _close_hint_label != null:
 		_close_hint_label.text = "Press %s to end call" % _action_hint_text
+
+func is_dialog_open() -> bool:
+	return _dialog_open
 
 func _update_prompt() -> void:
 	if _prompt_label == null:

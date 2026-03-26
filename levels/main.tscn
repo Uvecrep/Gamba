@@ -19,7 +19,20 @@
 [ext_resource type="PackedScene" uid="uid://be8r57shygwgm" path="res://entities/plantable_area/plantable_area.tscn" id="15_s07ge"]
 [ext_resource type="PackedScene" uid="uid://cr76phtlmlcqt" path="res://ui/bestiary/bestiary_panel.tscn" id="16_bestiary"]
 [ext_resource type="PackedScene" path="res://entities/shop/shop.tscn" id="17_shop"]
-[ext_resource type="PackedScene" uid="uid://788e657uh5fw" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
+[ext_resource type="PackedScene" uid="uid://88e657uh5fwx" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
+[ext_resource type="Script" uid="uid://dvgdpehoatcpp" path="res://ui/pause/escape_menu.gd" id="21_escape"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_badge"]
+bg_color = Color(0.03, 0.03, 0.03, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.88)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="Main" type="Node2D" unique_id=805994972]
 script = ExtResource("9_main")
@@ -43,6 +56,7 @@ position = Vector2(544, 680)
 
 [node name="crystal" parent="." unique_id=2144231408 instance=ExtResource("11_1j61c")]
 position = Vector2(32, 128)
+growth_interval_seconds = 20.0
 starting_lootboxes = 1
 produced_lootbox_id = &"lootbox_chaos"
 
@@ -130,6 +144,129 @@ visible = false
 
 [node name="BestiaryPanel" parent="UI" unique_id=1581440024 instance=ExtResource("16_bestiary")]
 visible = false
+
+[node name="EscapeMenuLayer" type="CanvasLayer" parent="." unique_id=827106423]
+layer = 15
+script = ExtResource("21_escape")
+
+[node name="PauseBadge" type="PanelContainer" parent="EscapeMenuLayer" unique_id=1200731180]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -124.0
+offset_top = 14.0
+offset_right = -20.0
+offset_bottom = 102.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_pause_badge")
+
+[node name="MarginContainer" type="MarginContainer" parent="EscapeMenuLayer/PauseBadge" unique_id=777681227]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 8
+
+[node name="PauseIndicator" type="Label" parent="EscapeMenuLayer/PauseBadge/MarginContainer" unique_id=362176098]
+layout_mode = 2
+theme_override_font_sizes/font_size = 56
+text = "||"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Backdrop" type="ColorRect" parent="EscapeMenuLayer" unique_id=1790604825]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.58)
+
+[node name="EscapeMenuPanel" type="PanelContainer" parent="EscapeMenuLayer" unique_id=383696780]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -140.0
+offset_right = 160.0
+offset_bottom = 140.0
+
+[node name="MarginContainer" type="MarginContainer" parent="EscapeMenuLayer/EscapeMenuPanel" unique_id=1484023356]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EscapeMenuLayer/EscapeMenuPanel/MarginContainer" unique_id=1846102559]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="EscapeMenuLayer/EscapeMenuPanel/MarginContainer/VBoxContainer" unique_id=1196380058]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Paused"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="EscapeMenuLayer/EscapeMenuPanel/MarginContainer/VBoxContainer" unique_id=1946130324]
+layout_mode = 2
+text = "Resume"
+
+[node name="BestiaryButton" type="Button" parent="EscapeMenuLayer/EscapeMenuPanel/MarginContainer/VBoxContainer" unique_id=1992582258]
+layout_mode = 2
+text = "Bestiary"
+
+[node name="SettingsButton" type="Button" parent="EscapeMenuLayer/EscapeMenuPanel/MarginContainer/VBoxContainer" unique_id=165285756]
+layout_mode = 2
+text = "Settings"
+
+[node name="QuitButton" type="Button" parent="EscapeMenuLayer/EscapeMenuPanel/MarginContainer/VBoxContainer" unique_id=1703199327]
+layout_mode = 2
+text = "Quit"
+
+[node name="SettingsPanel" type="PanelContainer" parent="EscapeMenuLayer" unique_id=997116359]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -110.0
+offset_right = 160.0
+offset_bottom = 110.0
+
+[node name="MarginContainer" type="MarginContainer" parent="EscapeMenuLayer/SettingsPanel" unique_id=112053256]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EscapeMenuLayer/SettingsPanel/MarginContainer" unique_id=812188714]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="EscapeMenuLayer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=557064828]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Settings"
+horizontal_alignment = 1
+
+[node name="BodyLabel" type="Label" parent="EscapeMenuLayer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=631333563]
+layout_mode = 2
+text = "Settings menu coming soon."
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="EscapeMenuLayer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=999238286]
+layout_mode = 2
+text = "Back"
 
 [node name="GameOverLayer" type="CanvasLayer" parent="." unique_id=696703801]
 process_mode = 2

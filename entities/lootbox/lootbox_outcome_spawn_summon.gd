@@ -35,6 +35,7 @@ func execute(context: Dictionary = {}) -> bool:
 
 	spawn_parent.add_child(summon_node)
 	summon_node.global_position = opener.global_position
+	Audio.play_sfx(_get_spawn_sound_key(summon_identity), -5.0)
 	return true
 
 func _register_bestiary_unlock(context: Dictionary, summon_node: Node) -> void:
@@ -106,7 +107,21 @@ func _apply_visual_modifiers(summon_node: Node2D) -> void:
 	sprite.texture = summon_texture_override
 
 func _has_property(node: Object, property_name: StringName) -> bool:
-	for property_data in node.get_property_list():
-		if StringName(property_data.get("name", "")) == property_name:
+	for property_data: Dictionary in node.get_property_list():
+		if StringName(property_data["name"]) == property_name:
 			return true
 	return false
+
+func _get_spawn_sound_key(identity: StringName) -> StringName:
+	var id_str: String = String(identity).to_lower()
+	if id_str.contains("chaos"):
+		return &"summon_chaos"
+	if id_str.contains("forest") or id_str.contains("tree") or id_str.contains("nature"):
+		return &"summon_forest"
+	if id_str.contains("elemental") or id_str.contains("fire") or id_str.contains("ice") or id_str.contains("frost"):
+		return &"summon_elemental"
+	if id_str.contains("spirit") or id_str.contains("ghost") or id_str.contains("soul"):
+		return &"summon_spirit"
+	if id_str.contains("greed") or id_str.contains("gold") or id_str.contains("coin"):
+		return &"summon_greed"
+	return &"summon_spawn_generic"

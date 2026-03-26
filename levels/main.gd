@@ -10,6 +10,7 @@ class_name MainScene
 @export var navigation_grid_merge_walkable_rectangles: bool = false
 @export var navigation_rebuild_on_tree_changes: bool = false
 @export_group("Day/Night Cycle")
+@export var use_balance_day_night_defaults: bool = true
 @export var enable_day_night_cycle: bool = true
 @export var day_duration_seconds: float = 60.0
 @export var night_duration_seconds: float = 36.0
@@ -42,6 +43,27 @@ var _game_over_controller: GameOverController
 func _ready() -> void:
 	add_to_group("day_night_cycle_controllers")
 
+	var resolved_enable_day_night_cycle: bool = enable_day_night_cycle
+	var resolved_day_duration_seconds: float = day_duration_seconds
+	var resolved_night_duration_seconds: float = night_duration_seconds
+	var resolved_first_night_starts_immediately: bool = first_night_starts_immediately
+	var resolved_night_waves_per_cycle: int = night_waves_per_cycle
+	var resolved_night_wave_base_size: int = night_wave_base_size
+	var resolved_night_wave_size_growth_per_night: int = night_wave_size_growth_per_night
+	var resolved_night_wave_spawn_scale: float = night_wave_spawn_scale
+	var resolved_night_wave_spacing_seconds: float = night_wave_spacing_seconds
+
+	if use_balance_day_night_defaults:
+		resolved_enable_day_night_cycle = bool(Balance.get_day_night_setting(&"enable_day_night_cycle", resolved_enable_day_night_cycle))
+		resolved_day_duration_seconds = float(Balance.get_day_night_setting(&"day_duration_seconds", resolved_day_duration_seconds))
+		resolved_night_duration_seconds = float(Balance.get_day_night_setting(&"night_duration_seconds", resolved_night_duration_seconds))
+		resolved_first_night_starts_immediately = bool(Balance.get_day_night_setting(&"first_night_starts_immediately", resolved_first_night_starts_immediately))
+		resolved_night_waves_per_cycle = int(Balance.get_day_night_setting(&"night_waves_per_cycle", resolved_night_waves_per_cycle))
+		resolved_night_wave_base_size = int(Balance.get_day_night_setting(&"night_wave_base_size", resolved_night_wave_base_size))
+		resolved_night_wave_size_growth_per_night = int(Balance.get_day_night_setting(&"night_wave_size_growth_per_night", resolved_night_wave_size_growth_per_night))
+		resolved_night_wave_spawn_scale = float(Balance.get_day_night_setting(&"night_wave_spawn_scale", resolved_night_wave_spawn_scale))
+		resolved_night_wave_spacing_seconds = float(Balance.get_day_night_setting(&"night_wave_spacing_seconds", resolved_night_wave_spacing_seconds))
+
 	_nav_build_service = NavigationBuildService.new()
 	_nav_build_service.name = "NavigationBuildService"
 	_nav_build_service.obstacle_padding = navigation_obstacle_padding
@@ -55,15 +77,15 @@ func _ready() -> void:
 
 	_day_night_controller = DayNightController.new()
 	_day_night_controller.name = "DayNightController"
-	_day_night_controller.enable_day_night_cycle = enable_day_night_cycle
-	_day_night_controller.day_duration_seconds = day_duration_seconds
-	_day_night_controller.night_duration_seconds = night_duration_seconds
-	_day_night_controller.first_night_starts_immediately = first_night_starts_immediately
-	_day_night_controller.night_waves_per_cycle = night_waves_per_cycle
-	_day_night_controller.night_wave_base_size = night_wave_base_size
-	_day_night_controller.night_wave_size_growth_per_night = night_wave_size_growth_per_night
-	_day_night_controller.night_wave_spawn_scale = night_wave_spawn_scale
-	_day_night_controller.night_wave_spacing_seconds = night_wave_spacing_seconds
+	_day_night_controller.enable_day_night_cycle = resolved_enable_day_night_cycle
+	_day_night_controller.day_duration_seconds = resolved_day_duration_seconds
+	_day_night_controller.night_duration_seconds = resolved_night_duration_seconds
+	_day_night_controller.first_night_starts_immediately = resolved_first_night_starts_immediately
+	_day_night_controller.night_waves_per_cycle = resolved_night_waves_per_cycle
+	_day_night_controller.night_wave_base_size = resolved_night_wave_base_size
+	_day_night_controller.night_wave_size_growth_per_night = resolved_night_wave_size_growth_per_night
+	_day_night_controller.night_wave_spawn_scale = resolved_night_wave_spawn_scale
+	_day_night_controller.night_wave_spacing_seconds = resolved_night_wave_spacing_seconds
 	_day_night_controller.day_night_transition_seconds = day_night_transition_seconds
 	_day_night_controller.day_overlay_color = day_overlay_color
 	_day_night_controller.night_overlay_color = night_overlay_color

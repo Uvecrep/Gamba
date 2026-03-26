@@ -21,9 +21,11 @@ LootboxGlobals="*uid://dxsypt4tjw8ks"
 BestiaryGlobals="*res://globals/bestiary_globals.gd"
 ItemGlobals="*uid://bc05npn0mt456"
 Const="*uid://3wrj6qajgox6"
+Balance="*res://globals/balance.gd"
 SpatialIndex="*res://globals/spatial_index.gd"
 VfxPool="*res://globals/vfx_pool.gd"
 PerfDebug="*res://globals/perf_debug.gd"
+Audio="*res://globals/audio.gd"
 
 [display]
 

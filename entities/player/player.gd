@@ -76,6 +76,8 @@ var _animation_time_seconds: float = 0.0
 var _was_moving_last_frame: bool = false
 var _is_facing_left: bool = false
 var _visual_layers: Array[Sprite2D] = []
+var _footstep_timer: float = 0.0
+const FOOTSTEP_INTERVAL: float = 0.38
 
 func _ready() -> void:
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
@@ -105,7 +107,7 @@ func _process(delta: float) -> void:
 		toss_reticle.position = get_local_mouse_position()
 		toss_line.points[1] = get_local_mouse_position()
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if _health_component.is_dead():
 		velocity = Vector2.ZERO
 		return
@@ -113,6 +115,7 @@ func _physics_process(_delta: float) -> void:
 	_summon_command_component.physics_update(self)
 	get_input()
 	move_and_slide()
+	_update_footsteps(delta)
 	#_clamp_player_to_world_bounds()
 	_handle_summon_command_shortcuts()
 
@@ -195,6 +198,17 @@ func _initialize_visual_animation() -> void:
 	_animation_time_seconds = 0.0
 	_was_moving_last_frame = false
 	_set_visual_frame(false, 0)
+
+func _update_footsteps(delta: float) -> void:
+	if velocity.length_squared() < 100.0:
+		_footstep_timer = minf(_footstep_timer, 0.12)
+		return
+	_footstep_timer -= delta
+	if _footstep_timer > 0.0:
+		return
+	_footstep_timer = FOOTSTEP_INTERVAL
+	var key: StringName = &"player_footstep_grass_1" if randf() < 0.5 else &"player_footstep_grass_2"
+	Audio.play_player_footstep(key, -12.0, randf_range(0.92, 1.08))
 
 func _update_visual_animation(delta: float) -> void:
 	if _visual_layers.is_empty():
@@ -375,9 +389,11 @@ func _stop_tossing() -> void:
 		thrown_lootbox.player = self
 		thrown_lootbox.lootbox = lootbox
 		thrown_object = thrown_lootbox as ThrownObject
+		Audio.play_sfx(&"player_lootbox_toss")
 	elif held_item_id == &"sapling":
 		var thrown_sapling : ThrownSapling = thrown_sapling_packed_scene.instantiate()
 		thrown_object = thrown_sapling as ThrownObject
+		Audio.play_sfx(&"player_sapling_toss")
 	else:
 		# Maybe it's a pickup?
 		var thrown_pickup : ThrownPickup = thrown_pickup_packed_scene.instantiate()

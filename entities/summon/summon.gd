@@ -67,6 +67,7 @@ const SummonProfileCatalogScript = preload("res://entities/summon/summon_profile
 @export var split_child_scale: float = 0.72
 @export var split_child_health_scale: float = 0.45
 @export var split_child_damage_scale: float = 0.45
+@export var split_child_move_speed_multiplier: float = 1.25
 @export var split_enabled: bool = true
 @export var is_mini_slime: bool = false
 @export var idle_bounce_fast_speed: float = 8.0
@@ -260,6 +261,27 @@ func _apply_summon_identity_profile() -> void:
 	max_health = profile.max_health
 	if profile.follow_player_distance_override >= 0.0:
 		follow_player_distance = profile.follow_player_distance_override
+
+	var runtime_config: Dictionary = Balance.get_summon_runtime_config(summon_identity)
+	move_speed *= float(runtime_config.get("move_speed_multiplier", 1.0))
+	attack_range *= float(runtime_config.get("attack_range_multiplier", 1.0))
+	attack_damage *= float(runtime_config.get("attack_damage_multiplier", 1.0))
+	attack_cooldown *= float(runtime_config.get("attack_cooldown_multiplier", 1.0))
+	max_health *= float(runtime_config.get("max_health_multiplier", 1.0))
+	follow_player_distance *= float(runtime_config.get("follow_player_distance_multiplier", 1.0))
+	if runtime_config.has("split_child_count"):
+		split_child_count = int(runtime_config.get("split_child_count", split_child_count))
+	if runtime_config.has("split_child_scale"):
+		split_child_scale = float(runtime_config.get("split_child_scale", split_child_scale))
+	if runtime_config.has("split_child_health_scale"):
+		split_child_health_scale = float(runtime_config.get("split_child_health_scale", split_child_health_scale))
+	if runtime_config.has("split_child_damage_scale"):
+		split_child_damage_scale = float(runtime_config.get("split_child_damage_scale", split_child_damage_scale))
+	if runtime_config.has("split_child_move_speed_multiplier"):
+		split_child_move_speed_multiplier = float(runtime_config.get("split_child_move_speed_multiplier", split_child_move_speed_multiplier))
+
+	if _navigation_agent != null:
+		_navigation_agent.max_speed = maxf(move_speed, 1.0)
 
 func _physics_process(delta: float) -> void:
 	var physics_start_us: int = Time.get_ticks_usec()
