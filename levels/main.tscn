@@ -19,8 +19,8 @@
 [ext_resource type="PackedScene" uid="uid://be8r57shygwgm" path="res://entities/plantable_area/plantable_area.tscn" id="15_s07ge"]
 [ext_resource type="PackedScene" uid="uid://cr76phtlmlcqt" path="res://ui/bestiary/bestiary_panel.tscn" id="16_bestiary"]
 [ext_resource type="PackedScene" path="res://entities/shop/shop.tscn" id="17_shop"]
-[ext_resource type="PackedScene" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
-[ext_resource type="Script" path="res://ui/pause/escape_menu.gd" id="21_escape"]
+[ext_resource type="PackedScene" uid="uid://88e657uh5fwx" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
+[ext_resource type="Script" uid="uid://dvgdpehoatcpp" path="res://ui/pause/escape_menu.gd" id="21_escape"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_badge"]
 bg_color = Color(0.03, 0.03, 0.03, 0.9)
@@ -56,6 +56,7 @@ position = Vector2(544, 680)
 
 [node name="crystal" parent="." unique_id=2144231408 instance=ExtResource("11_1j61c")]
 position = Vector2(32, 128)
+growth_interval_seconds = 20.0
 starting_lootboxes = 1
 produced_lootbox_id = &"lootbox_chaos"
 

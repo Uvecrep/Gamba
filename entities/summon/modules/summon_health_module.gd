@@ -134,7 +134,7 @@ func spawn_split_children() -> void:
 		split_summon.set("split_enabled", false)
 		split_summon.set("max_health", maxf(unit.max_health * unit.split_child_health_scale, 12.0))
 		split_summon.set("attack_damage", maxf(unit.attack_damage * unit.split_child_damage_scale, 4.0))
-		split_summon.set("move_speed", unit.move_speed * 1.25)
+		split_summon.set("move_speed", unit.move_speed * unit.split_child_move_speed_multiplier)
 		split_summon.set("sprite_texture_override", unit.sprite_texture_override)
 
 		parent_node.add_child(split_summon)

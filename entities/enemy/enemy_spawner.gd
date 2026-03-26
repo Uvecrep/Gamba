@@ -2,10 +2,12 @@ extends Node2D
 class_name EnemySpawner
 
 @export var enemy_scene: PackedScene
+@export var use_balance_defaults: bool = true
 @export var spawn_interval: float = 15
 @export var max_alive_enemies: int = 8
 @export var auto_start: bool = true
 @export var randomize_enemy_archetypes: bool = true
+@export var snap_spawn_to_navigation: bool = true
 
 @export var wave_spawn_points: Array[Node2D]
 var wave_spawn_point_radius: float = 200
@@ -26,6 +28,11 @@ var wave_spawn_point_radius: float = 200
 
 func _ready() -> void:
 	add_to_group("enemy_towers")
+	if use_balance_defaults:
+		spawn_interval = float(Balance.get_enemy_spawner_setting(&"spawn_interval", spawn_interval))
+		max_alive_enemies = int(Balance.get_enemy_spawner_setting(&"max_alive_enemies", max_alive_enemies))
+		wave_spawn_point_radius = float(Balance.get_enemy_spawner_setting(&"wave_spawn_point_radius", wave_spawn_point_radius))
+		spawn_archetype_pool = Balance.get_enemy_spawner_spawn_archetype_pool(spawn_archetype_pool)
 
 	if enemy_scene == null:
 		push_warning("EnemySpawner needs enemy_scene set for wave spawns.")
@@ -106,11 +113,30 @@ func _spawn_single_enemy(spawn_position : Vector2) -> bool:
 	if enemy is EnemyUnit:
 		(enemy as EnemyUnit).set_enemy_archetype(_pick_spawn_archetype())
 
-	enemy.global_position = spawn_position
+	enemy.global_position = _resolve_spawn_position(spawn_position)
 
 	get_parent().add_child(enemy)
 
 	return true
+
+
+func _resolve_spawn_position(requested_position: Vector2) -> Vector2:
+	if not snap_spawn_to_navigation:
+		return requested_position
+
+	var world_2d: World2D = get_world_2d()
+	if world_2d == null:
+		return requested_position
+
+	var navigation_map: RID = world_2d.navigation_map
+	if not navigation_map.is_valid():
+		return requested_position
+
+	var snapped_position: Vector2 = NavigationServer2D.map_get_closest_point(navigation_map, requested_position)
+	if not snapped_position.is_finite():
+		return requested_position
+
+	return snapped_position
 
 func _pick_spawn_archetype() -> StringName:
 	if not randomize_enemy_archetypes:
