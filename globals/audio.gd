@@ -113,6 +113,7 @@ var _ambience_key: StringName = StringName()
 var _sfx_loop_key: StringName = StringName()
 var _footstep_key: StringName = StringName()
 var _sfx_key_by_player_id: Dictionary = {}
+var _single_sfx_players: Dictionary = {}
 
 
 func _ready() -> void:
@@ -137,6 +138,28 @@ func play_ui(key: StringName, volume_db: float = 0.0) -> void:
 
 func play_sfx(key: StringName, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void:
 	play_one_shot(key, volume_db, pitch_scale, &"SFX")
+
+
+func play_sfx_if_not_playing(key: StringName, volume_db: float = 0.0, pitch_scale: float = 1.0, bus_name: StringName = &"SFX") -> bool:
+	var stream: AudioStream = _get_stream(key)
+	if stream == null:
+		return false
+
+	var player: AudioStreamPlayer = _single_sfx_players.get(key, null) as AudioStreamPlayer
+	if player == null:
+		player = _create_player(bus_name)
+		add_child(player)
+		_single_sfx_players[key] = player
+
+	if player.playing:
+		return false
+
+	player.bus = _resolve_bus(bus_name)
+	player.stream = stream
+	player.volume_db = volume_db
+	player.pitch_scale = maxf(pitch_scale, 0.01)
+	player.play()
+	return true
 
 
 func play_player_footstep(key: StringName, volume_db: float = -12.0, pitch_scale: float = 1.0) -> void:
@@ -272,6 +295,18 @@ func get_currently_playing_sounds() -> Array[Dictionary]:
 			"bus": String(_footstep_player.bus),
 			"volume_db": _footstep_player.volume_db,
 			"pitch_scale": _footstep_player.pitch_scale,
+		})
+
+	for single_key in _single_sfx_players.keys():
+		var single_player: AudioStreamPlayer = _single_sfx_players[single_key] as AudioStreamPlayer
+		if single_player == null or not single_player.playing:
+			continue
+		sounds.append({
+			"kind": "sfx_single",
+			"key": String(single_key),
+			"bus": String(single_player.bus),
+			"volume_db": single_player.volume_db,
+			"pitch_scale": single_player.pitch_scale,
 		})
 
 	for player in _sfx_players:
