@@ -1,9 +1,11 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://entities/boulder/boulder.gd" id="1_boulder_script"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
 [ext_resource type="Texture2D" path="res://assets/vfx/rock_attack.png" id="2_boulder_texture"]
 [ext_resource type="Texture2D" path="res://assets/objects/gold.png" id="3_gold_texture"]
 [ext_resource type="PackedScene" path="res://entities/pickups/pickup.tscn" id="4_pickup_scene"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="5_shadow"]
 
 [sub_resource type="RectangleShape2D" id="1_boulder_shape"]
 size = Vector2(52, 42)
@@ -19,6 +21,13 @@ pickup_impulse = Vector2(0, 0)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 10)
 shape = SubResource("1_boulder_shape")
+
+[node name="GroundShadow" type="Sprite2D" parent="."]
+scale = Vector2(0.9, 0.7)
+texture = ExtResource("5_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../Sprite2D")
+y_offset = -3.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1

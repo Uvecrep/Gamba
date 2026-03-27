@@ -46,18 +46,18 @@ metadata/_edit_horizontal_guides_ = [-958.0]
 position = Vector2(32, -67)
 
 [node name="phone" parent="." unique_id=1188000190 instance=ExtResource("8_2v8j6")]
-position = Vector2(544, 355)
+position = Vector2(544, 336.31)
 
 [node name="map" parent="." unique_id=742775017 instance=ExtResource("9_pm7y4")]
 position = Vector2(-480, 355)
 
 [node name="shop" parent="." unique_id=2063913413 instance=ExtResource("17_shop")]
-position = Vector2(544, 680)
+position = Vector2(543.595, 669.605)
 
 [node name="crystal" parent="." unique_id=2144231408 instance=ExtResource("11_1j61c")]
 position = Vector2(32, 128)
-growth_interval_seconds = 20.0
 starting_lootboxes = 1
+growth_interval_seconds = 20.0
 produced_lootbox_id = &"lootbox_chaos"
 
 [node name="boulder_resource" parent="." unique_id=924756373 instance=ExtResource("14_boulder")]

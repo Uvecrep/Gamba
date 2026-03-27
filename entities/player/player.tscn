@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://bhxxgyq6e3ond"]
 
 [ext_resource type="Script" uid="uid://b5x3ag8pucgmf" path="res://entities/player/player.gd" id="1_abrql"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
 [ext_resource type="Texture2D" uid="uid://gw4wuflvucyr" path="res://assets/characters/summoner-Sheet.png" id="2_abrql"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="2_fkugw"]
+[ext_resource type="Texture2D" uid="uid://dpphushft12hj" path="res://assets/vfx/entity_shadow.svg" id="2_shadow"]
 [ext_resource type="PackedScene" uid="uid://bb23mmd3w1v3e" path="res://entities/thrown_object/thrown_lootbox.tscn" id="3_fkugw"]
 [ext_resource type="PackedScene" uid="uid://cbyrfoweidpqm" path="res://entities/thrown_object/thrown_sapling.tscn" id="4_8fjmc"]
 [ext_resource type="PackedScene" uid="uid://gspk8i0demvv" path="res://entities/thrown_object/thrown_pickup.tscn" id="5_qiwj3"]
@@ -64,8 +66,16 @@ shape = SubResource("RectangleShape2D_wdj6m")
 [node name="Visuals" type="Node2D" parent="." unique_id=332825914]
 z_index = 3
 
+[node name="GroundShadow" type="Sprite2D" parent="Visuals" unique_id=1313379901]
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../SpriteOverlay")
+y_offset = -20.0
+animate_with_bounce = false
+
 [node name="SpriteBase" type="Sprite2D" parent="Visuals" unique_id=910228276]
-modulate = Color(1, 1, 1, 0.7294118)
+visible = false
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
