@@ -78,6 +78,8 @@ var _is_facing_left: bool = false
 var _visual_layers: Array[Sprite2D] = []
 var _footstep_timer: float = 0.0
 const FOOTSTEP_INTERVAL: float = 0.38
+var _shake_intensity: float = 0.0
+var _shake_time_left: float = 0.0
 
 func _ready() -> void:
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
@@ -102,6 +104,7 @@ func _process(delta: float) -> void:
 	
 	_update_health_bar()
 	_update_visual_animation(delta)
+	_apply_screen_shake(delta)
 	
 	if _is_tossing:
 		toss_reticle.position = get_local_mouse_position()
@@ -138,6 +141,26 @@ func take_hit(amount: float, source: Node2D = null, options: Dictionary = {}) ->
 
 func take_damage(amount: float) -> void:
 	_health_component.take_damage(self, amount)
+
+func trigger_screen_shake(intensity: float = 5.0, duration: float = 0.22) -> void:
+	_shake_intensity = maxf(intensity, _shake_intensity)
+	_shake_time_left = maxf(duration, _shake_time_left)
+
+func _apply_screen_shake(delta: float) -> void:
+	if camera == null:
+		return
+	if _shake_time_left <= 0.0:
+		if camera.offset != Vector2.ZERO:
+			camera.offset = Vector2.ZERO
+		return
+	_shake_time_left = maxf(_shake_time_left - delta, 0.0)
+	if _shake_time_left <= 0.0:
+		camera.offset = Vector2.ZERO
+		return
+	camera.offset = Vector2(
+		randf_range(-_shake_intensity, _shake_intensity),
+		randf_range(-_shake_intensity, _shake_intensity)
+	)
 
 func heal(amount: float) -> void:
 	_health_component.heal(self, amount)

@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" uid="uid://88e657uh5fwx" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
 [ext_resource type="Script" uid="uid://dvgdpehoatcpp" path="res://ui/pause/escape_menu.gd" id="21_escape"]
 [ext_resource type="Script" path="res://scripts/enemy_indicator_layer.gd" id="22_enemy_ind"]
+[ext_resource type="Script" path="res://scripts/house_combat_hud.gd" id="23_house_hud"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_badge"]
 bg_color = Color(0.03, 0.03, 0.03, 0.9)
@@ -158,6 +159,10 @@ visible = false
 [node name="EscapeMenuLayer" type="CanvasLayer" parent="." unique_id=827106423]
 layer = 15
 script = ExtResource("21_escape")
+
+[node name="HouseCombatHUD" type="CanvasLayer" parent="." unique_id=1234509876]
+layer = 2
+script = ExtResource("23_house_hud")
 
 [node name="PauseBadge" type="PanelContainer" parent="EscapeMenuLayer" unique_id=1200731180]
 visible = false

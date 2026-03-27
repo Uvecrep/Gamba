@@ -5,6 +5,7 @@ const CombatText = preload("res://scripts/floating_combat_text.gd")
 const HEALTH_COMPONENT_SCRIPT = preload("res://entities/shared/health_component.gd")
 
 signal destroyed
+signal damaged(current_hp: float, max_hp: float)
 
 @export var max_health: float = 500.0
 @export var under_attack_sound_cooldown: float = 0.85
@@ -39,6 +40,8 @@ func take_damage(amount: float) -> void:
 			Audio.play_sfx(&"world_house_under_attack", -7.0)
 			_under_attack_sound_time_left = maxf(under_attack_sound_cooldown, 0.1)
 	_update_health_bar()
+	if applied_damage > 0.0:
+		damaged.emit(_current_health, max_health)
 
 	if _health_component.is_dead:
 		destroyed.emit()

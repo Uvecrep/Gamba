@@ -64,6 +64,7 @@ func take_damage(player: Player, amount: float) -> void:
 		Audio.play_sfx(&"player_damage_light", -6.0)
 
 	CombatText.spawn_damage(player, applied_damage)
+	player.trigger_screen_shake(5.0, 0.22)
 	update_health_bar(player)
 
 	if _health_state.is_dead:
