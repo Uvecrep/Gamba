@@ -364,7 +364,7 @@ func _update_healer_aura(_delta: float) -> void:
 	for ally in _find_nearby_allied_enemies(healer_aura_radius, healer_max_allies_per_tick):
 		ally.heal(heal_amount)
 	if heal_amount > 0.0:
-		Audio.play_sfx(&"enemy_healer_cast", -9.0)
+		Audio.play_sfx_if_not_playing(&"enemy_healer_cast", -14.0)
 
 func _find_nearby_allied_enemies(radius: float, max_targets: int) -> Array[EnemyUnit]:
 	var allies: Array[EnemyUnit] = []

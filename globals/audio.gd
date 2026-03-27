@@ -2,6 +2,7 @@ extends Node
 class_name AudioService
 
 const MASTER_BUS: StringName = &"Master"
+const REQUIRED_AUDIO_BUSES: PackedStringArray = ["Master", "Music", "Ambience", "SFX", "UI"]
 
 const SOUND_PATHS: Dictionary = {
 	# UI
@@ -113,9 +114,11 @@ var _ambience_key: StringName = StringName()
 var _sfx_loop_key: StringName = StringName()
 var _footstep_key: StringName = StringName()
 var _sfx_key_by_player_id: Dictionary = {}
+var _single_sfx_players: Dictionary = {}
 
 
 func _ready() -> void:
+	_ensure_audio_buses()
 	_music_player = _create_player(&"Music")
 	add_child(_music_player)
 	_ambience_player = _create_player(&"Ambience")
@@ -131,12 +134,60 @@ func _ready() -> void:
 		_sfx_players.append(player)
 
 
+func _ensure_audio_buses() -> void:
+	for bus_name_text in REQUIRED_AUDIO_BUSES:
+		var bus_name: StringName = StringName(bus_name_text)
+		if AudioServer.get_bus_index(String(bus_name)) >= 0:
+			continue
+		AudioServer.add_bus()
+		var created_index: int = AudioServer.get_bus_count() - 1
+		AudioServer.set_bus_name(created_index, bus_name)
+
+	# Keep required buses in a stable order for settings UX.
+	for target_index in range(REQUIRED_AUDIO_BUSES.size()):
+		var target_name: String = REQUIRED_AUDIO_BUSES[target_index]
+		var current_index: int = AudioServer.get_bus_index(target_name)
+		if current_index < 0 or current_index == target_index:
+			continue
+		AudioServer.move_bus(current_index, target_index)
+
+	# Route all non-master buses to Master.
+	for bus_offset in range(1, REQUIRED_AUDIO_BUSES.size()):
+		var bus_name_to_route: String = REQUIRED_AUDIO_BUSES[bus_offset]
+		var bus_index: int = AudioServer.get_bus_index(bus_name_to_route)
+		if bus_index < 0:
+			continue
+		AudioServer.set_bus_send(bus_index, MASTER_BUS)
+
+
 func play_ui(key: StringName, volume_db: float = 0.0) -> void:
 	play_one_shot(key, volume_db, 1.0, &"UI")
 
 
 func play_sfx(key: StringName, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void:
 	play_one_shot(key, volume_db, pitch_scale, &"SFX")
+
+
+func play_sfx_if_not_playing(key: StringName, volume_db: float = 0.0, pitch_scale: float = 1.0, bus_name: StringName = &"SFX") -> bool:
+	var stream: AudioStream = _get_stream(key)
+	if stream == null:
+		return false
+
+	var player: AudioStreamPlayer = _single_sfx_players.get(key, null) as AudioStreamPlayer
+	if player == null:
+		player = _create_player(bus_name)
+		add_child(player)
+		_single_sfx_players[key] = player
+
+	if player.playing:
+		return false
+
+	player.bus = _resolve_bus(bus_name)
+	player.stream = stream
+	player.volume_db = volume_db
+	player.pitch_scale = maxf(pitch_scale, 0.01)
+	player.play()
+	return true
 
 
 func play_player_footstep(key: StringName, volume_db: float = -12.0, pitch_scale: float = 1.0) -> void:
@@ -272,6 +323,18 @@ func get_currently_playing_sounds() -> Array[Dictionary]:
 			"bus": String(_footstep_player.bus),
 			"volume_db": _footstep_player.volume_db,
 			"pitch_scale": _footstep_player.pitch_scale,
+		})
+
+	for single_key in _single_sfx_players.keys():
+		var single_player: AudioStreamPlayer = _single_sfx_players[single_key] as AudioStreamPlayer
+		if single_player == null or not single_player.playing:
+			continue
+		sounds.append({
+			"kind": "sfx_single",
+			"key": String(single_key),
+			"bus": String(single_player.bus),
+			"volume_db": single_player.volume_db,
+			"pitch_scale": single_player.pitch_scale,
 		})
 
 	for player in _sfx_players:
