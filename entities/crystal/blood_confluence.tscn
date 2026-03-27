@@ -6,9 +6,34 @@
 [ext_resource type="Texture2D" uid="uid://dqurwl1fnfb0j" path="res://assets/objects/crystal.png" id="2_ublic"]
 [ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="3_o1w8l"]
 [ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="4_shadow"]
+[ext_resource type="Shader" path="res://entities/shared/sprite_soft_glow.gdshader" id="5_glow_shader"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_a2otu"]
 size = Vector2(46, 52)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crystal_glow"]
+shader = ExtResource("5_glow_shader")
+shader_parameter/outline_color = Color(1, 1, 1, 0)
+shader_parameter/outline_size = 0.0
+shader_parameter/glow_enabled = true
+shader_parameter/glow_radius = 2.6
+shader_parameter/glow_strength = 0.2
+shader_parameter/glow_bias = 0.0
+shader_parameter/pulse_amount = 0.035
+shader_parameter/pulse_speed = 2.1
+shader_parameter/flicker_amount = 0.02
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lootbox_glow"]
+shader = ExtResource("5_glow_shader")
+shader_parameter/outline_color = Color(1, 1, 1, 0)
+shader_parameter/outline_size = 0.0
+shader_parameter/glow_enabled = true
+shader_parameter/glow_radius = 1.8
+shader_parameter/glow_strength = 0.14
+shader_parameter/glow_bias = 0.0
+shader_parameter/pulse_amount = 0.0
+shader_parameter/pulse_speed = 1.0
+shader_parameter/flicker_amount = 0.0
 
 [node name="blood_confluence" type="StaticBody2D" unique_id=2107467836 node_paths=PackedStringArray("_lootbox_sprite", "_harvest_prompt_label", "_blood_count_label", "_box_cost_label")]
 script = ExtResource("1_ywey7")
@@ -34,11 +59,13 @@ modulate = Color(1, 0.20392157, 0.11372549, 1)
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_ublic")
+material = SubResource("ShaderMaterial_crystal_glow")
 
 [node name="LootboxSprite" type="Sprite2D" parent="." unique_id=1055617037]
 texture_filter = 1
 position = Vector2(0, 18)
 texture = ExtResource("3_o1w8l")
+material = SubResource("ShaderMaterial_lootbox_glow")
 
 [node name="GrowthTimer" type="Timer" parent="." unique_id=1951766904]
 wait_time = 30.0

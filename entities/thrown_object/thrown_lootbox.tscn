@@ -4,9 +4,22 @@
 [ext_resource type="Script" path="res://entities/thrown_object/thrown_ground_shadow.gd" id="2_shadow_script"]
 [ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="2_are6o"]
 [ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="3_shadow"]
+[ext_resource type="Shader" path="res://entities/shared/sprite_soft_glow.gdshader" id="4_glow_shader"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_86vk5"]
 radius = 15.95
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lootbox_glow"]
+shader = ExtResource("4_glow_shader")
+shader_parameter/outline_color = Color(1, 1, 1, 0)
+shader_parameter/outline_size = 0.0
+shader_parameter/glow_enabled = true
+shader_parameter/glow_radius = 1.8
+shader_parameter/glow_strength = 0.15
+shader_parameter/glow_bias = 0.0
+shader_parameter/pulse_amount = 0.0
+shader_parameter/pulse_speed = 1.0
+shader_parameter/flicker_amount = 0.0
 
 [node name="ThrownLootbox" type="Node2D" unique_id=2138357677]
 script = ExtResource("1_are6o")
@@ -24,6 +37,7 @@ offset_right = 17.5
 offset_bottom = 17.5
 texture = ExtResource("2_are6o")
 expand_mode = 1
+material = SubResource("ShaderMaterial_lootbox_glow")
 
 [node name="Area2D" type="Area2D" parent="." unique_id=8093267]
 collision_layer = 16
