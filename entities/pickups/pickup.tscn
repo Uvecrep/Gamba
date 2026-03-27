@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://jyurkxlawu41"]
 
 [ext_resource type="Script" uid="uid://dto83ityng4jl" path="res://entities/pickups/pickup.gd" id="1_lg31k"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="2_shadow"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_lg31k"]
 font_size = 4
@@ -21,6 +23,16 @@ script = ExtResource("1_lg31k")
 debug_item_id_label = NodePath("Label")
 sprite_2d = NodePath("Sprite2D")
 metadata/_custom_type_script = "uid://dto83ityng4jl"
+
+[node name="GroundShadow" type="Sprite2D" parent="." unique_id=1199861174]
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("2_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../Sprite2D")
+y_offset = 2.0
+animate_with_bounce = true
+bounce_from_parent_motion = true
+bounce_position_factor = 1.6
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2099446590]
 texture_filter = 1

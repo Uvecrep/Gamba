@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d1ffdli2qtxp2" path="res://entities/thrown_object/thrown_object.gd" id="1_ja1aw"]
 [ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="2_6pmhi"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="3_shadow"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_are6o"]
 font_size = 4
@@ -12,6 +13,11 @@ radius = 15.95
 
 [node name="ThrownLootbox" type="Node2D" unique_id=2138357677]
 script = ExtResource("1_ja1aw")
+
+[node name="GroundShadow" type="Sprite2D" parent="." unique_id=321859112]
+position = Vector2(0, 16)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("3_shadow")
 
 [node name="TextureRect" type="TextureRect" parent="." unique_id=948559319]
 offset_left = -17.5

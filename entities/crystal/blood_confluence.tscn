@@ -1,9 +1,11 @@
 [gd_scene format=3 uid="uid://bdokkhkbr35d2"]
 
 [ext_resource type="Script" path="res://entities/crystal/blood_confluence.gd" id="1_ywey7"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="2_b4axk"]
 [ext_resource type="Texture2D" uid="uid://dqurwl1fnfb0j" path="res://assets/objects/crystal.png" id="2_ublic"]
 [ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="3_o1w8l"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="4_shadow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_a2otu"]
 size = Vector2(46, 52)
@@ -19,6 +21,13 @@ pickup_scene = ExtResource("2_b4axk")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1108375610]
 position = Vector2(0, 10)
 shape = SubResource("RectangleShape2D_a2otu")
+
+[node name="GroundShadow" type="Sprite2D" parent="." unique_id=1428110074]
+scale = Vector2(0.8, 0.6)
+texture = ExtResource("4_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../Sprite2D")
+y_offset = -4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=2077622275]
 modulate = Color(1, 0.20392157, 0.11372549, 1)

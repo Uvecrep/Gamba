@@ -1,7 +1,9 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://entities/shop/shop.gd" id="1_shop_script"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
 [ext_resource type="Texture2D" path="res://assets/objects/greed_lootbox.png" id="2_shop_texture"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="3_shadow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_shop"]
 size = Vector2(42, 44)
@@ -12,6 +14,13 @@ script = ExtResource("1_shop_script")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 10)
 shape = SubResource("RectangleShape2D_shop")
+
+[node name="GroundShadow" type="Sprite2D" parent="."]
+scale = Vector2(0.7, 0.55)
+texture = ExtResource("3_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../Sprite2D")
+y_offset = -4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1

@@ -1,7 +1,9 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://entities/phone/phone.gd" id="1_qdu2r"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
 [ext_resource type="Texture2D" path="res://assets/objects/phone.png" id="2_w5l8d"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="3_shadow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xf8k9"]
 size = Vector2(30, 48)
@@ -12,6 +14,13 @@ script = ExtResource("1_qdu2r")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 16)
 shape = SubResource("RectangleShape2D_xf8k9")
+
+[node name="GroundShadow" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.4)
+texture = ExtResource("3_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../Sprite2D")
+y_offset = -4.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture_filter = 1

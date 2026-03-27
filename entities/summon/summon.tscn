@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://d1i770h2w5bx1"]
 
 [ext_resource type="Script" uid="uid://ctvbtxmf0rlor" path="res://entities/summon/summon.gd" id="1_l2f3a"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
 [ext_resource type="Texture2D" uid="uid://cvepnl03ncegr" path="res://assets/characters/summon.png" id="2_ac4sb"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="3_shadow"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_l2f3a"]
 radius = 14.0
@@ -12,6 +14,13 @@ script = ExtResource("1_l2f3a")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1367573543]
 position = Vector2(0, 4)
 shape = SubResource("CircleShape2D_l2f3a")
+
+[node name="GroundShadow" type="Sprite2D" parent="." unique_id=1657754008]
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("3_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../Sprite2D")
+y_offset = -2.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1891930626]
 texture_filter = 1

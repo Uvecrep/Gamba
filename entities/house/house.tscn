@@ -1,7 +1,9 @@
 [gd_scene format=3 uid="uid://b6u051drnvexw"]
 
 [ext_resource type="Script" uid="uid://dd7lyveqrt2fr" path="res://entities/house/house.gd" id="1_k80ea"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
 [ext_resource type="Texture2D" uid="uid://c1dxvapmfr16r" path="res://assets/objects/house.png" id="2_h9w4k"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="3_shadow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2ikcc"]
 size = Vector2(88, 80)
@@ -27,6 +29,13 @@ script = ExtResource("1_k80ea")
 position = Vector2(0, 25.745)
 scale = Vector2(2.345, 2.345)
 shape = SubResource("RectangleShape2D_2ikcc")
+
+[node name="GroundShadow" type="Sprite2D" parent="." unique_id=344511287]
+scale = Vector2(1.6, 1.0)
+texture = ExtResource("3_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../Sprite2D")
+y_offset = -8.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1831104327]
 texture_filter = 1

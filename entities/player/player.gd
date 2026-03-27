@@ -181,6 +181,7 @@ func _update_health_bar() -> void:
 func _initialize_visual_animation() -> void:
 	_visual_layers.clear()
 	if sprite_base != null:
+		sprite_base.visible = false
 		_visual_layers.append(sprite_base)
 	if sprite_overlay != null:
 		_visual_layers.append(sprite_overlay)

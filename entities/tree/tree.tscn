@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://bnb85qll64ayq"]
 
 [ext_resource type="Script" uid="uid://byh8l2e83pirx" path="res://entities/tree/tree.gd" id="1_2e5kc"]
+[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
 [ext_resource type="Texture2D" uid="uid://d332vv4slojvn" path="res://assets/objects/tree.png" id="2_j2nfi"]
 [ext_resource type="Texture2D" uid="uid://iftuo3yyscy6" path="res://assets/objects/lootbox_fruit.png" id="3_2swbe"]
+[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="4_shadow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ve3t3"]
 size = Vector2(54, 33)
@@ -15,6 +17,13 @@ produced_lootbox_id = &"lootbox_forest"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=684601904]
 position = Vector2(0, -18.5)
 shape = SubResource("RectangleShape2D_ve3t3")
+
+[node name="GroundShadow" type="Sprite2D" parent="." unique_id=2131864638]
+scale = Vector2(1.0, 0.8)
+texture = ExtResource("4_shadow")
+script = ExtResource("1_shadow_script")
+target_sprite_path = NodePath("../Sprite2D")
+y_offset = -6.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1167518820]
 texture_filter = 1
