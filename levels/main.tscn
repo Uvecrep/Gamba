@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://entities/shop/shop.tscn" id="17_shop"]
 [ext_resource type="PackedScene" uid="uid://88e657uh5fwx" path="res://entities/enemy/enemy_wave_spawn_point.tscn" id="20_fd7wu"]
 [ext_resource type="Script" uid="uid://dvgdpehoatcpp" path="res://ui/pause/escape_menu.gd" id="21_escape"]
+[ext_resource type="Script" path="res://scripts/enemy_indicator_layer.gd" id="22_enemy_ind"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_badge"]
 bg_color = Color(0.03, 0.03, 0.03, 0.9)
@@ -79,6 +80,15 @@ script = ExtResource("8_hud")
 player = NodePath("../player")
 _sapling_debug_label = NodePath("VBoxContainer/SaplingPlantDebugLabel")
 _summon_command_hint_label = NodePath("VBoxContainer/SummonCommandHintLabel")
+
+[node name="EnemyIndicatorLayer" type="Control" parent="UI" unique_id=1946327851]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("22_enemy_ind")
 
 [node name="DayNightOverlay" type="ColorRect" parent="UI" unique_id=752603394]
 z_index = -1
