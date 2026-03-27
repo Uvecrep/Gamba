@@ -21,6 +21,9 @@ func handle_move_command() -> void:
 	unit._try_attack_in_range()
 
 func handle_hold_command() -> void:
+	if _try_handle_command_priority_enemy():
+		return
+
 	unit.velocity = Vector2.ZERO
 	unit._clear_navigation_target()
 	unit._try_attack_in_range()
@@ -35,6 +38,12 @@ func handle_follow_command() -> void:
 		unit.velocity = Vector2.ZERO
 		unit._perf_mark_scope(&"summon.follow_handler", follow_start_us, {
 			"status": "no_player",
+		})
+		return
+
+	if _try_handle_command_priority_enemy():
+		unit._perf_mark_scope(&"summon.follow_handler", follow_start_us, {
+			"status": "engaging_enemy",
 		})
 		return
 
@@ -63,6 +72,31 @@ func handle_follow_command() -> void:
 
 	unit._try_attack_in_range()
 	unit._perf_mark_scope(&"summon.follow_handler", follow_start_us)
+
+func _try_handle_command_priority_enemy() -> bool:
+	if not is_instance_valid(unit._enemy_target):
+		return false
+
+	var priority_radius: float = maxf(unit.command_enemy_priority_radius, unit.attack_range)
+	var distance_to_enemy: float = unit.global_position.distance_to(unit._enemy_target.global_position)
+	if distance_to_enemy > priority_radius:
+		return false
+
+	if distance_to_enemy > unit.attack_range:
+		if unit._attack_lock_time_left > 0.0:
+			unit.velocity = Vector2.ZERO
+		else:
+			if unit._uses_navigation_agent():
+				unit._set_navigation_target_for_target(unit._enemy_target)
+				unit.velocity = unit._get_navigation_velocity(unit._enemy_target.global_position)
+			else:
+				unit.velocity = unit.global_position.direction_to(unit._enemy_target.global_position) * unit.move_speed
+	else:
+		unit.velocity = Vector2.ZERO
+		unit._clear_navigation_target()
+
+	unit._try_attack_in_range()
+	return true
 
 func handle_non_attacker_auto() -> void:
 	if is_instance_valid(unit._player_target) and unit.global_position.distance_to(unit._player_target.global_position) > unit.follow_player_distance:
