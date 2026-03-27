@@ -2,6 +2,7 @@ extends Node
 class_name AudioService
 
 const MASTER_BUS: StringName = &"Master"
+const REQUIRED_AUDIO_BUSES: PackedStringArray = ["Master", "Music", "Ambience", "SFX", "UI"]
 
 const SOUND_PATHS: Dictionary = {
 	# UI
@@ -117,6 +118,7 @@ var _single_sfx_players: Dictionary = {}
 
 
 func _ready() -> void:
+	_ensure_audio_buses()
 	_music_player = _create_player(&"Music")
 	add_child(_music_player)
 	_ambience_player = _create_player(&"Ambience")
@@ -130,6 +132,32 @@ func _ready() -> void:
 		var player: AudioStreamPlayer = _create_player(&"SFX")
 		add_child(player)
 		_sfx_players.append(player)
+
+
+func _ensure_audio_buses() -> void:
+	for bus_name_text in REQUIRED_AUDIO_BUSES:
+		var bus_name: StringName = StringName(bus_name_text)
+		if AudioServer.get_bus_index(String(bus_name)) >= 0:
+			continue
+		AudioServer.add_bus()
+		var created_index: int = AudioServer.get_bus_count() - 1
+		AudioServer.set_bus_name(created_index, bus_name)
+
+	# Keep required buses in a stable order for settings UX.
+	for target_index in range(REQUIRED_AUDIO_BUSES.size()):
+		var target_name: String = REQUIRED_AUDIO_BUSES[target_index]
+		var current_index: int = AudioServer.get_bus_index(target_name)
+		if current_index < 0 or current_index == target_index:
+			continue
+		AudioServer.move_bus(current_index, target_index)
+
+	# Route all non-master buses to Master.
+	for bus_offset in range(1, REQUIRED_AUDIO_BUSES.size()):
+		var bus_name_to_route: String = REQUIRED_AUDIO_BUSES[bus_offset]
+		var bus_index: int = AudioServer.get_bus_index(bus_name_to_route)
+		if bus_index < 0:
+			continue
+		AudioServer.set_bus_send(bus_index, MASTER_BUS)
 
 
 func play_ui(key: StringName, volume_db: float = 0.0) -> void:
