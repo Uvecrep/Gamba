@@ -5,6 +5,7 @@ var _is_game_over: bool = false
 var _enemy_spawner: EnemySpawner = null
 var _game_over_layer: CanvasLayer = null
 var _restart_button: Button = null
+var _quit_to_menu_button: Button = null
 var _quit_button: Button = null
 var _day_night_controller: DayNightController = null
 
@@ -13,15 +14,19 @@ func setup(
 	enemy_spawner: EnemySpawner,
 	game_over_layer: CanvasLayer,
 	restart_button: Button,
+	quit_to_menu_button: Button,
 	quit_button: Button,
 ) -> void:
 	_enemy_spawner = enemy_spawner
 	_game_over_layer = game_over_layer
 	_restart_button = restart_button
+	_quit_to_menu_button = quit_to_menu_button
 	_quit_button = quit_button
 
 	if is_instance_valid(_restart_button):
 		_restart_button.pressed.connect(_on_restart_pressed)
+	if is_instance_valid(_quit_to_menu_button):
+		_quit_to_menu_button.pressed.connect(_on_quit_to_menu_pressed)
 	if is_instance_valid(_quit_button):
 		_quit_button.pressed.connect(_on_quit_pressed)
 
@@ -44,6 +49,7 @@ func on_house_destroyed() -> void:
 	if is_instance_valid(_day_night_controller):
 		_day_night_controller.stop()
 
+	Audio.stop_all_sfx()
 	Audio.play_sfx(&"world_game_over", -2.0)
 	Audio.play_music(&"music_game_over", -6.0)
 	Audio.stop_ambience()
@@ -56,6 +62,12 @@ func _on_restart_pressed() -> void:
 	Audio.play_ui(&"ui_button_click")
 	get_tree().paused = false
 	get_tree().reload_current_scene()
+
+
+func _on_quit_to_menu_pressed() -> void:
+	Audio.play_ui(&"ui_button_click")
+	Audio.stop_all_playback()
+	get_tree().change_scene_to_file("res://ui/main_menu/main_menu.tscn")
 
 
 func _on_quit_pressed() -> void:

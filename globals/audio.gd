@@ -118,6 +118,7 @@ var _single_sfx_players: Dictionary = {}
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_ensure_audio_buses()
 	_music_player = _create_player(&"Music")
 	add_child(_music_player)
@@ -183,6 +184,8 @@ func play_sfx_if_not_playing(key: StringName, volume_db: float = 0.0, pitch_scal
 		return false
 
 	player.bus = _resolve_bus(bus_name)
+	player.process_mode = Node.PROCESS_MODE_ALWAYS
+	player.stream_paused = false
 	player.stream = stream
 	player.volume_db = volume_db
 	player.pitch_scale = maxf(pitch_scale, 0.01)
@@ -199,6 +202,7 @@ func play_player_footstep(key: StringName, volume_db: float = -12.0, pitch_scale
 
 	_footstep_player.bus = _resolve_bus(&"SFX")
 	_footstep_player.stop()
+	_footstep_player.stream_paused = false
 	_footstep_player.stream = stream
 	_footstep_player.volume_db = volume_db
 	_footstep_player.pitch_scale = maxf(pitch_scale, 0.01)
@@ -218,6 +222,7 @@ func play_one_shot(key: StringName, volume_db: float = 0.0, pitch_scale: float =
 	_sfx_index = (_sfx_index + 1) % _sfx_players.size()
 	player.bus = _resolve_bus(bus_name)
 	player.stop()
+	player.stream_paused = false
 	player.stream = stream
 	player.volume_db = volume_db
 	player.pitch_scale = maxf(pitch_scale, 0.01)
@@ -233,6 +238,7 @@ func play_music(key: StringName, volume_db: float = -6.0) -> void:
 	if _music_player.stream == stream and _music_player.playing:
 		return
 
+	_music_player.stream_paused = false
 	_music_player.stream = stream
 	_music_player.volume_db = volume_db
 	_music_player.bus = _resolve_bus(&"Music")
@@ -254,6 +260,7 @@ func play_ambience(key: StringName, volume_db: float = -12.0) -> void:
 	if _ambience_player.stream == stream and _ambience_player.playing:
 		return
 
+	_ambience_player.stream_paused = false
 	_ambience_player.stream = stream
 	_ambience_player.volume_db = volume_db
 	_ambience_player.bus = _resolve_bus(&"Ambience")
@@ -284,6 +291,42 @@ func stop_sfx_loop() -> void:
 	if _sfx_loop_player != null and _sfx_loop_player.playing:
 		_sfx_loop_player.stop()
 	_sfx_loop_key = StringName()
+
+
+func set_sfx_paused(paused: bool) -> void:
+	_set_player_paused_if_on_sfx_bus(_sfx_loop_player, paused)
+	_set_player_paused_if_on_sfx_bus(_footstep_player, paused)
+
+	for player in _sfx_players:
+		_set_player_paused_if_on_sfx_bus(player, paused)
+
+	for single_key in _single_sfx_players.keys():
+		var single_player: AudioStreamPlayer = _single_sfx_players[single_key] as AudioStreamPlayer
+		_set_player_paused_if_on_sfx_bus(single_player, paused)
+
+
+func stop_all_sfx() -> void:
+	stop_sfx_loop()
+
+	if _footstep_player != null and _footstep_player.playing:
+		_footstep_player.stop()
+	_footstep_key = StringName()
+
+	for player in _sfx_players:
+		if player != null and player.playing:
+			player.stop()
+	_sfx_key_by_player_id.clear()
+
+	for single_key in _single_sfx_players.keys():
+		var single_player: AudioStreamPlayer = _single_sfx_players[single_key] as AudioStreamPlayer
+		if single_player != null and single_player.playing:
+			single_player.stop()
+
+
+func stop_all_playback() -> void:
+	stop_music()
+	stop_ambience()
+	stop_all_sfx()
 
 
 func get_currently_playing_sounds() -> Array[Dictionary]:
@@ -435,7 +478,16 @@ func _create_player(preferred_bus: StringName) -> AudioStreamPlayer:
 	var player := AudioStreamPlayer.new()
 	player.bus = _resolve_bus(preferred_bus)
 	player.autoplay = false
+	player.process_mode = Node.PROCESS_MODE_ALWAYS
 	return player
+
+
+func _set_player_paused_if_on_sfx_bus(player: AudioStreamPlayer, paused: bool) -> void:
+	if player == null:
+		return
+	if String(player.bus) != "SFX":
+		return
+	player.stream_paused = paused
 
 
 func _resolve_bus(preferred_bus: StringName) -> StringName:
