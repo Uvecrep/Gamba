@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"hex_doll"
 move_speed = 82.0
 attack_range = 95.0
-attack_damage = 5.0
+attack_damage = 4.7
 attack_cooldown = 1.8
-max_health = 108.0
+max_health = 101.5
+

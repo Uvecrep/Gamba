@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"grave_hound"
 move_speed = 138.0
 attack_range = 105.0
-attack_damage = 14.0
+attack_damage = 13.2
 attack_cooldown = 0.9
-max_health = 92.0
+max_health = 86.5
+

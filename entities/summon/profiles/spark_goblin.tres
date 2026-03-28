@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"spark_goblin"
 move_speed = 112.0
 attack_range = 220.0
-attack_damage = 15.0
+attack_damage = 15.6
 attack_cooldown = 0.9
-max_health = 80.0
+max_health = 83.2
+

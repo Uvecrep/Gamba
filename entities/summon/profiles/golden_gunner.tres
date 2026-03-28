@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"golden_gunner"
 move_speed = 112.0
 attack_range = 300.0
-attack_damage = 9.0
+attack_damage = 8.5
 attack_cooldown = 0.8
-max_health = 40.0
+max_health = 37.6
+

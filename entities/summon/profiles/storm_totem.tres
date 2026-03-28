@@ -6,7 +6,8 @@
 script = ExtResource("1")
 summon_identity = &"storm_totem"
 move_speed = 52.0
-attack_damage = 13.0
+attack_damage = 12.2
 attack_cooldown = 1.1
 attack_range = 320.0
-max_health = 120.0
+max_health = 112.8
+

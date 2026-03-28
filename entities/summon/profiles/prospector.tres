@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"prospector"
 move_speed = 66.0
 attack_range = 205.0
-attack_damage = 18.0
+attack_damage = 16.9
 attack_cooldown = 1.25
-max_health = 175.0
+max_health = 164.5
+

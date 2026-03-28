@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"rooter"
 move_speed = 82.0
 attack_range = 145.0
-attack_damage = 7.0
+attack_damage = 7.3
 attack_cooldown = 1.0
-max_health = 102.0
+max_health = 106.1
+

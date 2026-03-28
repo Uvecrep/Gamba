@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"baby_dragon"
 move_speed = 150.0
 attack_range = 210.0
-attack_damage = 11.0
+attack_damage = 9
 attack_cooldown = 1.0
-max_health = 62.0
+max_health = 50.8
+

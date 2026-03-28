@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"unstable_shard"
 move_speed = 185.0
 attack_range = 64.0
-attack_damage = 24.0
+attack_damage = 25
 attack_cooldown = 0.6
-max_health = 36.0
+max_health = 37.4
+
