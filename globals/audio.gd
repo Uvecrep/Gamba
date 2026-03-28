@@ -407,7 +407,7 @@ func play_lootbox_reveal_for_rarity(rarity_value: int) -> void:
 		2:
 			play_sfx(&"lootbox_reveal_rare")
 		3:
-			play_sfx(&"lootbox_reveal_epic")
+			play_sfx(&"lootbox_reveal_special")
 		_:
 			play_sfx(&"lootbox_reveal_special")
 
