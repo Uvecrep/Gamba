@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Gamba"
-run/main_scene="uid://dv5lmynnk5qp6"
+run/main_scene="res://ui/main_menu/main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="uid://dh1jj6uvf68bk"
 

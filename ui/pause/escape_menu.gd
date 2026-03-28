@@ -7,6 +7,7 @@ extends CanvasLayer
 @onready var _resume_button: Button = get_node_or_null("EscapeMenuPanel/MarginContainer/VBoxContainer/ResumeButton") as Button
 @onready var _bestiary_button: Button = get_node_or_null("EscapeMenuPanel/MarginContainer/VBoxContainer/BestiaryButton") as Button
 @onready var _settings_button: Button = get_node_or_null("EscapeMenuPanel/MarginContainer/VBoxContainer/SettingsButton") as Button
+@onready var _quit_to_menu_button: Button = get_node_or_null("EscapeMenuPanel/MarginContainer/VBoxContainer/QuitToMenuButton") as Button
 @onready var _quit_button: Button = get_node_or_null("EscapeMenuPanel/MarginContainer/VBoxContainer/QuitButton") as Button
 @onready var _settings_back_button: Button = get_node_or_null("SettingsPanel/MarginContainer/VBoxContainer/BackButton") as Button
 @onready var _settings_vbox: VBoxContainer = get_node_or_null("SettingsPanel/MarginContainer/VBoxContainer") as VBoxContainer
@@ -19,6 +20,8 @@ var _menu_pause_active: bool = false
 var _paused_before_menu: bool = false
 var _audio_debug_panel: PanelContainer
 var _audio_debug_label: RichTextLabel
+var _audio_debug_grant_gold_button: Button
+var _audio_debug_damage_house_button: Button
 var _bus_sliders: Dictionary = {}
 var _bus_value_labels: Dictionary = {}
 
@@ -34,6 +37,8 @@ const BUS_DEFAULT_PCT: Dictionary = {
 }
 const AUDIO_SETTINGS_PATH: String = "user://settings.cfg"
 const AUDIO_SETTINGS_SECTION: String = "audio"
+const AUDIO_DEBUG_GOLD_GRANT_AMOUNT: int = 100
+const AUDIO_DEBUG_HOUSE_DAMAGE_FRACTION: float = 0.25
 
 
 func _ready() -> void:
@@ -46,6 +51,8 @@ func _ready() -> void:
 		_bestiary_button.pressed.connect(_on_bestiary_pressed)
 	if _settings_button != null:
 		_settings_button.pressed.connect(_on_settings_pressed)
+	if _quit_to_menu_button != null:
+		_quit_to_menu_button.pressed.connect(_on_quit_to_menu_pressed)
 	if _quit_button != null:
 		_quit_button.pressed.connect(_on_quit_pressed)
 	if _settings_back_button != null:
@@ -116,6 +123,11 @@ func _on_settings_back_pressed() -> void:
 		_resume_button.grab_focus()
 
 
+func _on_quit_to_menu_pressed() -> void:
+	Audio.stop_all_playback()
+	get_tree().change_scene_to_file("res://ui/main_menu/main_menu.tscn")
+
+
 func _on_quit_pressed() -> void:
 	get_tree().quit()
 
@@ -143,9 +155,11 @@ func _sync_pause_state() -> void:
 	var should_pause: bool = _is_any_pause_menu_open()
 	if should_pause and not _menu_pause_active:
 		_paused_before_menu = get_tree().paused
+		Audio.set_sfx_paused(true)
 		get_tree().paused = true
 		_menu_pause_active = true
 	elif not should_pause and _menu_pause_active:
+		Audio.set_sfx_paused(false)
 		get_tree().paused = _paused_before_menu
 		_menu_pause_active = false
 
@@ -210,7 +224,7 @@ func _setup_audio_debug_overlay() -> void:
 	_audio_debug_panel = PanelContainer.new()
 	_audio_debug_panel.name = "AudioDebugOverlay"
 	_audio_debug_panel.visible = false
-	_audio_debug_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_audio_debug_panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	_audio_debug_panel.anchors_preset = Control.PRESET_CENTER_RIGHT
 	_audio_debug_panel.anchor_left = 1.0
 	_audio_debug_panel.anchor_right = 1.0
@@ -229,13 +243,36 @@ func _setup_audio_debug_overlay() -> void:
 	margin.add_theme_constant_override("margin_bottom", 10)
 	_audio_debug_panel.add_child(margin)
 
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(vbox)
+
 	_audio_debug_label = RichTextLabel.new()
 	_audio_debug_label.bbcode_enabled = false
 	_audio_debug_label.fit_content = false
 	_audio_debug_label.scroll_active = true
 	_audio_debug_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_audio_debug_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_child(_audio_debug_label)
+	_audio_debug_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(_audio_debug_label)
+
+	var button_row := HBoxContainer.new()
+	button_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(button_row)
+
+	_audio_debug_grant_gold_button = Button.new()
+	_audio_debug_grant_gold_button.text = "Grant 100 Gold"
+	_audio_debug_grant_gold_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_audio_debug_grant_gold_button.pressed.connect(_on_audio_debug_grant_gold_pressed)
+	button_row.add_child(_audio_debug_grant_gold_button)
+
+	_audio_debug_damage_house_button = Button.new()
+	_audio_debug_damage_house_button.text = "Damage House 25%"
+	_audio_debug_damage_house_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_audio_debug_damage_house_button.pressed.connect(_on_audio_debug_damage_house_pressed)
+	button_row.add_child(_audio_debug_damage_house_button)
 
 
 func _refresh_audio_debug_overlay() -> void:
@@ -277,6 +314,40 @@ func _refresh_audio_debug_overlay() -> void:
 		lines.append("  bus=%s  vol=%.1f dB  pitch=%.2f" % [bus_name, volume_db, pitch_scale])
 
 	_audio_debug_label.text = "\n".join(lines)
+
+
+func _on_audio_debug_grant_gold_pressed() -> void:
+	var players: Array = get_tree().get_nodes_in_group("players")
+	for player_node in players:
+		if not (player_node is Player):
+			continue
+
+		var player: Player = player_node as Player
+		if player == null or player.player_inventory == null:
+			continue
+
+		player.player_inventory.add_gold(AUDIO_DEBUG_GOLD_GRANT_AMOUNT)
+		Audio.play_ui(&"ui_button_click")
+		return
+
+	Audio.play_ui(&"ui_inventory_invalid")
+
+
+func _on_audio_debug_damage_house_pressed() -> void:
+	var houses: Array = get_tree().get_nodes_in_group("house")
+	for house_node in houses:
+		if not (house_node is House):
+			continue
+
+		var house: House = house_node as House
+		if house == null:
+			continue
+
+		house.take_damage(maxf(house.max_health * AUDIO_DEBUG_HOUSE_DAMAGE_FRACTION, 1.0))
+		Audio.play_ui(&"ui_button_click")
+		return
+
+	Audio.play_ui(&"ui_inventory_invalid")
 
 
 func _setup_audio_settings_controls() -> void:

@@ -3,19 +3,27 @@ class_name ShopInteractable
 
 const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
 const PROXIMITY_PROMPT_UTIL: GDScript = preload("res://scripts/proximity_prompt_util.gd")
+const PLANTABLE_AREA_SCENE: PackedScene = preload("res://entities/plantable_area/plantable_area.tscn")
 
 const CARD_COUNT: int = 3
 const GREED_LOOTBOX_ITEM_ID: StringName = &"lootbox_greed"
+const SAPLING_ITEM_ID: StringName = &"sapling"
 
 @export var interact_action: StringName = &"interact"
 @export var interact_range: float = 96.0
 @export var prompt_refresh_interval: float = 0.2
 @export var greed_lootbox_cost: int = 20
+@export var planter_cost: int = 120
+@export var sapling_bundle_cost: int = 48
+@export var sapling_bundle_count: int = 1
+@export var max_saplings_purchasable: int = 4
 @export var card_base_cost: int = 25
 @export var card_cost_growth_per_purchase: int = 12
 @export var weight_upgrade_multiplier: float = 1.18
 @export var summon_damage_bonus: float = 0.18
 @export var summon_health_bonus: float = 0.22
+@export var planter_adjacent_spacing: float = 128.0
+@export var max_total_planters: int = 6
 
 var _action_hint_text: String = "E"
 var _is_open: bool = false
@@ -27,6 +35,7 @@ var _offers: Array[Dictionary] = []
 var _sold_card_indices: Dictionary = {}
 var _last_offer_day: int = -1
 var _day_night_controller: DayNightController
+var _saplings_purchased_count: int = 0
 
 @onready var _prompt_label: Label = get_node_or_null("InteractPrompt") as Label
 @onready var _shop_layer: CanvasLayer = get_node_or_null("ShopLayer") as CanvasLayer
@@ -37,6 +46,12 @@ var _day_night_controller: DayNightController
 @onready var _close_button: Button = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CloseButton") as Button
 @onready var _greed_button: Button = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/GreedRow/BuyGreedButton") as Button
 @onready var _greed_cost_label: Label = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/GreedRow/GreedCostLabel") as Label
+@onready var _planter_button: Button = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/PlanterRow/BuyPlanterButton") as Button
+@onready var _planter_sold_out_overlay: Control = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/PlanterRow/BuyPlanterButton/SoldOutOverlay") as Control
+@onready var _planter_cost_label: Label = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/PlanterRow/PlanterCostLabel") as Label
+@onready var _sapling_button: Button = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/SaplingRow/BuySaplingsButton") as Button
+@onready var _sapling_sold_out_overlay: Control = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/SaplingRow/BuySaplingsButton/SoldOutOverlay") as Control
+@onready var _sapling_cost_label: Label = get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/SaplingRow/SaplingCostLabel") as Label
 
 @onready var _card_title_labels: Array[Label] = [
 	get_node_or_null("ShopLayer/ShopWindow/MarginContainer/VBoxContainer/CardsRow/Card1/MarginContainer/VBoxContainer/Title") as Label,
@@ -73,6 +88,10 @@ func _ready() -> void:
 
 	if _greed_button != null:
 		_greed_button.pressed.connect(_on_buy_greed_pressed)
+	if _planter_button != null:
+		_planter_button.pressed.connect(_on_buy_planter_pressed)
+	if _sapling_button != null:
+		_sapling_button.pressed.connect(_on_buy_saplings_pressed)
 	if _close_button != null:
 		_close_button.pressed.connect(_on_close_pressed)
 
@@ -118,7 +137,7 @@ func interact(player: Player) -> void:
 
 	_current_player = player
 	_ensure_daily_offers()
-	_set_status("Choose an upgrade card or buy a Greed lootbox.")
+	_set_status("Choose an upgrade card or buy a resource.")
 	_set_shop_open(true)
 	_refresh_shop_ui()
 
@@ -194,6 +213,57 @@ func _on_buy_greed_pressed() -> void:
 	_set_status("Purchased 1 Greed lootbox.")
 	_refresh_shop_ui()
 
+func _on_buy_planter_pressed() -> void:
+	if _current_player == null:
+		_set_status("No player selected for this shop session.")
+		return
+	if _has_reached_planter_limit():
+		Audio.play_ui(&"ui_inventory_invalid")
+		_set_status("Planter limit reached (max %d)." % max_total_planters)
+		_refresh_shop_ui()
+		return
+	if not _try_spend_gold(planter_cost):
+		Audio.play_ui(&"ui_inventory_invalid")
+		_set_status("Not enough gold for a planter.")
+		_refresh_shop_ui()
+		return
+	if not _spawn_purchased_planter():
+		_refund_gold(planter_cost)
+		Audio.play_ui(&"ui_inventory_invalid")
+		_set_status("Could not place a new planter right now.")
+		_refresh_shop_ui()
+		return
+
+	Audio.play_ui(&"ui_button_click")
+	_set_status("Purchased 1 planter.")
+	_refresh_shop_ui()
+
+func _on_buy_saplings_pressed() -> void:
+	if _current_player == null:
+		_set_status("No player selected for this shop session.")
+		return
+	if _has_reached_sapling_purchase_limit():
+		Audio.play_ui(&"ui_inventory_invalid")
+		_set_status("Saplings are sold out (max %d)." % max_saplings_purchasable)
+		_refresh_shop_ui()
+		return
+	if not _try_spend_gold(sapling_bundle_cost):
+		Audio.play_ui(&"ui_inventory_invalid")
+		_set_status("Not enough gold for saplings.")
+		_refresh_shop_ui()
+		return
+	if not _current_player.player_inventory.add_items(SAPLING_ITEM_ID, sapling_bundle_count):
+		_refund_gold(sapling_bundle_cost)
+		Audio.play_ui(&"ui_inventory_invalid")
+		_set_status("Inventory full. Could not add saplings.")
+		_refresh_shop_ui()
+		return
+
+	_saplings_purchased_count += sapling_bundle_count
+	Audio.play_ui(&"ui_button_click")
+	_set_status("Purchased 1 sapling." if sapling_bundle_count == 1 else "Purchased %d saplings." % sapling_bundle_count)
+	_refresh_shop_ui()
+
 func _on_close_pressed() -> void:
 	_set_shop_open(false)
 
@@ -219,6 +289,21 @@ func _refresh_shop_ui() -> void:
 	_refresh_gold_label()
 	if _greed_cost_label != null:
 		_greed_cost_label.text = "Cost: %d gold" % greed_lootbox_cost
+	var planter_limit_reached: bool = _has_reached_planter_limit()
+	if _planter_cost_label != null:
+		_planter_cost_label.text = "Sold Out" if planter_limit_reached else "Cost: %d gold" % planter_cost
+	if _planter_sold_out_overlay != null:
+		_planter_sold_out_overlay.visible = planter_limit_reached
+	var sapling_limit_reached: bool = _has_reached_sapling_purchase_limit()
+	if _sapling_cost_label != null:
+		_sapling_cost_label.text = "Sold Out" if sapling_limit_reached else "Cost: %d gold" % sapling_bundle_cost
+	if _sapling_sold_out_overlay != null:
+		_sapling_sold_out_overlay.visible = sapling_limit_reached
+	if _sapling_button != null:
+		if sapling_limit_reached:
+			_sapling_button.text = "Sold Out"
+		else:
+			_sapling_button.text = "Buy Sapling" if sapling_bundle_count == 1 else "Buy %d Saplings" % sapling_bundle_count
 
 	for index: int in range(CARD_COUNT):
 		var offer: Dictionary = {}
@@ -253,7 +338,12 @@ func _refresh_shop_ui() -> void:
 				_card_buy_buttons[index].text = "Unavailable"
 
 	if _greed_button != null:
-		_greed_button.disabled = not _can_afford(greed_lootbox_cost)
+		_greed_button.disabled = not _can_afford(greed_lootbox_cost) or not _can_receive_item(GREED_LOOTBOX_ITEM_ID)
+	if _planter_button != null:
+		_planter_button.disabled = planter_limit_reached or not _can_afford(planter_cost) or not _has_available_planter_slot()
+		_planter_button.text = "Sold Out" if planter_limit_reached else "Buy Planter"
+	if _sapling_button != null:
+		_sapling_button.disabled = sapling_limit_reached or not _can_afford(sapling_bundle_cost) or not _can_receive_item(SAPLING_ITEM_ID)
 
 func _refresh_gold_label() -> void:
 	if _gold_label == null:
@@ -270,6 +360,28 @@ func _can_afford(cost: int) -> bool:
 	if _current_player.player_inventory == null:
 		return false
 	return _current_player.player_inventory.has_gold(cost)
+
+func _can_receive_item(item_id: StringName) -> bool:
+	if _current_player == null:
+		return false
+	if _current_player.player_inventory == null:
+		return false
+	return _current_player.player_inventory.would_item_fit(item_id)
+
+func _has_available_planter_slot() -> bool:
+	if _has_reached_planter_limit():
+		return false
+	return _find_next_planter_position() != null
+
+func _has_reached_planter_limit() -> bool:
+	if max_total_planters <= 0:
+		return false
+	return _get_existing_planters().size() >= max_total_planters
+
+func _has_reached_sapling_purchase_limit() -> bool:
+	if max_saplings_purchasable <= 0:
+		return false
+	return _saplings_purchased_count >= max_saplings_purchasable
 
 func _connect_day_night_controller() -> void:
 	var controller: DayNightController = _find_day_night_controller()
@@ -290,6 +402,80 @@ func _find_day_night_controller() -> DayNightController:
 			return controller_node as DayNightController
 
 	return null
+
+func _spawn_purchased_planter() -> bool:
+	if PLANTABLE_AREA_SCENE == null:
+		return false
+
+	var world_parent: Node = get_parent()
+	if world_parent == null:
+		return false
+
+	if _has_reached_planter_limit():
+		return false
+
+	var next_planter_position_variant: Variant = _find_next_planter_position()
+	if next_planter_position_variant == null:
+		return false
+
+	var planter: PlantableArea = PLANTABLE_AREA_SCENE.instantiate() as PlantableArea
+	if planter == null:
+		return false
+
+	world_parent.add_child(planter)
+	planter.global_position = next_planter_position_variant as Vector2
+	planter.is_occupied = false
+	_schedule_navigation_rebuild()
+	return true
+
+func _find_next_planter_position() -> Variant:
+	if planter_adjacent_spacing <= 0.0:
+		return null
+
+	var planters: Array[PlantableArea] = _get_existing_planters()
+	if planters.is_empty():
+		return null
+
+	planters.sort_custom(func(a: PlantableArea, b: PlantableArea) -> bool:
+		return a.global_position.x < b.global_position.x
+	)
+
+	var leftmost: PlantableArea = planters[0]
+	var rightmost: PlantableArea = planters[planters.size() - 1]
+	var place_right_side: bool = (planters.size() % 2) == 0
+	var base_planter: PlantableArea = rightmost if place_right_side else leftmost
+	var direction: float = 1.0 if place_right_side else -1.0
+	var candidate: Vector2 = base_planter.global_position + Vector2(direction * planter_adjacent_spacing, 0.0)
+
+	for existing: PlantableArea in planters:
+		if existing.global_position.distance_to(candidate) < planter_adjacent_spacing * 0.5:
+			return null
+
+	return candidate
+
+func _get_existing_planters() -> Array[PlantableArea]:
+	var planters: Array[PlantableArea] = []
+	var world_parent: Node = get_parent()
+	if world_parent == null:
+		return planters
+
+	for child: Node in world_parent.get_children():
+		if child is PlantableArea:
+			planters.append(child as PlantableArea)
+
+	return planters
+
+func _schedule_navigation_rebuild() -> void:
+	if get_tree() == null:
+		return
+
+	var scene_root: Node = get_tree().current_scene
+	if scene_root == null:
+		return
+
+	var navigation_service: NavigationBuildService = scene_root.get_node_or_null("NavigationBuildService") as NavigationBuildService
+	if navigation_service != null:
+		navigation_service.schedule_rebuild()
 
 func _ensure_daily_offers() -> void:
 	var current_day: int = _get_current_day_number()

@@ -31,6 +31,7 @@ class_name MainScene
 @onready var _enemy_spawner: EnemySpawner = get_node_or_null("EnemySpawner") as EnemySpawner
 @onready var _game_over_layer: CanvasLayer = get_node_or_null("GameOverLayer") as CanvasLayer
 @onready var _restart_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/RestartButton") as Button
+@onready var _quit_to_menu_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/QuitToMenuButton") as Button
 @onready var _quit_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/QuitButton") as Button
 @onready var _day_night_label: Label = get_node_or_null("UI/DayNightLabel") as Label
 @onready var _day_night_overlay: ColorRect = get_node_or_null("UI/DayNightOverlay") as ColorRect
@@ -97,7 +98,7 @@ func _ready() -> void:
 
 	_game_over_controller = GameOverController.new()
 	_game_over_controller.name = "GameOverController"
-	_game_over_controller.setup(_enemy_spawner, _game_over_layer, _restart_button, _quit_button)
+	_game_over_controller.setup(_enemy_spawner, _game_over_layer, _restart_button, _quit_to_menu_button, _quit_button)
 	_game_over_controller.set_day_night_controller(_day_night_controller)
 	add_child(_game_over_controller)
 

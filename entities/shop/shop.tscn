@@ -207,9 +207,69 @@ size_flags_horizontal = 3
 horizontal_alignment = 2
 text = "Cost: 20 gold"
 
+[node name="PlanterRow" type="HBoxContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BuyPlanterButton" type="Button" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/PlanterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Buy Planter"
+
+[node name="SoldOutOverlay" type="PanelContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/PlanterRow/BuyPlanterButton"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/PlanterRow/BuyPlanterButton/SoldOutOverlay"]
+layout_mode = 2
+text = "SOLD OUT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlanterCostLabel" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/PlanterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 2
+text = "Cost: 120 gold"
+
+[node name="SaplingRow" type="HBoxContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BuySaplingsButton" type="Button" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/SaplingRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Buy Sapling"
+
+[node name="SoldOutOverlay" type="PanelContainer" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/SaplingRow/BuySaplingsButton"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/SaplingRow/BuySaplingsButton/SoldOutOverlay"]
+layout_mode = 2
+text = "SOLD OUT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SaplingCostLabel" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer/SaplingRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 2
+text = "Cost: 48 gold"
+
 [node name="StatusLabel" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Choose an upgrade card or buy a Greed lootbox."
+text = "Choose an upgrade card or buy a resource."
 autowrap_mode = 2
 
 [node name="CloseHint" type="Label" parent="ShopLayer/ShopWindow/MarginContainer/VBoxContainer"]
