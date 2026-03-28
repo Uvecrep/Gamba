@@ -19,6 +19,7 @@ var _menu_pause_active: bool = false
 var _paused_before_menu: bool = false
 var _audio_debug_panel: PanelContainer
 var _audio_debug_label: RichTextLabel
+var _audio_debug_grant_gold_button: Button
 var _bus_sliders: Dictionary = {}
 var _bus_value_labels: Dictionary = {}
 
@@ -34,6 +35,7 @@ const BUS_DEFAULT_PCT: Dictionary = {
 }
 const AUDIO_SETTINGS_PATH: String = "user://settings.cfg"
 const AUDIO_SETTINGS_SECTION: String = "audio"
+const AUDIO_DEBUG_GOLD_GRANT_AMOUNT: int = 100
 
 
 func _ready() -> void:
@@ -210,7 +212,7 @@ func _setup_audio_debug_overlay() -> void:
 	_audio_debug_panel = PanelContainer.new()
 	_audio_debug_panel.name = "AudioDebugOverlay"
 	_audio_debug_panel.visible = false
-	_audio_debug_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_audio_debug_panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	_audio_debug_panel.anchors_preset = Control.PRESET_CENTER_RIGHT
 	_audio_debug_panel.anchor_left = 1.0
 	_audio_debug_panel.anchor_right = 1.0
@@ -229,13 +231,25 @@ func _setup_audio_debug_overlay() -> void:
 	margin.add_theme_constant_override("margin_bottom", 10)
 	_audio_debug_panel.add_child(margin)
 
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(vbox)
+
 	_audio_debug_label = RichTextLabel.new()
 	_audio_debug_label.bbcode_enabled = false
 	_audio_debug_label.fit_content = false
 	_audio_debug_label.scroll_active = true
 	_audio_debug_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_audio_debug_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_child(_audio_debug_label)
+	_audio_debug_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(_audio_debug_label)
+
+	_audio_debug_grant_gold_button = Button.new()
+	_audio_debug_grant_gold_button.text = "Grant 100 Gold"
+	_audio_debug_grant_gold_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_audio_debug_grant_gold_button.pressed.connect(_on_audio_debug_grant_gold_pressed)
+	vbox.add_child(_audio_debug_grant_gold_button)
 
 
 func _refresh_audio_debug_overlay() -> void:
@@ -277,6 +291,23 @@ func _refresh_audio_debug_overlay() -> void:
 		lines.append("  bus=%s  vol=%.1f dB  pitch=%.2f" % [bus_name, volume_db, pitch_scale])
 
 	_audio_debug_label.text = "\n".join(lines)
+
+
+func _on_audio_debug_grant_gold_pressed() -> void:
+	var players: Array = get_tree().get_nodes_in_group("players")
+	for player_node in players:
+		if not (player_node is Player):
+			continue
+
+		var player: Player = player_node as Player
+		if player == null or player.player_inventory == null:
+			continue
+
+		player.player_inventory.add_gold(AUDIO_DEBUG_GOLD_GRANT_AMOUNT)
+		Audio.play_ui(&"ui_button_click")
+		return
+
+	Audio.play_ui(&"ui_inventory_invalid")
 
 
 func _setup_audio_settings_controls() -> void:
