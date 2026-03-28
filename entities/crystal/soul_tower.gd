@@ -34,14 +34,17 @@ func _update_visuals() -> void:
 		_harvest_prompt_label.visible = !has_interacted
 
 func _spawn_boxes(player : Player) -> void:
-	for i in range(0,3):
-		await get_tree().create_timer(.5).timeout
+	for _i in range(0,3):
+		await get_tree().create_timer(0.04).timeout
 		var new_box: Pickup = pickup_scene.instantiate() as Pickup
 		new_box.set_data(produced_lootbox_id)
+		var drop_angle: float = randf_range(0.0, TAU)
+		var drop_distance: float = randf_range(34.0, 52.0)
+		var spawn_offset: Vector2 = Vector2.RIGHT.rotated(drop_angle) * drop_distance
 
 		get_parent().add_child(new_box)
-		new_box.global_position = global_position
-		new_box.apply_central_impulse(Vector2.UP * 600.0)
+		new_box.global_position = global_position + spawn_offset
+		new_box.apply_central_impulse((spawn_offset.normalized() * 220.0) + (Vector2.UP * 420.0))
 		new_box.floating_towards = player
 		new_box.item_id = produced_lootbox_id
 
