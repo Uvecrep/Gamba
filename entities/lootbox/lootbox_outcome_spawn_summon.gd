@@ -17,6 +17,14 @@ const QUALITY_MULTIPLIER_BY_TIER: Dictionary = {
 	2: 1.4,
 }
 
+const BASE_RARITY_STAT_MULTIPLIER: Dictionary = {
+	RewardDataScript.Rarity.COMMON: 0.78,
+	RewardDataScript.Rarity.UNCOMMON: 0.92,
+	RewardDataScript.Rarity.RARE: 1.05,
+	RewardDataScript.Rarity.EPIC: 1.0,
+	RewardDataScript.Rarity.LEGENDARY: 1.0,
+}
+
 func execute(context: Dictionary = {}) -> bool:
 	var opener := context.get("opener") as Node2D
 	if opener == null:
@@ -83,14 +91,29 @@ func _pick_spawn_position(origin: Vector2) -> Vector2:
 	return origin + (spawn_direction * spawn_distance)
 
 func _apply_stat_modifiers(summon_node: Node, context: Dictionary) -> void:
+	var rarity_multiplier: float = _resolve_base_rarity_multiplier(context)
 	var quality_multiplier: float = _resolve_quality_multiplier(context)
+	var combined_multiplier: float = rarity_multiplier * quality_multiplier
 	if _has_property(summon_node, "attack_damage"):
 		var current_damage := float(summon_node.get("attack_damage"))
-		summon_node.set("attack_damage", current_damage * maxf(damage_multiplier, 0.01) * quality_multiplier)
+		summon_node.set("attack_damage", current_damage * maxf(damage_multiplier, 0.01) * combined_multiplier)
 
 	if _has_property(summon_node, "max_health"):
 		var current_health := float(summon_node.get("max_health"))
-		summon_node.set("max_health", current_health * maxf(max_health_multiplier, 0.01) * quality_multiplier)
+		summon_node.set("max_health", current_health * maxf(max_health_multiplier, 0.01) * combined_multiplier)
+
+
+func _resolve_base_rarity_multiplier(context: Dictionary) -> float:
+	var reward_data: Resource = context.get("reward_data", null) as Resource
+	if reward_data == null:
+		return 1.0
+	if not reward_data.has_method("get"):
+		return 1.0
+
+	var base_rarity_value: int = int(reward_data.get("base_rarity"))
+	if base_rarity_value < RewardDataScript.Rarity.COMMON or base_rarity_value > RewardDataScript.Rarity.LEGENDARY:
+		base_rarity_value = int(reward_data.get("rarity"))
+	return float(BASE_RARITY_STAT_MULTIPLIER.get(base_rarity_value, 1.0))
 
 
 func _resolve_quality_multiplier(context: Dictionary) -> float:
