@@ -6,7 +6,7 @@ class_name LootboxRollOverlay
 @onready var _visual_root: Control = $VisualRoot
 
 
-func spawn_roll_visual(anchor_node: Node2D, source_lootbox: Lootbox, winning_entry: LootEntry, screen_offset: Vector2 = Vector2(0.0, -82.0)) -> Control:
+func spawn_roll_visual(anchor_node: Node2D, source_lootbox: Lootbox, winning_entry: LootEntry, winning_reward_data: Resource = null, screen_offset: Vector2 = Vector2(0.0, -82.0)) -> Control:
 	if anchor_node == null or not is_instance_valid(anchor_node):
 		return null
 	if winning_entry == null:
@@ -22,7 +22,7 @@ func spawn_roll_visual(anchor_node: Node2D, source_lootbox: Lootbox, winning_ent
 
 	_visual_root.add_child(visual)
 	if visual.has_method("begin"):
-		visual.call("begin", anchor_node, source_lootbox, winning_entry, screen_offset)
+		visual.call("begin", anchor_node, source_lootbox, winning_entry, winning_reward_data, screen_offset)
 	return visual
 
 

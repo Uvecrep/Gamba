@@ -17,7 +17,9 @@ summon_identity = &"soul_lantern"
 [sub_resource type="Resource" id="Entry_Soul_SoulLantern"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Soul_SoulLantern")
+weight = 1.5
 name = "Soul Lantern"
+rarity_override = 0
 
 [sub_resource type="Resource" id="Outcome_Soul_Banshee"]
 script = ExtResource("3_spawn_outcome")
@@ -27,7 +29,9 @@ summon_identity = &"banshee"
 [sub_resource type="Resource" id="Entry_Soul_Banshee"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Soul_Banshee")
+weight = 1.5
 name = "Banshee"
+rarity_override = 0
 
 [sub_resource type="Resource" id="Outcome_Soul_GraveHound"]
 script = ExtResource("3_spawn_outcome")
@@ -37,7 +41,9 @@ summon_identity = &"grave_hound"
 [sub_resource type="Resource" id="Entry_Soul_GraveHound"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Soul_GraveHound")
+weight = 1.0
 name = "Grave Hound"
+rarity_override = 1
 
 [sub_resource type="Resource" id="Outcome_Soul_HexDoll"]
 script = ExtResource("3_spawn_outcome")
@@ -47,7 +53,9 @@ summon_identity = &"hex_doll"
 [sub_resource type="Resource" id="Entry_Soul_HexDoll"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Soul_HexDoll")
+weight = 1.0
 name = "Hex Doll"
+rarity_override = 1
 
 [sub_resource type="Resource" id="Outcome_Soul_Possessor"]
 script = ExtResource("3_spawn_outcome")
@@ -57,6 +65,7 @@ summon_identity = &"possessor"
 [sub_resource type="Resource" id="Entry_Soul_Possessor"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Soul_Possessor")
+weight = 0.75
 name = "Possessor"
 rarity_override = 2
 

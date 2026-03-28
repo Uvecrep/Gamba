@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"cinder_imp"
 move_speed = 165.0
 attack_range = 250.0
-attack_damage = 10.0
+attack_damage = 8.2
 attack_cooldown = 0.72
-max_health = 55.0
+max_health = 45.1
+

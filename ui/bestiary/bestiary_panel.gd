@@ -59,6 +59,8 @@ func _ready() -> void:
 	if bestiary != null:
 		bestiary.catalog_rebuilt.connect(_refresh_tabs_and_entries)
 		bestiary.bestiary_entry_unlocked.connect(_on_bestiary_entry_unlocked)
+		if bestiary.has_signal("bestiary_entry_updated"):
+			bestiary.bestiary_entry_updated.connect(_on_bestiary_entry_updated)
 		if bestiary.has_signal("bestiary_entry_new_state_changed"):
 			bestiary.bestiary_entry_new_state_changed.connect(_on_bestiary_entry_new_state_changed)
 
@@ -245,13 +247,8 @@ func _add_entry_card(entry_id: StringName) -> void:
 	locked_mark.anchors_preset = Control.PRESET_FULL_RECT
 	portrait_frame.add_child(locked_mark)
 
-	var stats_label := Label.new()
-	stats_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	stats_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	stats_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	stats_label.add_theme_font_size_override("font_size", 13)
-	stats_label.text = "Stats:\n???"
-	top_row.add_child(stats_label)
+	var stats_columns: HBoxContainer = _create_stats_columns_container()
+	top_row.add_child(stats_columns)
 
 	var subtitle: Label = Label.new()
 	subtitle.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -322,14 +319,18 @@ func _add_entry_card(entry_id: StringName) -> void:
 		title.text = String(entry.get("display_name", "Unknown"))
 		portrait.texture = entry.get("portrait", null) as Texture2D
 		locked_mark.visible = false
-		var stats_lines: PackedStringArray = entry.get("stats_lines", PackedStringArray(["Base stats unavailable"]))
-		stats_label.text = "\n".join(stats_lines)
+		var entry_type: StringName = entry.get("entry_type", StringName()) as StringName
+		if entry_type == &"summon":
+			_populate_summon_stats_columns(stats_columns, entry)
+		else:
+			var stats_lines: PackedStringArray = entry.get("stats_lines", PackedStringArray(["Base stats unavailable"]))
+			_populate_single_stats_column(stats_columns, "Base", "\n".join(stats_lines))
 		subtitle.text = String(entry.get("blurb", ""))
 	else:
 		title.text = "???"
 		portrait.texture = null
 		locked_mark.visible = true
-		stats_label.text = "Stats:\n???"
+		_populate_locked_stats_columns(stats_columns)
 		subtitle.text = "Open the matching lootbox to discover."
 
 	if bestiary.has_method("is_entry_new"):
@@ -596,6 +597,10 @@ func _on_bestiary_entry_new_state_changed(_entry_id: StringName, _is_new: bool) 
 		_refresh_prompt_notification()
 
 
+func _on_bestiary_entry_updated(_entry_id: StringName) -> void:
+	refresh_cards_if_visible()
+
+
 func refresh_cards_if_visible() -> void:
 	if _is_panel_open:
 		_refresh_cards()
@@ -712,3 +717,77 @@ func _create_entry_badge_background_icon() -> Texture2D:
 
 func _bestiary() -> Node:
 	return get_node_or_null("/root/BestiaryGlobals")
+
+
+func _create_stats_columns_container() -> HBoxContainer:
+	var columns := HBoxContainer.new()
+	columns.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	columns.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	columns.add_theme_constant_override("separation", 6)
+	return columns
+
+
+func _clear_stats_columns(container: HBoxContainer) -> void:
+	for child in container.get_children():
+		child.queue_free()
+
+
+func _populate_single_stats_column(container: HBoxContainer, header: String, body: String) -> void:
+	_clear_stats_columns(container)
+	container.add_child(_create_stats_column(header, body))
+
+
+func _populate_locked_stats_columns(container: HBoxContainer) -> void:
+	_clear_stats_columns(container)
+	container.add_child(_create_stats_column("Base", "???"))
+	container.add_child(_create_stats_column("+", "???"))
+	container.add_child(_create_stats_column("++", "???"))
+
+
+func _populate_summon_stats_columns(container: HBoxContainer, entry: Dictionary) -> void:
+	_clear_stats_columns(container)
+
+	var seen: Dictionary = entry.get("seen_quality_tiers", {
+		0: false,
+		1: false,
+		2: false,
+	})
+	var quality_stats: Dictionary = entry.get("quality_stats_by_tier", {})
+
+	for tier in [0, 1, 2]:
+		var heading: String = "Base"
+		if tier == 1:
+			heading = "+"
+		elif tier == 2:
+			heading = "++"
+
+		var body: String = "???"
+		if bool(seen.get(tier, false)):
+			var lines: PackedStringArray = quality_stats.get(tier, PackedStringArray(["Base stats unavailable"]))
+			body = "\n".join(lines)
+
+		container.add_child(_create_stats_column(heading, body))
+
+
+func _create_stats_column(header: String, body: String) -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 2)
+
+	var title := Label.new()
+	title.text = header
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 12)
+	column.add_child(title)
+
+	var body_label := Label.new()
+	body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	body_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	body_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	body_label.add_theme_font_size_override("font_size", 11)
+	body_label.text = body
+	column.add_child(body_label)
+
+	return column

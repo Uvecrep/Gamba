@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"mushroom_knight"
 move_speed = 84.0
 attack_range = 62.0
-attack_damage = 19.0
+attack_damage = 17.9
 attack_cooldown = 1.2
-max_health = 125.0
+max_health = 117.5
+

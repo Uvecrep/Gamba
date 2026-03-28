@@ -3,6 +3,7 @@ extends Node
 signal catalog_rebuilt
 signal bestiary_entry_unlocked(entry_id: StringName, entry_type: StringName, source_tab_id: StringName, prompt_player: bool)
 signal bestiary_entry_new_state_changed(entry_id: StringName, is_new: bool)
+signal bestiary_entry_updated(entry_id: StringName)
 
 const ENEMY_TAB_ID: StringName = &"enemies"
 const ENEMY_ENTRY_IDS: PackedStringArray = [
@@ -100,6 +101,7 @@ var _tab_entries: Dictionary = {}
 var _entries: Dictionary = {}
 var _unlocked_entries: Dictionary = {}
 var _new_entries: Dictionary = {}
+var _seen_summon_quality_tiers: Dictionary = {}
 
 
 func _ready() -> void:
@@ -211,13 +213,21 @@ func tab_has_new_entries(tab_id: StringName) -> bool:
 
 
 func unlock_summon_entry(summon_identity: StringName, source_lootbox_id: StringName = StringName()) -> bool:
+	return unlock_summon_entry_with_quality(summon_identity, source_lootbox_id, 0)
+
+
+func unlock_summon_entry_with_quality(summon_identity: StringName, source_lootbox_id: StringName = StringName(), quality_tier: int = 0) -> bool:
 	if summon_identity == StringName():
 		return false
 
 	var entry_id: StringName = _to_summon_entry_id(summon_identity)
 	if not _entries.has(entry_id):
 		return false
+
+	var tier_marked: bool = _mark_summon_quality_tier_seen(entry_id, quality_tier)
 	if is_entry_unlocked(entry_id):
+		if tier_marked:
+			emit_signal("bestiary_entry_updated", entry_id)
 		return false
 
 	_unlocked_entries[entry_id] = true
@@ -283,6 +293,12 @@ func _build_summon_entry(entry_id: StringName, summon_identity: StringName, loot
 		"portrait": spawn_outcome.summon_texture_override,
 		"blurb": blurb,
 		"stats_lines": stats_lines,
+		"quality_stats_by_tier": _build_summon_quality_stats(profile),
+		"seen_quality_tiers": {
+			0: false,
+			1: false,
+			2: false,
+		},
 	}
 
 
@@ -342,3 +358,57 @@ func _humanize_identity(identity: StringName) -> String:
 			continue
 		result_words.append(word.substr(0, 1).to_upper() + word.substr(1))
 	return " ".join(result_words)
+
+
+func _build_summon_quality_stats(profile: SummonIdentityProfile) -> Dictionary:
+	if profile == null:
+		return {
+			0: PackedStringArray(["Base stats unavailable"]),
+			1: PackedStringArray(["Base stats unavailable"]),
+			2: PackedStringArray(["Base stats unavailable"]),
+		}
+
+	return {
+		0: _build_quality_stats_lines(profile, 1.0),
+		1: _build_quality_stats_lines(profile, 1.2),
+		2: _build_quality_stats_lines(profile, 1.4),
+	}
+
+
+func _build_quality_stats_lines(profile: SummonIdentityProfile, multiplier: float) -> PackedStringArray:
+	var scaled_hp: float = profile.max_health * multiplier
+	var scaled_move_speed: float = profile.move_speed * multiplier
+	var scaled_attack_damage: float = profile.attack_damage * multiplier
+	var scaled_attack_range: float = profile.attack_range * multiplier
+	var scaled_attack_cooldown: float = profile.attack_cooldown
+
+	return PackedStringArray([
+		"HP: %d" % int(round(scaled_hp)),
+		"Move: %d" % int(round(scaled_move_speed)),
+		"Damage: %d" % int(round(scaled_attack_damage)),
+		"Range: %d" % int(round(scaled_attack_range)),
+		"Cooldown: %.2fs" % scaled_attack_cooldown,
+	])
+
+
+func _mark_summon_quality_tier_seen(entry_id: StringName, quality_tier: int) -> bool:
+	var clamped_tier: int = clampi(quality_tier, 0, 2)
+	var seen_map: Dictionary = _seen_summon_quality_tiers.get(entry_id, {
+		0: false,
+		1: false,
+		2: false,
+	})
+	if bool(seen_map.get(clamped_tier, false)):
+		_entries[entry_id]["seen_quality_tiers"] = seen_map.duplicate(true)
+		_seen_summon_quality_tiers[entry_id] = seen_map
+		return false
+
+	seen_map[clamped_tier] = true
+	_seen_summon_quality_tiers[entry_id] = seen_map
+
+	if _entries.has(entry_id):
+		var entry: Dictionary = _entries[entry_id]
+		entry["seen_quality_tiers"] = seen_map.duplicate(true)
+		_entries[entry_id] = entry
+
+	return true

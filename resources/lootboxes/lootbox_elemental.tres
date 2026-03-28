@@ -19,7 +19,9 @@ summon_identity = &"cinder_imp"
 [sub_resource type="Resource" id="Entry_Elemental_CinderImp"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Elemental_CinderImp")
+weight = 1.5
 name = "Cinder Imp"
+rarity_override = 0
 
 [sub_resource type="Resource" id="Outcome_Elemental_FrostWisp"]
 script = ExtResource("3_spawn_outcome")
@@ -29,7 +31,9 @@ summon_identity = &"frost_wisp"
 [sub_resource type="Resource" id="Entry_Elemental_FrostWisp"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Elemental_FrostWisp")
+weight = 1.5
 name = "Frost Wisp"
+rarity_override = 0
 
 [sub_resource type="Resource" id="Outcome_Elemental_MagmaBeetle"]
 script = ExtResource("3_spawn_outcome")
@@ -39,7 +43,9 @@ summon_identity = &"magma_beetle"
 [sub_resource type="Resource" id="Entry_Elemental_MagmaBeetle"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Elemental_MagmaBeetle")
+weight = 1.0
 name = "Magma Beetle"
+rarity_override = 1
 
 [sub_resource type="Resource" id="Outcome_Elemental_StormTotem"]
 script = ExtResource("3_spawn_outcome")
@@ -49,7 +55,9 @@ summon_identity = &"storm_totem"
 [sub_resource type="Resource" id="Entry_Elemental_StormTotem"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Elemental_StormTotem")
+weight = 1.0
 name = "Storm Totem"
+rarity_override = 1
 
 [sub_resource type="Resource" id="Outcome_Elemental_UnstableShard"]
 script = ExtResource("3_spawn_outcome")
@@ -59,6 +67,7 @@ summon_identity = &"unstable_shard"
 [sub_resource type="Resource" id="Entry_Elemental_UnstableShard"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Elemental_UnstableShard")
+weight = 0.75
 name = "Unstable Shard"
 rarity_override = 2
 

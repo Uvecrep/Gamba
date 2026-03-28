@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"jack_in_the_box"
 move_speed = 120.0
 attack_range = 190.0
-attack_damage = 20.0
+attack_damage = 18.8
 attack_cooldown = 1.05
-max_health = 96.0
+max_health = 90.2
+

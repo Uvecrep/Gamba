@@ -1,6 +1,8 @@
 extends Control
 class_name LootboxRollVisual
 
+const RewardDataScript = preload("res://entities/lootbox/reward_data.gd")
+
 signal roll_finished(winning_entry: LootEntry, reward_data: Resource)
 
 @export var card_scene: PackedScene = preload("res://ui/lootbox_roll/reward_card.tscn")
@@ -9,9 +11,13 @@ signal roll_finished(winning_entry: LootEntry, reward_data: Resource)
 @export var world_offset: Vector2 = Vector2(0.0, -82.0)
 @export var strip_item_count: int = 28
 @export var winner_index_from_end: int = 4
-@export var card_width: float = 96.0
-@export var card_height: float = 104.0
+@export var card_width: float = 102.0
+@export var card_height: float = 120.0
 @export var card_spacing: float = 10.0
+
+const LUCKY_DRAMA_TIME_SCALE: float = 0.22
+const LUCKY_DRAMA_ZOOM_FACTOR: float = 1.35
+const LUCKY_DRAMA_ZOOM_RETURN_SECONDS: float = 0.18
 
 @onready var _panel: Panel = $Panel
 @onready var _clip: Control = $Panel/MarginContainer/Clip
@@ -35,6 +41,13 @@ var _last_center_index: int = -1
 var _is_running: bool = false
 var _is_finished: bool = false
 var _active_tween: Tween
+var _drama_camera_tween: Tween
+var _drama_return_tween: Tween
+var _lucky_drama_active: bool = false
+var _time_scale_overridden: bool = false
+var _previous_time_scale: float = 1.0
+var _drama_camera: Camera2D
+var _drama_camera_base_zoom: Vector2 = Vector2.ONE
 
 var scroll_offset: float:
 	set(value):
@@ -56,10 +69,11 @@ func _process(_delta: float) -> void:
 	_update_screen_position()
 
 
-func begin(anchor_node: Node2D, source_lootbox: Lootbox, winning_entry: LootEntry, screen_offset: Vector2 = Vector2(0.0, -82.0)) -> void:
+func begin(anchor_node: Node2D, source_lootbox: Lootbox, winning_entry: LootEntry, winning_reward_data: Resource = null, screen_offset: Vector2 = Vector2(0.0, -82.0)) -> void:
 	_anchor_node = anchor_node
 	_source_lootbox = source_lootbox
 	_winning_entry = winning_entry
+	_winning_reward_data = winning_reward_data
 	world_offset = screen_offset
 
 	if is_node_ready():
@@ -77,7 +91,8 @@ func _start_roll_if_possible() -> void:
 		queue_free()
 		return
 
-	_winning_reward_data = _winning_entry.get_reward_data()
+	if _winning_reward_data == null:
+		_winning_reward_data = _winning_entry.get_reward_data_with_quality_roll()
 	Audio.play_sfx(&"lootbox_open_start")
 	_title_label.text = _source_lootbox.name if _source_lootbox != null else "Summoner Sorting Machine"
 	_result_label.text = ""
@@ -106,12 +121,13 @@ func _build_visual_strip() -> void:
 	for i in range(total_cards):
 		var entry: LootEntry = _winning_entry if i == _winning_strip_index else _pick_filler_entry(source_entries)
 		_strip_entries.append(entry)
-		_add_card(entry, i)
+		var card_reward_data: Resource = _winning_reward_data if i == _winning_strip_index else null
+		_add_card(entry, i, card_reward_data)
 
 	_strip.size = Vector2((card_width + card_spacing) * float(total_cards), card_height)
 
 
-func _add_card(entry: LootEntry, index: int) -> void:
+func _add_card(entry: LootEntry, index: int, reward_data_override: Resource = null) -> void:
 	if card_scene == null:
 		return
 
@@ -124,7 +140,8 @@ func _add_card(entry: LootEntry, index: int) -> void:
 	card.custom_minimum_size = Vector2(card_width, card_height)
 	card.size = Vector2(card_width, card_height)
 	if card.has_method("set_reward_data"):
-		card.call("set_reward_data", entry.get_reward_data())
+		var reward_data: Resource = reward_data_override if reward_data_override != null else entry.get_reward_data()
+		card.call("set_reward_data", reward_data)
 	_strip_cards.append(card)
 
 
@@ -161,14 +178,27 @@ func _start_roll_animation() -> void:
 		_active_tween.kill()
 
 	var first_leg_target: float = lerpf(start_offset, target_offset, 0.84)
+	var use_lucky_drama: bool = _is_lucky_roll()
 	_active_tween = create_tween()
 	_active_tween.tween_property(self, "scroll_offset", first_leg_target, roll_duration * 0.58).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN)
-	_active_tween.tween_property(self, "scroll_offset", target_offset, roll_duration * 0.42).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	if use_lucky_drama:
+		var second_leg_duration: float = roll_duration * 0.42
+		var pre_landing_duration: float = second_leg_duration * 0.56
+		var dramatic_landing_duration: float = maxf(second_leg_duration - pre_landing_duration, 0.05)
+		var pre_landing_target: float = lerpf(first_leg_target, target_offset, 0.72)
+		_active_tween.tween_property(self, "scroll_offset", pre_landing_target, pre_landing_duration).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+		_active_tween.tween_callback(func() -> void:
+			_enter_lucky_landing_drama(dramatic_landing_duration)
+		)
+		_active_tween.tween_property(self, "scroll_offset", target_offset, dramatic_landing_duration).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+	else:
+		_active_tween.tween_property(self, "scroll_offset", target_offset, roll_duration * 0.42).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
 	_active_tween.finished.connect(_on_roll_tween_finished, CONNECT_ONE_SHOT)
 
 
 func _on_roll_tween_finished() -> void:
 	_is_running = false
+	_exit_lucky_landing_drama()
 	Audio.play_sfx(&"lootbox_settle")
 	var winner_card: Control = _get_card(_winning_strip_index)
 	if winner_card != null:
@@ -183,7 +213,10 @@ func _on_roll_tween_finished() -> void:
 
 	var rarity_value: int = int(_winning_reward_data.get("rarity")) if _winning_reward_data != null else 0
 	Audio.play_lootbox_reveal_for_rarity(rarity_value)
-	Audio.play_ui(&"ui_lootbox_reward")
+	if rarity_value >= 3:
+		Audio.play_ui(&"ui_bestiary_new", -4.0)
+	else:
+		Audio.play_ui(&"ui_lootbox_reward")
 	_play_win_flash()
 
 	var settle_timer: SceneTreeTimer = get_tree().create_timer(maxf(settle_hold_time, 0.05))
@@ -194,8 +227,71 @@ func _finish_roll() -> void:
 	if _is_finished:
 		return
 	_is_finished = true
+	if _active_tween != null:
+		_active_tween.kill()
+	_exit_lucky_landing_drama()
 	roll_finished.emit(_winning_entry, _winning_reward_data)
 	queue_free()
+
+
+func _is_lucky_roll() -> bool:
+	if _winning_reward_data == null:
+		return false
+	var rarity_value: int = int(_winning_reward_data.get("rarity"))
+	return rarity_value >= RewardDataScript.Rarity.EPIC
+
+
+func _enter_lucky_landing_drama(duration: float) -> void:
+	if _lucky_drama_active:
+		return
+
+	_previous_time_scale = Engine.time_scale
+	Engine.time_scale = LUCKY_DRAMA_TIME_SCALE
+	_time_scale_overridden = true
+
+	var camera: Camera2D = get_viewport().get_camera_2d()
+	if camera != null and is_instance_valid(camera):
+		_drama_camera = camera
+		_drama_camera_base_zoom = camera.zoom
+		if _drama_camera_tween != null:
+			_drama_camera_tween.kill()
+		if _drama_return_tween != null:
+			_drama_return_tween.kill()
+		_drama_camera_tween = create_tween()
+		_drama_camera_tween.tween_property(
+			_drama_camera,
+			"zoom",
+			_drama_camera_base_zoom * LUCKY_DRAMA_ZOOM_FACTOR,
+			maxf(duration * 0.72, 0.08)
+		).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+
+	_lucky_drama_active = true
+
+
+func _exit_lucky_landing_drama() -> void:
+	if not _lucky_drama_active and not _time_scale_overridden:
+		return
+
+	if _drama_camera_tween != null:
+		_drama_camera_tween.kill()
+
+	if _time_scale_overridden:
+		Engine.time_scale = _previous_time_scale
+		_time_scale_overridden = false
+
+	if _drama_camera != null and is_instance_valid(_drama_camera):
+		if _drama_return_tween != null:
+			_drama_return_tween.kill()
+		_drama_return_tween = create_tween()
+		_drama_return_tween.tween_property(
+			_drama_camera,
+			"zoom",
+			_drama_camera_base_zoom,
+			LUCKY_DRAMA_ZOOM_RETURN_SECONDS
+		).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+
+	_drama_camera = null
+	_lucky_drama_active = false
 
 
 func _set_scroll_offset(value: float) -> void:

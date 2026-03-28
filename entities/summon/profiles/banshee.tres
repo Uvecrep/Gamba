@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"banshee"
 move_speed = 146.0
 attack_range = 220.0
-attack_damage = 8.0
+attack_damage = 6.6
 attack_cooldown = 2.6
-max_health = 52.0
+max_health = 42.6
+

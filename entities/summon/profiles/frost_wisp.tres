@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"frost_wisp"
 move_speed = 132.0
 attack_range = 245.0
-attack_damage = 6.0
+attack_damage = 4.9
 attack_cooldown = 0.9
-max_health = 44.0
+max_health = 36.1
+

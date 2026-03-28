@@ -7,6 +7,7 @@ script = ExtResource("1")
 summon_identity = &"coin_sprite"
 move_speed = 182.0
 attack_range = 215.0
-attack_damage = 4.0
+attack_damage = 3.3
 attack_cooldown = 0.55
-max_health = 46.0
+max_health = 37.7
+
