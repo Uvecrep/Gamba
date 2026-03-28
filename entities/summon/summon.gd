@@ -9,6 +9,7 @@ const SummonVfxModule = preload("res://entities/summon/modules/summon_vfx_module
 const SummonHealthModule = preload("res://entities/summon/modules/summon_health_module.gd")
 const SummonProfileCatalogScript = preload("res://entities/summon/summon_profile_catalog.gd")
 const DEFAULT_NEAR_HOUSE_RADIUS: float = 220.0
+const DEFAULT_DEBUG_NAME: String = "Unknown"
 
 @export var summon_identity: StringName = &"mushroom_knight"
 @export var move_speed: float = 110.0
@@ -163,6 +164,9 @@ var _ai_navigation_module
 var _combat_module
 var _vfx_module_impl
 var _health_module
+var _selection_debug_panel: PanelContainer
+var _selection_debug_label: Label
+var _last_debug_panel_text: String = ""
 
 static var _world_vfx_spawn_frame: int = -1
 static var _world_vfx_spawn_count: int = 0
@@ -170,6 +174,11 @@ static var _projectile_spawn_frame: int = -1
 static var _projectile_spawn_count: int = 0
 static var _stuck_recovery_frame: int = -1
 static var _stuck_recovery_count: int = 0
+static var _debug_overlay_visible_cache_frame: int = -1
+static var _debug_overlay_visible_cache_value: bool = false
+
+var debug_roll_name: String = ""
+var debug_roll_rarity_label: String = ""
 
 @onready var _health_bar: ProgressBar = get_node_or_null("HealthBar") as ProgressBar
 @onready var _navigation_agent: NavigationAgent2D = get_node_or_null("NavigationAgent2D") as NavigationAgent2D
@@ -243,6 +252,7 @@ func _ready() -> void:
 	_time_to_next_attack = randf_range(0.0, maxf(attack_cooldown, 0.05) * 0.3)
 	_health_bar_visible_time_left = 0.0
 	_stuck_check_time_left = randf_range(0.0, maxf(stuck_check_window_seconds, 0.05))
+	_setup_selection_debug_panel()
 	_update_health_bar()
 
 func set_summon_identity(identity: StringName) -> void:
@@ -431,6 +441,7 @@ func set_selected_for_command(is_selected: bool) -> void:
 
 	_is_command_selected = is_selected
 	_refresh_health_bar_visibility()
+	_refresh_selection_debug_panel()
 	queue_redraw()
 
 func is_holding_position() -> bool:
@@ -661,6 +672,7 @@ func _update_shield_status_sprite() -> void:
 func _update_health_bar() -> void:
 	_ensure_modules()
 	_health_module.update_health_bar()
+	_refresh_selection_debug_panel()
 
 func _request_health_bar_visibility(duration: float = -1.0) -> void:
 	_ensure_modules()
@@ -669,6 +681,117 @@ func _request_health_bar_visibility(duration: float = -1.0) -> void:
 func _refresh_health_bar_visibility() -> void:
 	_ensure_modules()
 	_health_module.refresh_health_bar_visibility()
+	_refresh_selection_debug_panel()
+
+
+func _setup_selection_debug_panel() -> void:
+	if _selection_debug_panel != null:
+		return
+
+	_selection_debug_panel = PanelContainer.new()
+	_selection_debug_panel.name = "SelectionDebugPanel"
+	_selection_debug_panel.visible = false
+	_selection_debug_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_selection_debug_panel.offset_left = -66.0
+	_selection_debug_panel.offset_top = -92.0
+	_selection_debug_panel.offset_right = 66.0
+	_selection_debug_panel.offset_bottom = -42.0
+	_selection_debug_panel.z_index = 25
+	_selection_debug_panel.z_as_relative = true
+	add_child(_selection_debug_panel)
+
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 6)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 6)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	_selection_debug_panel.add_child(margin)
+
+	_selection_debug_label = Label.new()
+	_selection_debug_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_selection_debug_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_selection_debug_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_selection_debug_label.add_theme_font_size_override("font_size", 10)
+	_selection_debug_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_selection_debug_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(_selection_debug_label)
+
+	_refresh_selection_debug_panel()
+
+
+func _refresh_selection_debug_panel() -> void:
+	if _selection_debug_panel == null or _selection_debug_label == null:
+		return
+
+	var should_show: bool = _is_command_selected and _is_audio_debug_overlay_visible()
+	_selection_debug_panel.visible = should_show
+	if not should_show:
+		return
+
+	var panel_text: String = _build_selection_debug_panel_text()
+	if panel_text == _last_debug_panel_text:
+		return
+
+	_last_debug_panel_text = panel_text
+	_selection_debug_label.text = panel_text
+
+
+func _build_selection_debug_panel_text() -> String:
+	var display_name: String = debug_roll_name.strip_edges()
+	if display_name.is_empty():
+		display_name = _fallback_debug_display_name()
+
+	var rarity_label: String = debug_roll_rarity_label.strip_edges()
+	if rarity_label.is_empty():
+		rarity_label = "Unknown"
+
+	return "%s\n%s | HP %.0f/%.0f\nDMG %.1f SPD %.0f" % [
+		display_name,
+		rarity_label,
+		maxf(_current_health, 0.0),
+		maxf(max_health, 0.0),
+		maxf(attack_damage, 0.0),
+		maxf(move_speed, 0.0),
+	]
+
+
+func _fallback_debug_display_name() -> String:
+	var source: String = String(summon_identity).replace("_", " ").strip_edges()
+	if source.is_empty():
+		return DEFAULT_DEBUG_NAME
+
+	var words: PackedStringArray = source.split(" ", false)
+	for i in range(words.size()):
+		var word: String = words[i]
+		if word.is_empty():
+			continue
+		words[i] = word.substr(0, 1).to_upper() + word.substr(1)
+
+	return " ".join(words)
+
+
+func _is_audio_debug_overlay_visible() -> bool:
+	var frame: int = Engine.get_process_frames()
+	if frame == _debug_overlay_visible_cache_frame:
+		return _debug_overlay_visible_cache_value
+
+	_debug_overlay_visible_cache_frame = frame
+	_debug_overlay_visible_cache_value = false
+
+	var tree: SceneTree = get_tree()
+	if tree == null or tree.current_scene == null:
+		return false
+
+	var escape_menu_layer: Node = tree.current_scene.get_node_or_null("EscapeMenuLayer")
+	if escape_menu_layer != null and escape_menu_layer.has_method("is_audio_debug_open"):
+		_debug_overlay_visible_cache_value = bool(escape_menu_layer.call("is_audio_debug_open"))
+		return _debug_overlay_visible_cache_value
+
+	var debug_panel: Control = tree.current_scene.find_child("AudioDebugOverlay", true, false) as Control
+	if debug_panel != null:
+		_debug_overlay_visible_cache_value = debug_panel.visible
+
+	return _debug_overlay_visible_cache_value
 
 func _is_ai_bucket_turn() -> bool:
 	var bucket_count: int = maxi(ai_update_bucket_count, 1)

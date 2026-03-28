@@ -17,8 +17,9 @@ summon_identity = &"mimic"
 [sub_resource type="Resource" id="Entry_Greed_Mimic"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Greed_Mimic")
-weight = 1.0
+weight = 1.5
 name = "Mimic"
+rarity_override = 0
 
 [sub_resource type="Resource" id="Outcome_Greed_CoinSprite"]
 script = ExtResource("3_spawn_outcome")
@@ -28,8 +29,9 @@ summon_identity = &"coin_sprite"
 [sub_resource type="Resource" id="Entry_Greed_CoinSprite"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Greed_CoinSprite")
-weight = 1.0
+weight = 1.5
 name = "Coin Sprite"
+rarity_override = 0
 
 [sub_resource type="Resource" id="Outcome_Greed_Prospector"]
 script = ExtResource("3_spawn_outcome")
@@ -41,6 +43,7 @@ script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Greed_Prospector")
 weight = 1.0
 name = "Prospector Golem"
+rarity_override = 1
 
 [sub_resource type="Resource" id="Outcome_Greed_GoldenGunner"]
 script = ExtResource("3_spawn_outcome")
@@ -52,6 +55,7 @@ script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Greed_GoldenGunner")
 weight = 1.0
 name = "Golden Gunner"
+rarity_override = 1
 
 [sub_resource type="Resource" id="Outcome_Greed_TaxCollector"]
 script = ExtResource("3_spawn_outcome")
@@ -61,7 +65,7 @@ summon_identity = &"tax_collector"
 [sub_resource type="Resource" id="Entry_Greed_TaxCollector"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Greed_TaxCollector")
-weight = 1.0
+weight = 0.75
 name = "Tax Collector"
 rarity_override = 2
 

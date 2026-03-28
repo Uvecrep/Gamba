@@ -87,14 +87,14 @@ func _description_for_loaded_lootbox() -> String:
 	var box_id: StringName = StringName(item_id_text.trim_prefix("lootbox_"))
 	match box_id:
 		&"chaos":
-			return "A volatile cache with aggressive summon rolls and unpredictable outcomes."
+			return "A volatile cache with aggressive summon rolls and unpredictable outcomes. Base odds shown below; each pull can also roll + or ++ quality."
 		&"forest":
-			return "A nature-aligned lootbox with grounded summon outcomes from forest progression."
+			return "A nature-aligned lootbox with grounded summon outcomes from forest progression. Base odds shown below; each pull can also roll + or ++ quality."
 		&"elemental":
-			return "An arcane lootbox tuned toward elemental-themed summon outcomes."
+			return "An arcane lootbox tuned toward elemental-themed summon outcomes. Base odds shown below; each pull can also roll + or ++ quality."
 		&"greed":
-			return "A high-value lootbox focused on economy-leaning summon rewards."
+			return "A high-value lootbox focused on economy-leaning summon rewards. Base odds shown below; each pull can also roll + or ++ quality."
 		&"soul":
-			return "A mystical lootbox linked to soul-focused progression paths."
+			return "A mystical lootbox linked to soul-focused progression paths. Base odds shown below; each pull can also roll + or ++ quality."
 		_:
-			return "Open this lootbox to discover summons."
+			return "Open this lootbox to discover summons. Base odds shown below; each pull can also roll + or ++ quality."

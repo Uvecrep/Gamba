@@ -1,12 +1,21 @@
 extends LootboxOutcome
 class_name LootboxOutcomeSpawnSummon
 
+const RewardDataScript = preload("res://entities/lootbox/reward_data.gd")
+
 @export var summon_scene: PackedScene = preload("res://entities/summon/summon.tscn")
 @export var spawn_distance: float = 48.0
 @export var damage_multiplier: float = 1.0
 @export var max_health_multiplier: float = 1.0
 @export var summon_texture_override: Texture2D
 @export var summon_identity: StringName
+
+
+const QUALITY_MULTIPLIER_BY_TIER: Dictionary = {
+	0: 1.0,
+	1: 1.2,
+	2: 1.4,
+}
 
 func execute(context: Dictionary = {}) -> bool:
 	var opener := context.get("opener") as Node2D
@@ -23,7 +32,8 @@ func execute(context: Dictionary = {}) -> bool:
 		return false
 
 	_apply_identity_modifiers(summon_node)
-	_apply_stat_modifiers(summon_node)
+	_apply_stat_modifiers(summon_node, context)
+	_apply_debug_roll_metadata(summon_node, context)
 	_apply_visual_modifiers(summon_node)
 	_register_bestiary_unlock(context, summon_node)
 
@@ -62,20 +72,60 @@ func _register_bestiary_unlock(context: Dictionary, summon_node: Node) -> void:
 		return
 
 	var source_lootbox_id: StringName = context.get("lootbox_id", StringName()) as StringName
-	bestiary_globals.call("unlock_summon_entry", resolved_identity, source_lootbox_id)
+	var quality_tier: int = 0
+	var reward_data: Resource = context.get("reward_data", null) as Resource
+	if reward_data != null and reward_data.has_method("get"):
+		quality_tier = int(reward_data.get("quality_tier"))
+	bestiary_globals.call("unlock_summon_entry_with_quality", resolved_identity, source_lootbox_id, quality_tier)
 
 func _pick_spawn_position(origin: Vector2) -> Vector2:
 	var spawn_direction := Vector2.RIGHT.rotated(randf() * TAU)
 	return origin + (spawn_direction * spawn_distance)
 
-func _apply_stat_modifiers(summon_node: Node) -> void:
+func _apply_stat_modifiers(summon_node: Node, context: Dictionary) -> void:
+	var quality_multiplier: float = _resolve_quality_multiplier(context)
 	if _has_property(summon_node, "attack_damage"):
 		var current_damage := float(summon_node.get("attack_damage"))
-		summon_node.set("attack_damage", current_damage * maxf(damage_multiplier, 0.01))
+		summon_node.set("attack_damage", current_damage * maxf(damage_multiplier, 0.01) * quality_multiplier)
 
 	if _has_property(summon_node, "max_health"):
 		var current_health := float(summon_node.get("max_health"))
-		summon_node.set("max_health", current_health * maxf(max_health_multiplier, 0.01))
+		summon_node.set("max_health", current_health * maxf(max_health_multiplier, 0.01) * quality_multiplier)
+
+
+func _resolve_quality_multiplier(context: Dictionary) -> float:
+	var reward_data: Resource = context.get("reward_data", null) as Resource
+	if reward_data == null:
+		return 1.0
+	if not reward_data.has_method("get"):
+		return 1.0
+
+	var tier_value: int = int(reward_data.get("quality_tier"))
+	return QUALITY_MULTIPLIER_BY_TIER.get(tier_value, 1.0)
+
+
+func _apply_debug_roll_metadata(summon_node: Node, context: Dictionary) -> void:
+	if summon_node == null:
+		return
+
+	var reward_data: Resource = context.get("reward_data", null) as Resource
+	if reward_data == null:
+		return
+
+	var display_name: String = ""
+	if reward_data.has_method("get_display_name_or_fallback"):
+		display_name = String(reward_data.call("get_display_name_or_fallback"))
+	if display_name.is_empty():
+		display_name = String(reward_data.get("display_name"))
+
+	var rarity_label: String = ""
+	if reward_data.has_method("get"):
+		rarity_label = RewardDataScript.rarity_label(int(reward_data.get("rarity")))
+
+	if _has_property(summon_node, "debug_roll_name"):
+		summon_node.set("debug_roll_name", display_name)
+	if _has_property(summon_node, "debug_roll_rarity_label"):
+		summon_node.set("debug_roll_rarity_label", rarity_label)
 
 func _apply_identity_modifiers(summon_node: Node) -> void:
 	if summon_identity == StringName():

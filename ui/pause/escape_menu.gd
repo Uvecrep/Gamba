@@ -350,6 +350,10 @@ func _on_audio_debug_damage_house_pressed() -> void:
 	Audio.play_ui(&"ui_inventory_invalid")
 
 
+func is_audio_debug_open() -> bool:
+	return _is_audio_debug_open
+
+
 func _setup_audio_settings_controls() -> void:
 	if _settings_vbox == null:
 		return

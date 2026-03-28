@@ -9,18 +9,53 @@ enum Rarity {
 	LEGENDARY,
 }
 
+enum QualityTier {
+	BASE,
+	PLUS,
+	PLUS_PLUS,
+}
+
 @export var id: StringName
 @export var display_name: String = ""
 @export var icon: Texture2D
 @export var rarity: Rarity = Rarity.COMMON
+@export var base_rarity: Rarity = Rarity.COMMON
+@export var quality_tier: QualityTier = QualityTier.BASE
 
 
 func get_display_name_or_fallback() -> String:
+	var base_name: String = ""
 	if not display_name.is_empty():
-		return display_name
-	if id != StringName():
-		return humanize_identifier(id)
-	return "Mystery Reward"
+		base_name = display_name
+	elif id != StringName():
+		base_name = humanize_identifier(id)
+	else:
+		base_name = "Mystery Reward"
+
+	return "%s%s" % [base_name, quality_suffix(int(quality_tier))]
+
+
+static func promoted_rarity(base_rarity_value: int, quality_tier_value: int) -> int:
+	var tier_increase: int = 0
+	match quality_tier_value:
+		QualityTier.PLUS:
+			tier_increase = 1
+		QualityTier.PLUS_PLUS:
+			tier_increase = 2
+		_:
+			tier_increase = 0
+
+	return clampi(base_rarity_value + tier_increase, Rarity.COMMON, Rarity.LEGENDARY)
+
+
+static func quality_suffix(quality_tier_value: int) -> String:
+	match quality_tier_value:
+		QualityTier.PLUS:
+			return "+"
+		QualityTier.PLUS_PLUS:
+			return "++"
+		_:
+			return ""
 
 
 static func rarity_color(rarity_value: int) -> Color:

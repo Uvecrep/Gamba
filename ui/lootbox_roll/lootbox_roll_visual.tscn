@@ -3,9 +3,9 @@
 [ext_resource type="Script" path="res://ui/lootbox_roll/lootbox_roll_visual.gd" id="1_script"]
 
 [node name="LootboxRollVisual" type="Control"]
-custom_minimum_size = Vector2(436, 186)
+custom_minimum_size = Vector2(436, 206)
 offset_right = 436.0
-offset_bottom = 186.0
+offset_bottom = 206.0
 mouse_filter = 2
 script = ExtResource("1_script")
 
@@ -28,14 +28,14 @@ text = "Summoner Sorting Machine"
 offset_left = 14.0
 offset_top = 38.0
 offset_right = 422.0
-offset_bottom = 144.0
+offset_bottom = 160.0
 theme_override_constants/margin_left = 2
 theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 2
 theme_override_constants/margin_bottom = 2
 
 [node name="Clip" type="Control" parent="Panel/MarginContainer"]
-custom_minimum_size = Vector2(404, 104)
+custom_minimum_size = Vector2(404, 120)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -43,21 +43,21 @@ clip_contents = true
 
 [node name="Strip" type="Control" parent="Panel/MarginContainer/Clip"]
 offset_right = 404.0
-offset_bottom = 104.0
+offset_bottom = 120.0
 
 [node name="CenterMarker" type="ColorRect" parent="Panel"]
 offset_left = 214.0
 offset_top = 34.0
 offset_right = 222.0
-offset_bottom = 146.0
+offset_bottom = 162.0
 color = Color(0.97, 0.86, 0.28, 1)
 
 [node name="ResultLabel" type="Label" parent="Panel"]
 visible = false
 offset_left = 14.0
-offset_top = 150.0
+offset_top = 168.0
 offset_right = 422.0
-offset_bottom = 178.0
+offset_bottom = 198.0
 theme_override_font_sizes/font_size = 13
 text = "Awarded: ???"
 horizontal_alignment = 1

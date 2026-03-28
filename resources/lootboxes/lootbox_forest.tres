@@ -19,7 +19,9 @@ summon_identity = &"acorn_spitter"
 [sub_resource type="Resource" id="Entry_Forest_AcornSpitter"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_AcornSpitter")
+weight = 1.5
 name = "Acorn Spitter"
+rarity_override = 0
 
 [sub_resource type="Resource" id="Outcome_Forest_BeeSwarm"]
 script = ExtResource("2_o7qiy")
@@ -29,7 +31,9 @@ summon_identity = &"bee_swarm"
 [sub_resource type="Resource" id="Entry_Forest_BeeSwarm"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_BeeSwarm")
+weight = 1.5
 name = "Bee Swarm"
+rarity_override = 0
 
 [sub_resource type="Resource" id="Outcome_Forest_BushBoy"]
 script = ExtResource("2_o7qiy")
@@ -39,7 +43,9 @@ summon_identity = &"bush_boy"
 [sub_resource type="Resource" id="Entry_Forest_BushBoy"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_BushBoy")
+weight = 1.0
 name = "Bush Boy"
+rarity_override = 1
 
 [sub_resource type="Resource" id="Outcome_Forest_MushroomKnight"]
 script = ExtResource("2_o7qiy")
@@ -49,7 +55,9 @@ summon_identity = &"mushroom_knight"
 [sub_resource type="Resource" id="Entry_Forest_MushroomKnight"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_MushroomKnight")
+weight = 1.0
 name = "Mushroom Knight"
+rarity_override = 1
 
 [sub_resource type="Resource" id="Outcome_Forest_Rooter"]
 script = ExtResource("2_o7qiy")
@@ -59,6 +67,7 @@ summon_identity = &"rooter"
 [sub_resource type="Resource" id="Entry_Forest_Rooter"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_Rooter")
+weight = 0.75
 name = "Rooter"
 rarity_override = 2
 

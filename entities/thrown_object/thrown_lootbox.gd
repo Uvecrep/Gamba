@@ -11,6 +11,7 @@ const LOOTBOX_ROLL_OVERLAY_SCENE: PackedScene = preload("res://ui/lootbox_roll/l
 var lootbox : Lootbox
 var player : Player
 var _winning_entry: LootEntry
+var _winning_reward_data: Resource
 var _roll_started: bool = false
 
 func _ready() -> void:
@@ -31,6 +32,7 @@ func on_landed() -> void:
 	if _winning_entry == null:
 		queue_free()
 		return
+	_winning_reward_data = _winning_entry.get_reward_data_with_quality_roll()
 
 	var overlay: Node = _get_or_create_roll_overlay()
 	if overlay == null:
@@ -39,7 +41,7 @@ func on_landed() -> void:
 		queue_free()
 		return
 
-	var visual: Control = overlay.call("spawn_roll_visual", self, lootbox, _winning_entry, roll_visual_screen_offset) as Control
+	var visual: Control = overlay.call("spawn_roll_visual", self, lootbox, _winning_entry, _winning_reward_data, roll_visual_screen_offset) as Control
 	if visual == null:
 		var no_visual_applied: bool = _apply_winning_entry(_winning_entry)
 		lootbox_roll_finished.emit(_winning_entry, no_visual_applied)
@@ -60,7 +62,9 @@ func _preselect_winning_entry() -> LootEntry:
 	return lootbox.roll()
 
 
-func _on_roll_visual_finished(_entry: LootEntry, _reward_data: Resource) -> void:
+func _on_roll_visual_finished(_entry: LootEntry, reward_data: Resource) -> void:
+	if reward_data != null:
+		_winning_reward_data = reward_data
 	var applied: bool = _apply_winning_entry(_winning_entry)
 	lootbox_roll_finished.emit(_winning_entry, applied)
 	queue_free()
@@ -83,6 +87,7 @@ func _apply_winning_entry(entry: LootEntry) -> bool:
 		"player": player if is_instance_valid(player) else null,
 		"current_scene": current_scene,
 		"lootbox_id": lootbox.id if lootbox != null else StringName(),
+		"reward_data": _winning_reward_data,
 	}
 
 	return bool(entry.outcome.execute(context))
