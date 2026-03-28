@@ -8,6 +8,7 @@ const SummonCombatModule = preload("res://entities/summon/modules/summon_combat_
 const SummonVfxModule = preload("res://entities/summon/modules/summon_vfx_module.gd")
 const SummonHealthModule = preload("res://entities/summon/modules/summon_health_module.gd")
 const SummonProfileCatalogScript = preload("res://entities/summon/summon_profile_catalog.gd")
+const DEFAULT_NEAR_HOUSE_RADIUS: float = 220.0
 
 @export var summon_identity: StringName = &"mushroom_knight"
 @export var move_speed: float = 110.0
@@ -34,7 +35,8 @@ const SummonProfileCatalogScript = preload("res://entities/summon/summon_profile
 @export var follow_nav_target_min_shift: float = 34.0
 @export var nav_velocity_refresh_interval: float = 0.08
 @export var follow_enemy_scan_interval: float = 0.75
-@export var enemy_target_search_radius: float = 700.0
+@export var enemy_target_search_radius: float = DEFAULT_NEAR_HOUSE_RADIUS * 15.0
+@export var command_enemy_priority_radius: float = 320.0
 @export var ai_update_bucket_count: int = 4
 @export var far_lod_distance: float = 1300.0
 @export var far_lod_repath_multiplier: float = 2.0
@@ -314,20 +316,25 @@ func _physics_process(delta: float) -> void:
 	if _time_to_repath <= 0.0 and _is_ai_bucket_turn():
 		var repath_block_start_us: int = Time.get_ticks_usec()
 		var should_refresh_enemy_target: bool = _command_mode == CommandMode.AUTO
-		if _command_mode == CommandMode.FOLLOW and _time_to_follow_enemy_scan <= 0.0:
+		if (_command_mode == CommandMode.FOLLOW or _command_mode == CommandMode.HOLD) and _time_to_follow_enemy_scan <= 0.0:
 			should_refresh_enemy_target = true
 
 		if should_refresh_enemy_target:
+			var enemy_search_radius: float = enemy_target_search_radius
+			if _command_mode != CommandMode.AUTO:
+				enemy_search_radius = command_enemy_priority_radius
+			enemy_search_radius = maxf(enemy_search_radius, attack_range)
+
 			var enemy_refresh_start_us: int = Time.get_ticks_usec()
 			if summon_identity == ID_SPARK_GOBLIN:
-				_enemy_target = _find_random_enemy_nearby(attack_range * 1.4)
+				_enemy_target = _find_random_enemy_nearby(maxf(enemy_search_radius, attack_range * 1.4))
 			elif summon_identity == ID_GRAVE_HOUND:
-				_enemy_target = _find_lowest_health_enemy()
+				_enemy_target = _find_lowest_health_enemy(enemy_search_radius)
 			else:
-				_enemy_target = _find_closest_enemy()
+				_enemy_target = _find_closest_enemy(enemy_search_radius)
 			_perf_mark_scope(&"summon.refresh_enemy_target", enemy_refresh_start_us)
 
-			if _command_mode == CommandMode.FOLLOW:
+			if _command_mode == CommandMode.FOLLOW or _command_mode == CommandMode.HOLD:
 				_time_to_follow_enemy_scan = _get_follow_enemy_scan_wait()
 
 		if _command_mode == CommandMode.AUTO and summon_identity == ID_PROSPECTOR:
@@ -773,7 +780,7 @@ func _find_player() -> Node2D:
 func _find_random_enemy_nearby(radius: float) -> Node2D:
 	var candidates: Array[Node2D] = _get_enemies_in_radius(radius)
 	if candidates.is_empty():
-		return _find_closest_enemy()
+		return _find_closest_enemy(radius)
 
 	return candidates[randi() % candidates.size()]
 
@@ -847,9 +854,13 @@ func _get_prospector_harvest_range(boulder: Node2D) -> float:
 
 	return fallback_range
 
-func _find_closest_enemy() -> Node2D:
+func _find_closest_enemy(search_radius_override: float = -1.0, allow_global_fallback: bool = false) -> Node2D:
 	var find_start_us: int = Time.get_ticks_usec()
-	var search_radius: float = maxf(enemy_target_search_radius, 0.0)
+	var resolved_radius: float = enemy_target_search_radius
+	if search_radius_override >= 0.0:
+		resolved_radius = search_radius_override
+
+	var search_radius: float = maxf(resolved_radius, 0.0)
 	if search_radius > 0.0:
 		var nearby_enemies: Array[Node2D] = _get_enemies_in_radius(search_radius)
 		if not nearby_enemies.is_empty():
@@ -859,6 +870,13 @@ func _find_closest_enemy() -> Node2D:
 				"candidates": nearby_enemies.size(),
 			})
 			return closest_nearby
+
+	if not allow_global_fallback:
+		_perf_mark_scope(&"summon.find_closest_enemy", find_start_us, {
+			"path": "radius_query_no_match",
+			"radius": search_radius,
+		})
+		return null
 
 	var spatial_index := _resolve_spatial_index()
 	if spatial_index != null:
@@ -886,10 +904,14 @@ func _find_closest_enemy() -> Node2D:
 	})
 	return closest_enemy
 
-func _find_lowest_health_enemy() -> Node2D:
-	var candidates: Array[Node2D] = _get_enemies_in_radius(maxf(enemy_target_search_radius, 200.0))
+func _find_lowest_health_enemy(search_radius_override: float = -1.0) -> Node2D:
+	var resolved_radius: float = enemy_target_search_radius
+	if search_radius_override >= 0.0:
+		resolved_radius = search_radius_override
+
+	var candidates: Array[Node2D] = _get_enemies_in_radius(maxf(resolved_radius, 200.0))
 	if candidates.is_empty():
-		return _find_closest_enemy()
+		return _find_closest_enemy(resolved_radius)
 
 	var best_enemy: Node2D
 	var best_score: float = INF
@@ -910,7 +932,7 @@ func _find_lowest_health_enemy() -> Node2D:
 
 	if is_instance_valid(best_enemy):
 		return best_enemy
-	return _find_closest_enemy()
+	return _find_closest_enemy(resolved_radius)
 
 func _perf_mark_scope(scope_name: StringName, start_us: int, metadata: Dictionary = {}) -> void:
 	if not is_instance_valid(_perf_debug):
