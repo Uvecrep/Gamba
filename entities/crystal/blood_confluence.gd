@@ -39,6 +39,16 @@ func try_purchase_lootbox(_player : Player) -> bool:
 	_set_harvest_count(get_harvest_count() - lootbox_cost_in_blood)
 	return true
 
+func can_interact_with_player(player: Node2D) -> bool:
+	if player == null:
+		return false
+
+	var interact_range: float = default_harvest_range
+	if player.has_method("get"):
+		interact_range = maxf(interact_range, float(player.get("harvest_range")))
+
+	return global_position.distance_squared_to(player.global_position) <= interact_range * interact_range
+
 func can_harvest() -> bool:
 	return get_harvest_count() >= lootbox_cost_in_blood
 

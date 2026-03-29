@@ -26,6 +26,8 @@ class_name MainScene
 @export var night_overlay_color: Color = Color(0.06, 0.09, 0.15, 0.48)
 @export var day_label_color: Color = Color(0.94, 0.96, 1.0, 1.0)
 @export var night_label_color: Color = Color(0.65, 0.78, 1.0, 1.0)
+@export_group("Ground Tile Variation")
+@export var randomize_ground_tile_variations_on_ready: bool = true
 
 @onready var _house: Node = get_node_or_null("house")
 @onready var _enemy_spawner: EnemySpawner = get_node_or_null("EnemySpawner") as EnemySpawner
@@ -43,6 +45,8 @@ var _game_over_controller: GameOverController
 
 func _ready() -> void:
 	add_to_group("day_night_cycle_controllers")
+	if randomize_ground_tile_variations_on_ready:
+		_randomize_ground_tile_variations()
 
 	var resolved_enable_day_night_cycle: bool = enable_day_night_cycle
 	var resolved_day_duration_seconds: float = day_duration_seconds
@@ -114,3 +118,46 @@ func is_night_time() -> bool:
 	if _day_night_controller == null:
 		return false
 	return _day_night_controller.is_night_time()
+
+
+func _randomize_ground_tile_variations() -> void:
+	var tile_map_ground: TileMapLayer = get_node_or_null("World/TileMapGround") as TileMapLayer
+	if tile_map_ground == null:
+		push_warning("MainScene: TileMapGround was not found; skipping tile variation randomization.")
+		return
+
+	var grass_primary: Vector2i = Vector2i(1, 1)
+	var grass_candidates: Array[Vector2i] = [
+		Vector2i(1, 1),
+		Vector2i(3, 4),
+		Vector2i(4, 4),
+		Vector2i(5, 4),
+	]
+	var dirt_primary: Vector2i = Vector2i(4, 1)
+	var dirt_candidates: Array[Vector2i] = [
+		Vector2i(4, 1),
+		Vector2i(3, 3),
+		Vector2i(4, 3),
+		Vector2i(5, 3),
+	]
+
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.randomize()
+
+	for cell_coords in tile_map_ground.get_used_cells():
+		var source_id: int = tile_map_ground.get_cell_source_id(cell_coords)
+		if source_id == -1:
+			continue
+
+		var atlas_coords: Vector2i = tile_map_ground.get_cell_atlas_coords(cell_coords)
+		var candidates: Array[Vector2i] = []
+		if atlas_coords == grass_primary:
+			candidates = grass_candidates
+		elif atlas_coords == dirt_primary:
+			candidates = dirt_candidates
+
+		if candidates.is_empty():
+			continue
+
+		var new_atlas_coords: Vector2i = candidates[rng.randi_range(0, candidates.size() - 1)]
+		tile_map_ground.set_cell(cell_coords, source_id, new_atlas_coords, 0)
