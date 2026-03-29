@@ -218,11 +218,16 @@ func _find_nearest_in_group(player: Player, group_name : String) -> Node2D:
 	var nearest_interactable: Node2D
 
 	for node in interactables:
+		if node.has_method("can_interact_with_player") and not bool(node.call("can_interact_with_player", player)):
+			continue
+		if not (node is Node2D):
+			continue
+
 		var distance_sq: float = player.global_position.distance_squared_to(node.global_position)
 		if distance_sq >= nearest_distance_sq:
 			continue
 
 		nearest_distance_sq = distance_sq
-		nearest_interactable = node
+		nearest_interactable = node as Node2D
 
 	return nearest_interactable

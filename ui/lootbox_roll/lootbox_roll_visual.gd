@@ -16,6 +16,7 @@ signal roll_finished(winning_entry: LootEntry, reward_data: Resource)
 @export var card_spacing: float = 10.0
 
 const LUCKY_DRAMA_TIME_SCALE: float = 0.22
+const LOOTBOX_OPEN_START_PITCH_SCALE: float = 1.45
 const LUCKY_DRAMA_ZOOM_FACTOR: float = 1.35
 const LUCKY_DRAMA_ZOOM_RETURN_SECONDS: float = 0.18
 
@@ -93,7 +94,7 @@ func _start_roll_if_possible() -> void:
 
 	if _winning_reward_data == null:
 		_winning_reward_data = _winning_entry.get_reward_data_with_quality_roll()
-	Audio.play_sfx(&"lootbox_open_start")
+	Audio.play_sfx(&"lootbox_open_start", 0.0, LOOTBOX_OPEN_START_PITCH_SCALE)
 	_title_label.text = _source_lootbox.name if _source_lootbox != null else "Summoner Sorting Machine"
 	_result_label.text = ""
 	_build_visual_strip()
