@@ -79,49 +79,49 @@ visible = false
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
-hframes = 8
+hframes = 24
 vframes = 7
 
 [node name="SpriteOverlay" type="Sprite2D" parent="Visuals" unique_id=1778679248]
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
-hframes = 8
+hframes = 24
 vframes = 7
 
 [node name="SpriteLayer2" type="Sprite2D" parent="Visuals" unique_id=771418263]
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
-hframes = 8
+hframes = 24
 vframes = 7
 
 [node name="SpriteLayer3" type="Sprite2D" parent="Visuals" unique_id=1603474932]
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
-hframes = 8
+hframes = 24
 vframes = 7
 
 [node name="SpriteLayer4" type="Sprite2D" parent="Visuals" unique_id=644620199]
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
-hframes = 8
+hframes = 24
 vframes = 7
 
 [node name="SpriteLayer5" type="Sprite2D" parent="Visuals" unique_id=1181147200]
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
-hframes = 8
+hframes = 24
 vframes = 7
 
 [node name="SpriteLayer6" type="Sprite2D" parent="Visuals" unique_id=529174487]
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_abrql")
-hframes = 8
+hframes = 24
 vframes = 7
 
 [node name="PickupMagnetRadius" type="Area2D" parent="." unique_id=1306884590]

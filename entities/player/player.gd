@@ -28,11 +28,15 @@ class_name Player
 @export var house_regen_per_second: float = 2.0
 @export var house_regen_tick_interval: float = 0.5
 @export var animation_fps: float = 2.0
+@export var idle_animation_speed_multiplier: float = 1.5
+@export var walk_animation_speed_multiplier: float = 2.0
 @export var anim_frame_count: int = 4
-@export var idle_anim_start_column: int = 0
-@export var move_anim_start_column: int = 4
-@export var idle_layer_rows: PackedInt32Array = PackedInt32Array([0, 1, 2, 3, 4, 5, 6])
-@export var move_layer_rows: PackedInt32Array = PackedInt32Array([0, 1, 2, 3, 4, 5, 6])
+@export var down_idle_start_frame: int = 1
+@export var down_walk_start_frame: int = 5
+@export var side_idle_start_frame: int = 9
+@export var side_walk_start_frame: int = 13
+@export var up_idle_start_frame: int = 17
+@export var up_walk_start_frame: int = 21
 
 @export var camera_mouse_offset_node: Node2D
 @export var camera: Camera2D
@@ -75,11 +79,18 @@ var _is_tossing = false
 var _animation_time_seconds: float = 0.0
 var _was_moving_last_frame: bool = false
 var _is_facing_left: bool = false
+var _facing_direction: int = 0
 var _visual_layers: Array[Sprite2D] = []
 var _footstep_timer: float = 0.0
 const FOOTSTEP_INTERVAL: float = 0.38
 var _shake_intensity: float = 0.0
 var _shake_time_left: float = 0.0
+
+enum FacingDirection {
+	DOWN,
+	SIDE,
+	UP,
+}
 
 func _ready() -> void:
 	_perf_debug = get_node_or_null("/root/PerfDebug") as PerfDebugService
@@ -205,22 +216,17 @@ func _initialize_visual_animation() -> void:
 	_visual_layers.clear()
 	if sprite_base != null:
 		sprite_base.visible = false
-		_visual_layers.append(sprite_base)
-	if sprite_overlay != null:
-		_visual_layers.append(sprite_overlay)
-	if sprite_layer_2 != null:
-		_visual_layers.append(sprite_layer_2)
-	if sprite_layer_3 != null:
-		_visual_layers.append(sprite_layer_3)
-	if sprite_layer_4 != null:
-		_visual_layers.append(sprite_layer_4)
-	if sprite_layer_5 != null:
-		_visual_layers.append(sprite_layer_5)
-	if sprite_layer_6 != null:
-		_visual_layers.append(sprite_layer_6)
+
+	var visible_layers: Array[Sprite2D] = [sprite_overlay, sprite_layer_2, sprite_layer_3, sprite_layer_4, sprite_layer_5, sprite_layer_6]
+	for layer: Sprite2D in visible_layers:
+		if layer == null:
+			continue
+		layer.visible = true
+		_visual_layers.append(layer)
 
 	_animation_time_seconds = 0.0
 	_was_moving_last_frame = false
+	_facing_direction = FacingDirection.DOWN
 	_set_visual_frame(false, 0)
 
 func _update_footsteps(delta: float) -> void:
@@ -245,31 +251,44 @@ func _update_visual_animation(delta: float) -> void:
 	else:
 		_animation_time_seconds += delta
 
-	if velocity.x < -0.01:
-		_is_facing_left = true
-	elif velocity.x > 0.01:
-		_is_facing_left = false
+	var abs_x: float = absf(velocity.x)
+	var abs_y: float = absf(velocity.y)
+	if abs_x > 0.01 or abs_y > 0.01:
+		if abs_x >= abs_y:
+			_facing_direction = FacingDirection.SIDE
+			if velocity.x < -0.01:
+				_is_facing_left = true
+			elif velocity.x > 0.01:
+				_is_facing_left = false
+		elif velocity.y < -0.01:
+			_facing_direction = FacingDirection.UP
+		elif velocity.y > 0.01:
+			_facing_direction = FacingDirection.DOWN
 
 	var frame_offset: int = 0
-	if anim_frame_count > 1 and animation_fps > 0.0:
-		frame_offset = int(floor(_animation_time_seconds * animation_fps)) % anim_frame_count
+	var effective_fps: float = animation_fps
+	if is_moving:
+		effective_fps *= maxf(walk_animation_speed_multiplier, 0.0)
+	else:
+		effective_fps *= maxf(idle_animation_speed_multiplier, 0.0)
+	if anim_frame_count > 1 and effective_fps > 0.0:
+		frame_offset = int(floor(_animation_time_seconds * effective_fps)) % anim_frame_count
 
 	_set_visual_frame(is_moving, frame_offset)
 
 func _set_visual_frame(is_moving: bool, frame_offset: int) -> void:
-	var start_column: int = idle_anim_start_column
-	var layer_rows: PackedInt32Array = idle_layer_rows
-	if is_moving:
-		start_column = move_anim_start_column
-		layer_rows = move_layer_rows
-
+	var start_frame: int = _get_animation_start_frame(is_moving)
 	var safe_frame_count: int = maxi(anim_frame_count, 1)
-	var frame_column: int = start_column + clampi(frame_offset, 0, safe_frame_count - 1)
+	var frame_column: int = (start_frame - 1) + clampi(frame_offset, 0, safe_frame_count - 1)
 	for layer_index: int in range(_visual_layers.size()):
-		var row: int = layer_index
-		if layer_rows.size() > 0:
-			row = layer_rows[min(layer_index, layer_rows.size() - 1)]
-		_apply_visual_frame(_visual_layers[layer_index], frame_column, row)
+		_apply_visual_frame(_visual_layers[layer_index], frame_column, layer_index + 1)
+
+func _get_animation_start_frame(is_moving: bool) -> int:
+	if _facing_direction == FacingDirection.UP:
+		return up_walk_start_frame if is_moving else up_idle_start_frame
+	if _facing_direction == FacingDirection.SIDE:
+		return side_walk_start_frame if is_moving else side_idle_start_frame
+	return down_walk_start_frame if is_moving else down_idle_start_frame
 
 func _apply_visual_frame(sprite: Sprite2D, column: int, row: int) -> void:
 	if sprite == null:
@@ -283,7 +302,7 @@ func _apply_visual_frame(sprite: Sprite2D, column: int, row: int) -> void:
 		safe_row = clampi(safe_row, 0, sprite.vframes - 1)
 
 	sprite.frame_coords = Vector2i(safe_column, safe_row)
-	sprite.flip_h = _is_facing_left
+	sprite.flip_h = _facing_direction == FacingDirection.SIDE and _is_facing_left
 
 func _handle_interaction_input() -> void:
 	_interaction_component.handle_interaction_input(self)
