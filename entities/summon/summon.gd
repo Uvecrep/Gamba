@@ -356,8 +356,11 @@ func _physics_process(delta: float) -> void:
 
 		if _command_mode == CommandMode.AUTO:
 			var nav_target: Node2D = _enemy_target
-			if summon_identity == ID_PROSPECTOR and is_instance_valid(_prospector_boulder_target):
-				nav_target = _prospector_boulder_target
+			if summon_identity == ID_PROSPECTOR:
+				if is_instance_valid(_prospector_boulder_target):
+					nav_target = _prospector_boulder_target
+				else:
+					nav_target = _player_target
 			elif _is_non_attacker_identity() or not is_instance_valid(nav_target):
 				nav_target = _player_target
 
@@ -382,8 +385,20 @@ func _physics_process(delta: float) -> void:
 		_handle_follow_command()
 	elif _command_mode == CommandMode.HOLD:
 		_handle_hold_command()
-	elif summon_identity == ID_PROSPECTOR and _handle_prospector_auto_mining():
-		pass
+	elif summon_identity == ID_PROSPECTOR:
+		if _handle_prospector_auto_mining():
+			pass
+		elif is_instance_valid(_player_target):
+			# AUTO fallback: move to follow formation directly so prospector leaves depleted boulders.
+			var follow_target: Vector2 = _get_follow_formation_target(_player_target.global_position)
+			var stop_distance: float = maxf(target_reach_distance, 16.0)
+			if global_position.distance_to(follow_target) > stop_distance:
+				_move_towards(follow_target)
+			else:
+				velocity = Vector2.ZERO
+				_clear_navigation_target()
+		else:
+			velocity = Vector2.ZERO
 	elif _is_non_attacker_identity():
 		_handle_non_attacker_auto()
 	elif is_instance_valid(_enemy_target):
@@ -910,12 +925,10 @@ func _find_random_enemy_nearby(radius: float) -> Node2D:
 func _handle_prospector_auto_mining() -> bool:
 	if _command_mode != CommandMode.AUTO:
 		return false
-	if not is_instance_valid(_prospector_boulder_target):
-		return false
-	if not _is_harvestable_boulder(_prospector_boulder_target):
-		_prospector_boulder_target = null
-		_time_to_repath = 0.0
-		return false
+	if not is_instance_valid(_prospector_boulder_target) or not _is_harvestable_boulder(_prospector_boulder_target):
+		if not _retarget_prospector_boulder():
+			_time_to_repath = 0.0
+			return false
 
 	var harvest_range: float = _get_prospector_harvest_range(_prospector_boulder_target)
 	var distance_to_boulder: float = global_position.distance_to(_prospector_boulder_target.global_position)
@@ -932,11 +945,22 @@ func _handle_prospector_auto_mining() -> bool:
 	if harvested > 0:
 		_time_to_next_attack = maxf(attack_cooldown, 0.05)
 		_play_attack_tilt_animation()
+		if not _is_harvestable_boulder(_prospector_boulder_target):
+			_retarget_prospector_boulder()
+			_time_to_repath = 0.0
 		return true
 
-	_prospector_boulder_target = null
+	_retarget_prospector_boulder()
 	_time_to_repath = 0.0
+	if is_instance_valid(_prospector_boulder_target):
+		_move_towards(_prospector_boulder_target.global_position)
+		return true
+
 	return false
+
+func _retarget_prospector_boulder() -> bool:
+	_prospector_boulder_target = _find_closest_harvestable_boulder()
+	return is_instance_valid(_prospector_boulder_target)
 
 func _find_closest_harvestable_boulder() -> Node2D:
 	var closest_boulder: Node2D

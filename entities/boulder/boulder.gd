@@ -9,6 +9,7 @@ signal gold_ready_changed(has_gold: bool)
 @export var side_drop_max_offset: float = 38.0
 @export var side_drop_vertical_jitter: float = 6.0
 @export var min_drop_distance_from_player: float = 56.0
+@export var mined_pickup_interaction_radius_multiplier: float = 1.75
 
 @onready var _gold_ready_sprite: Sprite2D = $GoldReadySprite
 
@@ -61,6 +62,7 @@ func _spawn_lootbox_pickups(amount: int) -> void:
 
 		var new_pickup: Pickup = pickup_node as Pickup
 		new_pickup.set_data(produced_lootbox_id)
+		new_pickup.set_interaction_radius_multiplier(mined_pickup_interaction_radius_multiplier)
 		_set_pickup_position_before_spawn(new_pickup, pickup_parent, drop_position)
 		new_pickup.floating_towards = follow_target
 		pickup_parent.add_child(new_pickup)

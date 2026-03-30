@@ -63,7 +63,37 @@ growth_interval_seconds = 20.0
 produced_lootbox_id = &"lootbox_chaos"
 
 [node name="boulder_resource" parent="." unique_id=924756373 instance=ExtResource("14_boulder")]
-position = Vector2(550.71, 476)
+position = Vector2(-58, 1224)
+pickup_follow_target_path = NodePath("../player")
+pickup_impulse = Vector2(0, -600)
+
+[node name="boulder_resource2" parent="." unique_id=1631632444 instance=ExtResource("14_boulder")]
+position = Vector2(-56, 1323)
+pickup_parent_path = NodePath("../boulder_resource")
+pickup_follow_target_path = NodePath("../player")
+pickup_impulse = Vector2(0, -600)
+
+[node name="boulder_resource3" parent="." unique_id=1439987 instance=ExtResource("14_boulder")]
+position = Vector2(-56, 1420)
+pickup_parent_path = NodePath("../boulder_resource2")
+pickup_follow_target_path = NodePath("../player")
+pickup_impulse = Vector2(0, -600)
+
+[node name="boulder_resource4" parent="." unique_id=1361173170 instance=ExtResource("14_boulder")]
+position = Vector2(126, 1416)
+pickup_parent_path = NodePath("../boulder_resource2")
+pickup_follow_target_path = NodePath("../player")
+pickup_impulse = Vector2(0, -600)
+
+[node name="boulder_resource5" parent="." unique_id=1266209021 instance=ExtResource("14_boulder")]
+position = Vector2(124, 1332)
+pickup_parent_path = NodePath(".")
+pickup_follow_target_path = NodePath("../player")
+pickup_impulse = Vector2(0, -600)
+
+[node name="boulder_resource6" parent="." unique_id=53503357 instance=ExtResource("14_boulder")]
+position = Vector2(121, 1221)
+pickup_parent_path = NodePath(".")
 pickup_follow_target_path = NodePath("../player")
 pickup_impulse = Vector2(0, -600)
 

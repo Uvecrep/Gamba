@@ -138,7 +138,7 @@ collision_layer = 0
 collision_mask = 16
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="PickupCollectRadius" unique_id=159304062]
-scale = Vector2(2.805, 2.805)
+scale = Vector2(5.0, 5.0)
 shape = SubResource("CircleShape2D_abrql")
 
 [node name="HealthBar" type="ProgressBar" parent="." unique_id=383812078]

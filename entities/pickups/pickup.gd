@@ -11,6 +11,9 @@ const PICKUP_OUTLINE_SHADER: Shader = preload("res://entities/pickups/pickup_out
 @export var texture_rect : TextureRect
 @export var sprite_2d : Sprite2D
 
+var _interaction_collision_shape: CollisionShape2D
+var _base_interaction_shape_scale: Vector2 = Vector2.ONE
+
 var bob_amplitude: float = 2.3
 var bob_speed: float = 0.4
 var bob_start_position: Vector2
@@ -21,7 +24,16 @@ var floating_towards : Node2D
 
 func _ready() -> void:
 	_resolve_visual_nodes()
+	_resolve_interaction_collision_shape()
 	_refresh_visuals()
+
+func set_interaction_radius_multiplier(multiplier: float) -> void:
+	_resolve_interaction_collision_shape()
+	if _interaction_collision_shape == null:
+		return
+
+	var safe_multiplier: float = maxf(multiplier, 0.1)
+	_interaction_collision_shape.scale = _base_interaction_shape_scale * safe_multiplier
 
 func set_data(new_item_id : StringName) -> void:
 	_resolve_visual_nodes()
@@ -81,3 +93,11 @@ func _ensure_outline_material() -> void:
 	var outline_material := ShaderMaterial.new()
 	outline_material.shader = PICKUP_OUTLINE_SHADER
 	sprite_2d.material = outline_material
+
+func _resolve_interaction_collision_shape() -> void:
+	if _interaction_collision_shape != null:
+		return
+
+	_interaction_collision_shape = get_node_or_null("Area2D/CollisionShape2D") as CollisionShape2D
+	if _interaction_collision_shape != null:
+		_base_interaction_shape_scale = _interaction_collision_shape.scale

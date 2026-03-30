@@ -20,6 +20,14 @@ const LOOTBOX_OPEN_START_PITCH_SCALE: float = 1.45
 const LUCKY_DRAMA_ZOOM_FACTOR: float = 1.35
 const LUCKY_DRAMA_ZOOM_RETURN_SECONDS: float = 0.18
 
+const SPARK_AMOUNT_BY_RARITY: Dictionary = {
+	RewardDataScript.Rarity.COMMON: 36,
+	RewardDataScript.Rarity.UNCOMMON: 52,
+	RewardDataScript.Rarity.RARE: 72,
+	RewardDataScript.Rarity.EPIC: 96,
+	RewardDataScript.Rarity.LEGENDARY: 124,
+}
+
 @onready var _panel: Panel = $Panel
 @onready var _clip: Control = $Panel/MarginContainer/Clip
 @onready var _strip: Control = $Panel/MarginContainer/Clip/Strip
@@ -49,6 +57,7 @@ var _time_scale_overridden: bool = false
 var _previous_time_scale: float = 1.0
 var _drama_camera: Camera2D
 var _drama_camera_base_zoom: Vector2 = Vector2.ONE
+var _spark_particles: GPUParticles2D
 
 var scroll_offset: float:
 	set(value):
@@ -62,6 +71,7 @@ func _ready() -> void:
 	_win_flash.visible = false
 	_result_label.visible = false
 	_apply_panel_style()
+	_ensure_spark_particles()
 
 
 func _process(_delta: float) -> void:
@@ -213,6 +223,7 @@ func _on_roll_tween_finished() -> void:
 		_result_label.text = "Awarded: Mystery Reward"
 
 	var rarity_value: int = int(_winning_reward_data.get("rarity")) if _winning_reward_data != null else 0
+	_play_rarity_sparks(rarity_value)
 	Audio.play_lootbox_reveal_for_rarity(rarity_value)
 	if rarity_value >= 3:
 		Audio.play_ui(&"ui_bestiary_new", -4.0)
@@ -356,6 +367,76 @@ func _play_win_flash() -> void:
 	flash_tween.finished.connect(func() -> void:
 		_win_flash.visible = false
 	)
+
+
+func _ensure_spark_particles() -> void:
+	if _spark_particles != null and is_instance_valid(_spark_particles):
+		return
+
+	_spark_particles = GPUParticles2D.new()
+	_spark_particles.name = "RevealSparks"
+	_spark_particles.one_shot = true
+	_spark_particles.explosiveness = 0.92
+	_spark_particles.lifetime = 0.72
+	_spark_particles.local_coords = true
+	_spark_particles.amount = 36
+	_spark_particles.speed_scale = 1.12
+	_spark_particles.emitting = false
+	_spark_particles.z_index = 5
+	_spark_particles.texture = _create_white_spark_texture()
+
+	var spark_material: ParticleProcessMaterial = ParticleProcessMaterial.new()
+	spark_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	spark_material.emission_sphere_radius = 20.0
+	spark_material.direction = Vector3(0.0, -1.0, 0.0)
+	spark_material.spread = 180.0
+	spark_material.gravity = Vector3(0.0, 560.0, 0.0)
+	spark_material.initial_velocity_min = 220.0
+	spark_material.initial_velocity_max = 420.0
+	spark_material.scale_min = 1.3
+	spark_material.scale_max = 2.7
+	spark_material.color = Color.WHITE
+	_spark_particles.process_material = spark_material
+	_spark_particles.modulate = RewardDataScript.rarity_color(RewardDataScript.Rarity.COMMON)
+
+	_panel.add_child(_spark_particles)
+
+
+func _play_rarity_sparks(rarity_value: int) -> void:
+	_ensure_spark_particles()
+	if _spark_particles == null:
+		return
+
+	var burst_count: int = int(SPARK_AMOUNT_BY_RARITY.get(rarity_value, 36))
+	_spark_particles.amount = burst_count
+	_spark_particles.position = _center_marker.position + (_center_marker.size * 0.5)
+
+	var spark_material: ParticleProcessMaterial = _spark_particles.process_material as ParticleProcessMaterial
+	if spark_material != null:
+		var rarity_color: Color = RewardDataScript.rarity_color(rarity_value)
+		spark_material.color = Color.WHITE
+		spark_material.initial_velocity_min = 210.0 + (float(rarity_value) * 38.0)
+		spark_material.initial_velocity_max = 390.0 + (float(rarity_value) * 58.0)
+		spark_material.scale_min = 1.15 + (float(rarity_value) * 0.24)
+		spark_material.scale_max = 2.4 + (float(rarity_value) * 0.34)
+		spark_material.emission_sphere_radius = 18.0 + (float(rarity_value) * 3.0)
+		_spark_particles.modulate = rarity_color.lightened(0.12)
+
+	_spark_particles.emitting = false
+	_spark_particles.restart()
+	_spark_particles.emitting = true
+
+
+func _create_white_spark_texture() -> Texture2D:
+	var image: Image = Image.create(14, 4, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0, 0, 0, 0))
+	for y in range(4):
+		for x in range(14):
+			var center_distance: float = absf(float(y) - 1.5) / 1.5
+			var edge_falloff: float = minf(float(x), float(13 - x)) / 6.0
+			var alpha: float = clampf((1.0 - center_distance) * edge_falloff, 0.0, 1.0)
+			image.set_pixel(x, y, Color(1, 1, 1, alpha))
+	return ImageTexture.create_from_image(image)
 
 
 func _update_screen_position() -> void:
