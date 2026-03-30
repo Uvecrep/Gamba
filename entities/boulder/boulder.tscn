@@ -1,49 +1,47 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3 uid="uid://t0mta2tnljhf"]
 
-[ext_resource type="Script" path="res://entities/boulder/boulder.gd" id="1_boulder_script"]
-[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
-[ext_resource type="Texture2D" path="res://assets/vfx/rock_attack.png" id="2_boulder_texture"]
-[ext_resource type="Texture2D" path="res://assets/objects/gold.png" id="3_gold_texture"]
-[ext_resource type="PackedScene" path="res://entities/pickups/pickup.tscn" id="4_pickup_scene"]
-[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="5_shadow"]
+[ext_resource type="Script" uid="uid://bsdejkqun1j8" path="res://entities/boulder/boulder.gd" id="1_boulder_script"]
+[ext_resource type="Script" uid="uid://t1h8mquafo7v" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
+[ext_resource type="Texture2D" uid="uid://t4b160m3svwb" path="res://assets/objects/gold.png" id="3_gold_texture"]
+[ext_resource type="Texture2D" uid="uid://benttkqpvjon" path="res://assets/objects/boulder_resource.png" id="4_8u4hu"]
+[ext_resource type="Texture2D" uid="uid://dpphushft12hj" path="res://assets/vfx/entity_shadow.svg" id="5_shadow"]
 
 [sub_resource type="RectangleShape2D" id="1_boulder_shape"]
 size = Vector2(52, 42)
 
-[node name="boulder_resource" type="StaticBody2D"]
+[node name="boulder_resource" type="StaticBody2D" unique_id=1679915336]
 script = ExtResource("1_boulder_script")
 growth_interval_seconds = 16.0
 produced_lootbox_id = &"gold_coin"
-pickup_scene = ExtResource("4_pickup_scene")
 pickup_follow_target_path = NodePath("")
 pickup_impulse = Vector2(0, 0)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1056328878]
 position = Vector2(0, 10)
 shape = SubResource("1_boulder_shape")
 
-[node name="GroundShadow" type="Sprite2D" parent="."]
+[node name="GroundShadow" type="Sprite2D" parent="." unique_id=2109925450]
 scale = Vector2(0.9, 0.7)
 texture = ExtResource("5_shadow")
 script = ExtResource("1_shadow_script")
 target_sprite_path = NodePath("../Sprite2D")
 y_offset = -3.0
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=650169952]
 texture_filter = 1
 scale = Vector2(2.2, 2.2)
-texture = ExtResource("2_boulder_texture")
+texture = ExtResource("4_8u4hu")
 
-[node name="GoldReadySprite" type="Sprite2D" parent="."]
+[node name="GoldReadySprite" type="Sprite2D" parent="." unique_id=1104660763]
 texture_filter = 1
-position = Vector2(0, -18)
+position = Vector2(12, 1)
 scale = Vector2(0.75, 0.75)
 texture = ExtResource("3_gold_texture")
 
-[node name="GrowthTimer" type="Timer" parent="."]
+[node name="GrowthTimer" type="Timer" parent="." unique_id=1775969271]
 wait_time = 16.0
 
-[node name="HarvestPromptLabel" type="Label" parent="."]
+[node name="HarvestPromptLabel" type="Label" parent="." unique_id=251542845]
 visible = false
 z_index = 20
 offset_left = -90.0
