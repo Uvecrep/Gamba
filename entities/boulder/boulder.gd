@@ -37,41 +37,24 @@ func _spawn_lootbox_pickups(amount: int) -> void:
 	if pickup_scene == null:
 		return
 
-	var pickup_parent: Node = get_node_or_null(pickup_parent_path)
-	if pickup_parent == null:
-		pickup_parent = get_parent()
-	if pickup_parent == null:
-		return
-
 	var follow_target: Node2D = null
 	if not pickup_follow_target_path.is_empty():
 		follow_target = get_node_or_null(pickup_follow_target_path) as Node2D
 
 	for _i in range(amount):
-		var pickup_node: Node = pickup_scene.instantiate()
-		if not (pickup_node is Pickup):
-			if is_instance_valid(pickup_node):
-				pickup_node.queue_free()
+		var new_box: Pickup = pickup_scene.instantiate() as Pickup
+		new_box.set_data(produced_lootbox_id)
+		if new_box == null:
 			continue
 
-		var side_sign: float = -1.0 if randf() < 0.5 else 1.0
-		var side_offset_x: float = randf_range(side_drop_min_offset, side_drop_max_offset) * side_sign
-		var side_offset_y: float = randf_range(-side_drop_vertical_jitter, side_drop_vertical_jitter)
-		var drop_position: Vector2 = global_position + Vector2(side_offset_x, side_offset_y)
-		drop_position = _push_drop_outside_player_collect_radius(drop_position)
-
-		var new_pickup: Pickup = pickup_node as Pickup
-		new_pickup.set_data(produced_lootbox_id)
-		new_pickup.set_interaction_radius_multiplier(mined_pickup_interaction_radius_multiplier)
-		_set_pickup_position_before_spawn(new_pickup, pickup_parent, drop_position)
-		new_pickup.floating_towards = follow_target
-		pickup_parent.add_child(new_pickup)
-		new_pickup.global_position = drop_position
+		new_box.set_data(produced_lootbox_id)
+		new_box.should_bob = false
+		new_box.floating_towards = follow_target
+		get_parent().add_child(new_box)
+		new_box.global_position = global_position
+		new_box.apply_central_impulse(pickup_impulse)
 
 func _set_pickup_position_before_spawn(pickup: Pickup, pickup_parent: Node, world_position: Vector2) -> void:
-	if pickup_parent is Node2D:
-		pickup.position = (pickup_parent as Node2D).to_local(world_position)
-		return
 
 	pickup.position = world_position
 
