@@ -377,7 +377,7 @@ layout_mode = 2
 text = "Quit"
 
 [node name="Pickup3" parent="." unique_id=1233044806 instance=ExtResource("13_1fput")]
-position = Vector2(403, -161)
+position = Vector2(32, 224)
 item_id = &"sapling"
 
 [node name="blood_confluence" parent="." unique_id=2107467836 instance=ExtResource("15_4fc0e")]
@@ -401,3 +401,15 @@ position = Vector2(32, -6752)
 [node name="Pickup4" parent="." unique_id=971572308 instance=ExtResource("13_1fput")]
 position = Vector2(544, -352)
 item_id = &"sapling"
+
+[node name="PlantableArea3" parent="." unique_id=1878166150 instance=ExtResource("15_s07ge")]
+position = Vector2(-2080, 160)
+
+[node name="PlantableArea4" parent="." unique_id=1011748721 instance=ExtResource("15_s07ge")]
+position = Vector2(224, -1312)
+
+[node name="PlantableArea5" parent="." unique_id=2060978970 instance=ExtResource("15_s07ge")]
+position = Vector2(-160, -1312)
+
+[node name="PlantableArea6" parent="." unique_id=1484901381 instance=ExtResource("15_s07ge")]
+position = Vector2(2080, 160)
