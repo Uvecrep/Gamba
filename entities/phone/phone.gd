@@ -3,7 +3,7 @@ class_name PhoneInteractable
 
 @export var interact_action: StringName = &"interact"
 @export var interact_range: float = 96.0
-@export_multiline var dialog_message: String = "Calling the enemy summoner...\n\nEnemy Summoner: The wave timer feed is down right now.\nTry again in a bit for a real ETA."
+@export_multiline var tutorial_text: String = "Survive each night by holding the house and clearing waves.\nBuild up during the day, then prepare for the next night."
 @export var prompt_refresh_interval: float = 0.2
 const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
 const PROXIMITY_PROMPT_UTIL: GDScript = preload("res://scripts/proximity_prompt_util.gd")
@@ -17,13 +17,17 @@ var _spatial_index: SpatialIndex2D
 @onready var _dialog_layer: CanvasLayer = get_node_or_null("DialogLayer") as CanvasLayer
 @onready var _dialog_panel: PanelContainer = get_node_or_null("DialogLayer/PhoneDialog") as PanelContainer
 @onready var _dialog_text_label: Label = get_node_or_null("DialogLayer/PhoneDialog/MarginContainer/VBoxContainer/DialogText") as Label
+@onready var _tutorial_button: Button = get_node_or_null("DialogLayer/PhoneDialog/MarginContainer/VBoxContainer/TutorialButton") as Button
 @onready var _close_hint_label: Label = get_node_or_null("DialogLayer/PhoneDialog/MarginContainer/VBoxContainer/CloseHint") as Label
+@onready var _tutorial_dialog: AcceptDialog = get_node_or_null("DialogLayer/TutorialDialog") as AcceptDialog
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("phones")
 	_action_hint_text = INPUT_HINT_UTIL.resolve_action_hint(interact_action)
 	_spatial_index = get_node_or_null("/root/SpatialIndex") as SpatialIndex2D
+	if _tutorial_button != null and not _tutorial_button.pressed.is_connected(_on_tutorial_button_pressed):
+		_tutorial_button.pressed.connect(_on_tutorial_button_pressed)
 	_set_dialog_open(false)
 	_update_prompt()
 	_schedule_prompt_refresh(0.0)
@@ -51,7 +55,9 @@ func interact(_player: Node2D) -> void:
 		return
 
 	if _dialog_text_label != null:
-		_dialog_text_label.text = dialog_message
+		_dialog_text_label.text = _build_wave_report_text()
+	if _tutorial_dialog != null:
+		_tutorial_dialog.dialog_text = tutorial_text
 
 	_set_dialog_open(true)
 
@@ -94,3 +100,35 @@ func _schedule_prompt_refresh(initial_delay: float = -1.0) -> void:
 		0.3,
 		initial_delay
 	)
+
+
+func _on_tutorial_button_pressed() -> void:
+	if _tutorial_dialog == null:
+		return
+	_tutorial_dialog.dialog_text = tutorial_text
+	_tutorial_dialog.popup_centered()
+
+
+func _build_wave_report_text() -> String:
+	var day_night_controller: DayNightController = _find_day_night_controller()
+	if day_night_controller == null:
+		return "Tonight's wave intel is unavailable right now."
+
+	var target_night_number: int = maxi(day_night_controller.get_incoming_night_number(), 1)
+	var wave_sizes: Array[int] = day_night_controller.get_wave_sizes_for_night(target_night_number)
+	var line_items: PackedStringArray = PackedStringArray()
+	line_items.append("Night %d forecast" % target_night_number)
+	line_items.append("Waves tonight: %d" % wave_sizes.size())
+	for wave_index in wave_sizes.size():
+		line_items.append("Wave %d: %d enemies" % [wave_index + 1, wave_sizes[wave_index]])
+
+	return "\n".join(line_items)
+
+
+func _find_day_night_controller() -> DayNightController:
+	var cycle_owner: Node = get_tree().get_first_node_in_group("day_night_cycle_controllers")
+	if cycle_owner == null:
+		return null
+
+	var controller: DayNightController = cycle_owner.get_node_or_null("DayNightController") as DayNightController
+	return controller
