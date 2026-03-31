@@ -5,7 +5,8 @@ class_name MapInteractable
 @export var interact_range: float = 96.0
 @export var prompt_refresh_interval: float = 0.2
 
-const MAP_STATUS_HINT: String = "Click or drag to select. Right-click to move. Use Hold, Follow, or Auto for selected summons."
+const MAP_CONTROL_HINT: String = "LMB select/drag | Shift/Ctrl add | RMB move"
+const MAP_HELP_TEXT: String = "Left-click summon: Select one\nLeft-click drag: Box select\nShift/Ctrl + left-click: Add to selection\nRight-click map: Move selected summons\n\nButtons:\nToggle Hold: Toggle hold position for selected summons\nFollow: Make selected summons follow players\nAuto: Return selected summons to auto behavior\nClear Selection: Deselect all summons"
 const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
 const PROXIMITY_PROMPT_UTIL: GDScript = preload("res://scripts/proximity_prompt_util.gd")
 const INTERACT_REOPEN_BLOCK_MS: int = 150
@@ -23,11 +24,12 @@ var _spatial_index: SpatialIndex2D
 @onready var _selection_label: Label = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/SelectionLabel") as Label
 @onready var _status_label: Label = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/StatusLabel") as Label
 @onready var _close_hint_label: Label = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/CloseHint") as Label
-@onready var _hold_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/HoldSelectedButton") as Button
-@onready var _follow_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/FollowSelectedButton") as Button
-@onready var _auto_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/AutoSelectedButton") as Button
-@onready var _clear_selection_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/ClearSelectionButton") as Button
-@onready var _close_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow/CloseButton") as Button
+@onready var _help_dialog: AcceptDialog = get_node_or_null("MapLayer/MapHelpDialog") as AcceptDialog
+@onready var _hold_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/TopButtonRow/HoldSelectedButton") as Button
+@onready var _follow_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/TopButtonRow/FollowSelectedButton") as Button
+@onready var _auto_selected_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/TopButtonRow/AutoSelectedButton") as Button
+@onready var _clear_selection_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/BottomButtonRow/ClearSelectionButton") as Button
+@onready var _help_button: Button = get_node_or_null("MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/BottomButtonRow/HelpButton") as Button
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -43,8 +45,11 @@ func _ready() -> void:
 		_auto_selected_button.pressed.connect(_on_auto_selected_pressed)
 	if is_instance_valid(_clear_selection_button):
 		_clear_selection_button.pressed.connect(_on_clear_selection_pressed)
-	if is_instance_valid(_close_button):
-		_close_button.pressed.connect(_on_close_pressed)
+	if is_instance_valid(_help_button):
+		_help_button.pressed.connect(_on_help_pressed)
+
+	if is_instance_valid(_help_dialog):
+		_help_dialog.dialog_text = MAP_HELP_TEXT
 
 	if _minimap != null:
 		if _minimap.has_signal("selection_changed"):
@@ -54,7 +59,7 @@ func _ready() -> void:
 
 	_set_map_open(false)
 	_on_selection_changed(_get_selected_count())
-	_set_status(MAP_STATUS_HINT)
+	_set_status(MAP_CONTROL_HINT)
 	_update_prompt()
 	_schedule_prompt_refresh(0.0)
 
@@ -86,7 +91,7 @@ func interact(player: Node2D) -> void:
 		return
 
 	_set_map_open(true)
-	_set_status(MAP_STATUS_HINT)
+	_set_status(MAP_CONTROL_HINT)
 
 func can_interact_with_player(player: Node2D) -> bool:
 	if player == null:
@@ -175,8 +180,11 @@ func _on_auto_selected_pressed() -> void:
 	_set_status("Auto behavior resumed for %d summon(s)." % auto_count)
 	_on_selection_changed(_get_selected_count())
 
-func _on_close_pressed() -> void:
-	_close_map_with_reopen_guard()
+func _on_help_pressed() -> void:
+	if not is_instance_valid(_help_dialog):
+		return
+
+	_help_dialog.popup_centered_clamped(Vector2(620, 420), 0.9)
 
 func _on_selection_changed(selected_count: int) -> void:
 	if _selection_label != null:

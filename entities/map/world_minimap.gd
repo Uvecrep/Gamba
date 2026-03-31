@@ -13,6 +13,14 @@ signal move_order_issued(target_world_position: Vector2, summon_count: int)
 @export var map_fill_color: Color = Color(0.18, 0.22, 0.19, 0.95)
 @export var map_border_color: Color = Color(0.62, 0.68, 0.66, 1.0)
 @export var grid_line_color: Color = Color(1.0, 1.0, 1.0, 0.08)
+@export var terrain_max_cells: int = 2200
+@export var terrain_min_sampling_step: int = 2
+@export var terrain_color_mix: float = 0.4
+@export var terrain_alpha: float = 0.9
+@export var tree_marker_color: Color = Color(0.23, 0.82, 0.33, 0.55)
+@export var boulder_marker_color: Color = Color(0.62, 0.66, 0.72, 0.72)
+@export var harvest_marker_color: Color = Color(0.92, 0.88, 0.58, 0.62)
+@export var shop_marker_color: Color = Color(0.97, 0.7, 0.27, 0.85)
 @export var player_marker_color: Color = Color(0.2, 0.75, 1.0, 1.0)
 @export var house_marker_color: Color = Color(0.45, 1.0, 0.45, 1.0)
 @export var tower_marker_color: Color = Color(1.0, 0.82, 0.32, 1.0)
@@ -38,6 +46,10 @@ var _drag_start_position: Vector2 = Vector2.ZERO
 var _drag_current_position: Vector2 = Vector2.ZERO
 var _time_to_redraw: float = 0.0
 var _time_to_world_bounds_refresh: float = 0.0
+var _terrain_cells_world: PackedVector2Array = PackedVector2Array()
+var _terrain_cells_color: PackedColorArray = PackedColorArray()
+var _terrain_cell_world_size: Vector2 = Vector2.ZERO
+var _atlas_image_cache: Dictionary = {}
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -223,9 +235,14 @@ func _draw() -> void:
 	var map_rect: Rect2 = _get_map_rect()
 	draw_rect(Rect2(Vector2.ZERO, size), background_color, true)
 	draw_rect(map_rect, map_fill_color, true)
+	_draw_terrain(map_rect)
 	draw_rect(map_rect, map_border_color, false, 2.0)
 	_draw_grid(map_rect)
 
+	_draw_group_markers(&"trees", tree_marker_color, 1.75)
+	_draw_group_markers(&"boulders", boulder_marker_color, 1.75)
+	_draw_group_markers(&"harvest_nodes", harvest_marker_color, 1.6)
+	_draw_group_markers(&"shops", shop_marker_color, 2.2)
 	_draw_group_markers(&"enemies", enemy_marker_color, 2.5)
 	_draw_group_markers(&"enemy_towers", tower_marker_color, 4.0)
 	_draw_group_markers(&"house", house_marker_color, 4.5)
@@ -243,6 +260,28 @@ func _draw_grid(map_rect: Rect2) -> void:
 		var y: float = map_rect.position.y + (map_rect.size.y * float(index) / 4.0)
 		draw_line(Vector2(x, map_rect.position.y), Vector2(x, map_rect.end.y), grid_line_color, 1.0)
 		draw_line(Vector2(map_rect.position.x, y), Vector2(map_rect.end.x, y), grid_line_color, 1.0)
+
+func _draw_terrain(map_rect: Rect2) -> void:
+	if _terrain_cells_world.is_empty() or _terrain_cells_color.is_empty():
+		return
+	if not _has_world_bounds:
+		return
+
+	var bounds_size: Vector2 = _world_bounds.size
+	if is_zero_approx(bounds_size.x) or is_zero_approx(bounds_size.y):
+		return
+
+	var world_to_map_scale: Vector2 = Vector2(map_rect.size.x / bounds_size.x, map_rect.size.y / bounds_size.y)
+	var marker_size: Vector2 = Vector2(
+		maxf(_terrain_cell_world_size.x * world_to_map_scale.x, 2.0),
+		maxf(_terrain_cell_world_size.y * world_to_map_scale.y, 2.0)
+	)
+	# Slight overlap prevents tiny seams from creating a fake dense grid.
+	var fill_size: Vector2 = marker_size + Vector2.ONE
+
+	for index in range(_terrain_cells_world.size()):
+		var marker_center: Vector2 = _world_to_minimap(_terrain_cells_world[index])
+		draw_rect(Rect2(marker_center - (fill_size * 0.5), fill_size), _terrain_cells_color[index], true)
 
 func _draw_group_markers(group_name: StringName, color: Color, radius: float) -> void:
 	for node in _get_group_nodes_2d(group_name):
@@ -300,13 +339,26 @@ func _is_summon_moving(summon: Node2D) -> bool:
 
 func _get_map_rect() -> Rect2:
 	var constrained_padding: float = clampf(map_padding, 0.0, minf(size.x, size.y) * 0.45)
-	var map_size: Vector2 = size - Vector2(constrained_padding * 2.0, constrained_padding * 2.0)
-	if map_size.x < 1.0:
-		map_size.x = 1.0
-	if map_size.y < 1.0:
-		map_size.y = 1.0
+	var available_size: Vector2 = size - Vector2(constrained_padding * 2.0, constrained_padding * 2.0)
+	if available_size.x < 1.0:
+		available_size.x = 1.0
+	if available_size.y < 1.0:
+		available_size.y = 1.0
 
-	return Rect2(Vector2(constrained_padding, constrained_padding), map_size)
+	var map_position: Vector2 = Vector2(constrained_padding, constrained_padding)
+	var map_size: Vector2 = available_size
+
+	if _has_world_bounds and _world_bounds.size.x > 0.0 and _world_bounds.size.y > 0.0:
+		var world_aspect: float = _world_bounds.size.x / _world_bounds.size.y
+		var available_aspect: float = available_size.x / available_size.y
+		if available_aspect > world_aspect:
+			map_size.x = available_size.y * world_aspect
+			map_position.x += (available_size.x - map_size.x) * 0.5
+		else:
+			map_size.y = available_size.x / world_aspect
+			map_position.y += (available_size.y - map_size.y) * 0.5
+
+	return Rect2(map_position, map_size)
 
 func _world_to_minimap(world_position: Vector2) -> Vector2:
 	var map_rect: Rect2 = _get_map_rect()
@@ -339,6 +391,8 @@ func _refresh_world_bounds() -> void:
 		_has_world_bounds = true
 		return
 
+	_clear_terrain_cache()
+
 	if _try_build_bounds_from_entities():
 		_has_world_bounds = true
 		return
@@ -348,18 +402,114 @@ func _refresh_world_bounds() -> void:
 func _try_build_bounds_from_world_tile_map() -> bool:
 	var tile_map_layer_node: Node = _find_world_tile_map_layer()
 	if not tile_map_layer_node is TileMapLayer:
+		_clear_terrain_cache()
 		return false
 
 	var tile_map_layer: TileMapLayer = tile_map_layer_node as TileMapLayer
 	var world_bounds_util: Variant = load(WORLD_BOUNDS_UTIL_PATH)
 	if world_bounds_util == null:
+		_clear_terrain_cache()
 		return false
 
 	_world_bounds = world_bounds_util.get_used_rect_world_rect(tile_map_layer)
 	if _world_bounds.size.x <= 0.0 or _world_bounds.size.y <= 0.0:
+		_clear_terrain_cache()
 		return false
 
+	_rebuild_terrain_cache(tile_map_layer)
+
 	return _world_bounds.size.x > 0.0 and _world_bounds.size.y > 0.0
+
+func _rebuild_terrain_cache(tile_map_layer: TileMapLayer) -> void:
+	if tile_map_layer == null:
+		_clear_terrain_cache()
+		return
+
+	var used_rect: Rect2i = tile_map_layer.get_used_rect()
+	if used_rect.size == Vector2i.ZERO:
+		_clear_terrain_cache()
+		return
+
+	_terrain_cells_world = PackedVector2Array()
+	_terrain_cells_color = PackedColorArray()
+
+	var tile_count: int = maxi(used_rect.size.x * used_rect.size.y, 1)
+	var target_cells: int = maxi(terrain_max_cells, 1)
+	var computed_step: int = ceili(sqrt(float(tile_count) / float(target_cells)))
+	var sample_step: int = maxi(terrain_min_sampling_step, computed_step)
+
+	var tile_size: Vector2 = Vector2(32.0, 32.0)
+	if tile_map_layer.tile_set != null:
+		tile_size = Vector2(tile_map_layer.tile_set.tile_size)
+
+	var scale_factor: Vector2 = tile_map_layer.global_scale
+	_terrain_cell_world_size = Vector2(absf(tile_size.x * scale_factor.x), absf(tile_size.y * scale_factor.y)) * float(sample_step)
+
+	for y in range(used_rect.position.y, used_rect.end.y, sample_step):
+		for x in range(used_rect.position.x, used_rect.end.x, sample_step):
+			var cell: Vector2i = Vector2i(x, y)
+			var source_id: int = tile_map_layer.get_cell_source_id(cell)
+			if source_id < 0:
+				continue
+
+			var cell_world_position: Vector2 = tile_map_layer.to_global(tile_map_layer.map_to_local(cell))
+			var atlas_coords: Vector2i = tile_map_layer.get_cell_atlas_coords(cell)
+			_terrain_cells_world.append(cell_world_position)
+			_terrain_cells_color.append(_resolve_terrain_cell_color(tile_map_layer, source_id, atlas_coords))
+
+func _resolve_terrain_cell_color(tile_map_layer: TileMapLayer, source_id: int, atlas_coords: Vector2i) -> Color:
+	if tile_map_layer == null or tile_map_layer.tile_set == null:
+		return map_fill_color
+
+	var tile_set: TileSet = tile_map_layer.tile_set
+	if not tile_set.has_source(source_id):
+		return map_fill_color
+
+	var source: TileSetSource = tile_set.get_source(source_id)
+	if not (source is TileSetAtlasSource):
+		return map_fill_color
+
+	var atlas_source: TileSetAtlasSource = source as TileSetAtlasSource
+	var image: Image = _get_cached_atlas_image(source_id, atlas_source)
+	if image == null:
+		return map_fill_color
+
+	var tile_size: Vector2i = tile_set.tile_size
+	var half_tile: Vector2i = Vector2i(int(tile_size.x * 0.5), int(tile_size.y * 0.5))
+	var sample_position: Vector2i = (atlas_coords * tile_size) + half_tile
+	sample_position.x = clampi(sample_position.x, 0, image.get_width() - 1)
+	sample_position.y = clampi(sample_position.y, 0, image.get_height() - 1)
+
+	var sampled_color: Color = image.get_pixelv(sample_position)
+	var mixed_color: Color = map_fill_color.lerp(sampled_color, clampf(terrain_color_mix, 0.0, 1.0))
+	mixed_color.a = clampf(terrain_alpha, 0.0, 1.0)
+	return mixed_color
+
+func _get_cached_atlas_image(source_id: int, atlas_source: TileSetAtlasSource) -> Image:
+	if _atlas_image_cache.has(source_id):
+		var cached: Variant = _atlas_image_cache[source_id]
+		if cached is Image:
+			return cached as Image
+
+	if atlas_source == null:
+		return null
+
+	var texture: Texture2D = atlas_source.texture
+	if texture == null:
+		return null
+
+	var image: Image = texture.get_image()
+	if image == null:
+		return null
+
+	_atlas_image_cache[source_id] = image
+	return image
+
+func _clear_terrain_cache() -> void:
+	_terrain_cells_world = PackedVector2Array()
+	_terrain_cells_color = PackedColorArray()
+	_terrain_cell_world_size = Vector2.ZERO
+	_atlas_image_cache.clear()
 
 func _try_build_bounds_from_entities() -> bool:
 	var points: Array[Vector2] = []
