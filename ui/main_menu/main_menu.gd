@@ -1,5 +1,7 @@
 extends Control
 
+@export var box_sprites: Array[Texture2D]
+
 @onready var _main_panel: PanelContainer = get_node_or_null("MainMenuPanel") as PanelContainer
 @onready var _settings_panel: PanelContainer = get_node_or_null("SettingsPanel") as PanelContainer
 @onready var _credits_panel: PanelContainer = get_node_or_null("CreditsPanel") as PanelContainer
@@ -14,6 +16,10 @@ extends Control
 @onready var _main_menu_vbox: VBoxContainer = get_node_or_null("MainMenuPanel/MarginContainer/VBoxContainer") as VBoxContainer
 
 @onready var _credits_back_button: Button = get_node_or_null("CreditsPanel/MarginContainer/VBoxContainer/BackButton") as Button
+
+var spawned_boxes: Array[TextureRect]
+var spawned_box_rotation_speed: Array[float]
+var spawned_box_speed: Array[float]
 
 const SETTINGS_AUDIO_BUSES: PackedStringArray = ["Master", "Music", "Ambience", "SFX", "UI"]
 const BUS_MIN_PCT: float = 0.0
@@ -84,7 +90,34 @@ func _ready() -> void:
 	_show_panel(&"main")
 	if _play_button != null:
 		_play_button.grab_focus()
+	
+	_spawn_inital_boxes()
 
+func _process(_delta: float) -> void:
+	for i in range(spawned_boxes.size()):
+		var box: TextureRect = spawned_boxes[i]
+		box.position.y += spawned_box_speed[i]
+		if box.position.y > get_viewport_rect().size.y + 64:
+			box.position = _random_box_start_pos()
+		box.rotation += spawned_box_rotation_speed[i]
+	
+
+func _spawn_inital_boxes() -> void:
+	for i in range(25):
+		var new_box: TextureRect = TextureRect.new()
+		new_box.texture = box_sprites[randi_range(0,box_sprites.size()-1)]
+		new_box.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
+		new_box.size = Vector2(64,64)
+		new_box.position = _random_box_start_pos()
+		new_box.pivot_offset = Vector2(32,32)
+		add_child(new_box)
+		move_child(new_box,1)
+		spawned_boxes.append(new_box)
+		spawned_box_speed.append(5)
+		spawned_box_rotation_speed.append(.1 + randf_range(-1,1)*0.02)
+	
+func _random_box_start_pos() -> Vector2:
+	return Vector2(randf() * get_viewport_rect().size.x,-1 * randf() * get_viewport_rect().size.y - 64)
 
 func _on_play_pressed() -> void:
 	if _is_gamble_spinning:

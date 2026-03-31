@@ -2,6 +2,11 @@
 
 [ext_resource type="Script" uid="uid://cwrf65whm1pv6" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" uid="uid://bisfwiqd4taje" path="res://tilemap_packed.png" id="2_mu8pm"]
+[ext_resource type="Texture2D" uid="uid://dunxbxhfwt1nl" path="res://assets/objects/chaos-box.png" id="2_u184e"]
+[ext_resource type="Texture2D" uid="uid://0cu8newus6tc" path="res://assets/objects/soul-box.png" id="3_6mijq"]
+[ext_resource type="Texture2D" uid="uid://b7aymrnrwd1sq" path="res://assets/objects/elemental_lootbox.png" id="4_w2r0d"]
+[ext_resource type="Texture2D" uid="uid://bkjby8qj4m8lr" path="res://assets/objects/greed_lootbox.png" id="5_4e78x"]
+[ext_resource type="Texture2D" uid="uid://iftuo3yyscy6" path="res://assets/objects/lootbox_fruit.png" id="6_s4pem"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mu8pm"]
 atlas = ExtResource("2_mu8pm")
@@ -19,6 +24,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
+box_sprites = Array[Texture2D]([ExtResource("2_u184e"), ExtResource("3_6mijq"), ExtResource("4_w2r0d"), ExtResource("5_4e78x"), ExtResource("6_s4pem")])
 
 [node name="Background" type="ColorRect" parent="." unique_id=1753444037]
 layout_mode = 0
