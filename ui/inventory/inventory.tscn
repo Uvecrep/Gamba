@@ -32,6 +32,7 @@ anchor_bottom = 1.0
 offset_top = -200.0
 grow_horizontal = 2
 grow_vertical = 0
+pivot_offset = Vector2(0, 200)
 theme_override_constants/margin_left = 400
 theme_override_constants/margin_right = 400
 
@@ -63,10 +64,14 @@ offset_right = 320.0
 
 [node name="GoldTrackerPanel" type="Panel" parent="MarginContainer/PanelContainer" unique_id=1398279003]
 layout_mode = 1
-offset_left = 1123.0
-offset_top = 135.0
-offset_right = 1234.0
-offset_bottom = 198.0
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -63.0
+offset_right = 111.0
+grow_vertical = 0
 
 [node name="GoldIcon" type="TextureRect" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=707810599]
 layout_mode = 0

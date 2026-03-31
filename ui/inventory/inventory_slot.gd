@@ -14,6 +14,9 @@ signal slot_mouse_exited()
 @export var click_detection_box : Control
 @export var item_portrait_border : Panel
 
+@export var normal_stylebox : StyleBoxTexture
+@export var selected_stylebox : StyleBoxTexture
+
 var item_id : StringName
 
 var is_selected : bool = false
@@ -22,26 +25,16 @@ func _ready() -> void:
 	click_detection_box.add_to_group("InventorySlot")
 	click_detection_box.mouse_entered.connect(_on_click_detection_box_mouse_entered)
 	click_detection_box.mouse_exited.connect(_on_click_detection_box_mouse_exited)
+	
+	set_is_selected(is_selected)
 
 
 func set_is_selected(new_is_selected : bool) -> void:
 	is_selected = new_is_selected
 	if is_selected:
-		var style: StyleBox = item_portrait_border.get_theme_stylebox("panel").duplicate()
-		if style is StyleBoxFlat:
-			var flat_style := style as StyleBoxFlat
-			flat_style.border_color = Color.YELLOW
-			flat_style.set_border_width_all(3)
-		else:
-			# Fallback in case a non-flat stylebox is used by the theme.
-			var outline_style := StyleBoxFlat.new()
-			outline_style.bg_color = Color.TRANSPARENT
-			outline_style.border_color = Color.YELLOW
-			outline_style.set_border_width_all(3)
-			style = outline_style
-		item_portrait_border.add_theme_stylebox_override("panel", style)
+		item_portrait_border.add_theme_stylebox_override("panel", selected_stylebox)
 	else:
-		item_portrait_border.remove_theme_stylebox_override("panel")
+		item_portrait_border.add_theme_stylebox_override("panel", normal_stylebox)
 
 func set_info(new_item_id : StringName, item_name : String, _item_image : Texture2D, item_count : int) -> void:
 	if (item_count == 0): item_name = ""
