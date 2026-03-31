@@ -53,28 +53,28 @@ func load_lootbox(new_lootbox : Lootbox) -> void:
 func update_visuals() -> void:
 	lootbox_name_label.text = loaded_lootbox.name
 	lootbox_description_label.text = _description_for_loaded_lootbox()
-	lootbox_entries_count_label.text = str(loaded_lootbox.lootTable.size())
+	#lootbox_entries_count_label.text = str(loaded_lootbox.lootTable.size())
 
-	for child in loot_entry_container.get_children():
-		child.queue_free()
+	#for child in loot_entry_container.get_children():
+	#	child.queue_free()
 	
-	var roll_percents : Array[float] = []
-	var total_weight : float = 0.0
-	for e in loaded_lootbox.lootTable:
-		total_weight += e.weight
+	#var roll_percents : Array[float] = []
+	#var total_weight : float = 0.0
+	#for e in loaded_lootbox.lootTable:
+	#	total_weight += e.weight
 
-	if total_weight <= 0.0:
-		return
+	#if total_weight <= 0.0:
+	#	return
 	
-	for i in range(loaded_lootbox.lootTable.size()):
-		roll_percents.append(loaded_lootbox.lootTable[i].weight / total_weight)
+	#for i in range(loaded_lootbox.lootTable.size()):
+	#	roll_percents.append(loaded_lootbox.lootTable[i].weight / total_weight)
 
-	for i in range(loaded_lootbox.lootTable.size()):
-		var new_item : LootEntryUiItem = loot_entry_ui_item_packed_scene.instantiate()
-		var weight_percent_string : String = "%.1f%%" % (roll_percents[i] * 100.0)
-		var weight_string : String = "Weight: " + str(loaded_lootbox.lootTable[i].weight) + "(" + weight_percent_string + ")"
-		new_item.set_info(i,loaded_lootbox.lootTable[i].name,str(weight_string))
-		loot_entry_container.add_child(new_item)
+	#for i in range(loaded_lootbox.lootTable.size()):
+	#	var new_item : LootEntryUiItem = loot_entry_ui_item_packed_scene.instantiate()
+	#	var weight_percent_string : String = "%.1f%%" % (roll_percents[i] * 100.0)
+	#	var weight_string : String = "Weight: " + str(loaded_lootbox.lootTable[i].weight) + "(" + weight_percent_string + ")"
+	#	new_item.set_info(i,loaded_lootbox.lootTable[i].name,str(weight_string))
+	#	loot_entry_container.add_child(new_item)
 
 func _description_for_loaded_lootbox() -> String:
 	if loaded_item_id == StringName():

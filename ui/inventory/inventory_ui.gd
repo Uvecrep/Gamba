@@ -15,7 +15,9 @@ signal hovered_slot_changed()
 @export var slot_2 : InventorySlot
 @export var slot_3 : InventorySlot
 @export var slot_4 : InventorySlot
+
 @export var gold_count_label: Label
+@export var blood_count_label: Label
 
 var slots : Array[InventorySlot]
 var hovered_slot : InventorySlot
@@ -30,11 +32,12 @@ func _ready() -> void:
 	player_ref.player_inventory.selected_index_changed.connect(_on_selected_index_changed)
 	player_ref.player_inventory.slot_contents_changed.connect(_on_slot_contents_changed)
 	player_ref.player_inventory.gold_count_changed.connect(_on_gold_count_changed)
-	
+	player_ref.player_inventory.blood_count_changed.connect(_on_blood_count_changed)
+		
 	slots[player_ref.player_inventory.selected_index].set_is_selected(true)
 	for i in range(slots.size()):
 		slots[i].set_info(player_ref.player_inventory.get_slot_item_id(i), player_ref.player_inventory.get_slot_item_id(i), null, player_ref.player_inventory.get_slot_count(i))
-	_refresh_gold_count()
+	_refresh_gold_count(0)
 
 func _on_selected_index_changed(slot_index : int) -> void:
 	assert(slot_index >= 0 && slot_index < 5, "inventory_ui._on_selected_index_changed(): Slot index was not valid")
@@ -63,13 +66,23 @@ func _on_slot_contents_changed(slot_index : int, item_id : StringName, count : i
 		hovered_slot_changed.emit()
 
 func _on_gold_count_changed(_current: int, _previous: int) -> void:
-	_refresh_gold_count()
+	_refresh_gold_count(_current)
 
-func _refresh_gold_count() -> void:
+func _on_blood_count_changed(_current: int, _previous: int) -> void:
+	_refresh_blood_count(_current)
+
+func _refresh_gold_count(_count: int) -> void:
 	if gold_count_label == null:
 		return
 
-	gold_count_label.text = str(maxi(player_ref.player_inventory.get_gold_count(), 0))
+	gold_count_label.text = str(maxi(_count, 0))
+
+func _refresh_blood_count(_count: int) -> void:
+	if blood_count_label == null:
+		return
+
+	blood_count_label.text = str(maxi(_count, 0))
+
 
 func _connect_slot_signals(slot : InventorySlot):
 	var indice = slots.size()

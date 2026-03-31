@@ -1,0 +1,10 @@
+[gd_resource type="Theme" format=3 uid="uid://csghyrqwta6uv"]
+
+[ext_resource type="Texture2D" uid="uid://bisfwiqd4taje" path="res://tilemap_packed.png" id="1_gc1xo"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hct3i"]
+texture = ExtResource("1_gc1xo")
+region_rect = Rect2(224, 0, 32, 32)
+
+[resource]
+Panel/styles/panel = SubResource("StyleBoxTexture_hct3i")

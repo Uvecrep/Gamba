@@ -54,7 +54,7 @@ var _bus_sliders: Dictionary = {}
 var _bus_value_labels: Dictionary = {}
 var _gamble_button: Button
 var _gamble_mode_toggle: CheckButton
-var _gamble_mode_enabled: bool = false
+var _gamble_mode_enabled: bool = true
 var _is_gamble_spinning: bool = false
 var _main_menu_mouse_locked: bool = false
 
