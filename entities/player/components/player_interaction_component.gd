@@ -88,8 +88,6 @@ func handle_interaction_input(player: Player) -> void:
 		(nearest_interactable as ShopInteractable).interact(player)
 		return
 	
-	print(nearest_interactable)
-	print(nearest_distance_sq)
 	if nearest_interactable is BloodConfluence and nearest_distance_sq <= 100:
 		Audio.play_sfx(&"world_blood_purchase")
 		(nearest_interactable as BloodConfluence).try_purchase_lootbox(player)
