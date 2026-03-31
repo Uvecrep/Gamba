@@ -85,16 +85,8 @@ func _description_for_loaded_lootbox() -> String:
 		return "Open this lootbox to discover summons."
 
 	var box_id: StringName = StringName(item_id_text.trim_prefix("lootbox_"))
-	match box_id:
-		&"chaos":
-			return "A volatile cache with aggressive summon rolls and unpredictable outcomes. Base odds shown below; each pull can also roll + or ++ quality."
-		&"forest":
-			return "A nature-aligned lootbox with grounded summon outcomes from forest progression. Base odds shown below; each pull can also roll + or ++ quality."
-		&"elemental":
-			return "An arcane lootbox tuned toward elemental-themed summon outcomes. Base odds shown below; each pull can also roll + or ++ quality."
-		&"greed":
-			return "A high-value lootbox focused on economy-leaning summon rewards. Base odds shown below; each pull can also roll + or ++ quality."
-		&"soul":
-			return "A mystical lootbox linked to soul-focused progression paths. Base odds shown below; each pull can also roll + or ++ quality."
-		_:
-			return "Open this lootbox to discover summons. Base odds shown below; each pull can also roll + or ++ quality."
+	var bestiary: Node = get_node_or_null("/root/BestiaryGlobals")
+	if bestiary != null and bestiary.has_method("get_lootbox_description_hint"):
+		return String(bestiary.call("get_lootbox_description_hint", box_id))
+
+	return "Open this lootbox to discover summons."

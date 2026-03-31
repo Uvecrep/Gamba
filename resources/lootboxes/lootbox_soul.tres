@@ -73,5 +73,4 @@ rarity_override = 2
 script = ExtResource("1_lootbox")
 id = &"soul"
 name = "Soul Box"
-color = "Purble"
 lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Soul_SoulLantern"), SubResource("Entry_Soul_Banshee"), SubResource("Entry_Soul_GraveHound"), SubResource("Entry_Soul_HexDoll"), SubResource("Entry_Soul_Possessor")])

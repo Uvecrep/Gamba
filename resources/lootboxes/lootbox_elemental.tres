@@ -75,6 +75,4 @@ rarity_override = 2
 script = ExtResource("1_lootbox")
 id = &"elemental"
 name = "Elemental Box"
-color = "Red"
-description = "Forged from blood and force. Contains five destructive elemental summons."
 lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Elemental_CinderImp"), SubResource("Entry_Elemental_FrostWisp"), SubResource("Entry_Elemental_MagmaBeetle"), SubResource("Entry_Elemental_StormTotem"), SubResource("Entry_Elemental_UnstableShard")])

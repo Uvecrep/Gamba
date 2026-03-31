@@ -379,48 +379,24 @@ func _build_tab_intro_text(tab_id: StringName) -> String:
 	if box_id.begins_with("lootbox_"):
 		box_id = box_id.trim_prefix("lootbox_")
 
-	var description: String = "Open this lootbox to discover summons."
-	var lootbox_globals: Node = get_node_or_null("/root/LootboxGlobals")
-	if lootbox_globals != null:
-		var lootboxes: Dictionary = lootbox_globals.get("lootboxes")
-		var lootbox: Lootbox = lootboxes.get(StringName(box_id), null) as Lootbox
-		if lootbox != null:
-			description = _box_description_hint(StringName(box_id), lootbox)
+	var description: String = _box_description_hint(StringName(box_id))
 
 	var source_hint: String = _box_source_hint(StringName(box_id))
 	return "%s\n\n%s\n\nHow to get it:\n%s" % [tab_name, description, source_hint]
 
 
-func _box_description_hint(box_id: StringName, _lootbox: Lootbox) -> String:
-	match box_id:
-		&"chaos":
-			return "A volatile cache with aggressive summon rolls and unpredictable outcomes."
-		&"forest":
-			return "A nature-aligned lootbox with grounded summon outcomes from forest progression."
-		&"elemental":
-			return "An arcane lootbox tuned toward elemental-themed summon outcomes."
-		&"greed":
-			return "A high-value lootbox focused on economy-leaning summon rewards."
-		&"soul":
-			return "A mystical lootbox linked to soul-focused progression paths."
-		_:
-			return "Open this lootbox to discover summons."
+func _box_description_hint(box_id: StringName) -> String:
+	var bestiary = _bestiary()
+	if bestiary != null and bestiary.has_method("get_lootbox_description_hint"):
+		return String(bestiary.call("get_lootbox_description_hint", box_id))
+	return "Open this lootbox to discover summons."
 
 
 func _box_source_hint(box_id: StringName) -> String:
-	match box_id:
-		&"chaos":
-			return "Harvest crystal resources around the map."
-		&"forest":
-			return "Harvest trees for forest lootboxes."
-		&"elemental":
-			return "Buy or earn from blood-based progression sources."
-		&"greed":
-			return "Earn through economy-focused progression and rewards."
-		&"soul":
-			return "Collect from soul-related objectives and rewards."
-		_:
-			return "Acquire this lootbox from gameplay rewards."
+	var bestiary = _bestiary()
+	if bestiary != null and bestiary.has_method("get_lootbox_source_hint"):
+		return String(bestiary.call("get_lootbox_source_hint", box_id))
+	return "Acquire this lootbox from gameplay rewards."
 
 
 func _select_tab(tab_id: StringName) -> void:

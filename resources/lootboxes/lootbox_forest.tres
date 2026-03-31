@@ -75,6 +75,4 @@ rarity_override = 2
 script = ExtResource("10_ga35c")
 id = &"forest"
 name = "Forest Box"
-color = "Green"
-description = "Harvested from trees. Contains five forest-themed summons."
 lootTable = Array[ExtResource("1_20gbc")]([SubResource("Entry_Forest_AcornSpitter"), SubResource("Entry_Forest_BeeSwarm"), SubResource("Entry_Forest_BushBoy"), SubResource("Entry_Forest_MushroomKnight"), SubResource("Entry_Forest_Rooter")])
