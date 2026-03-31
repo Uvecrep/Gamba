@@ -63,11 +63,9 @@ theme_override_constants/margin_bottom = 14
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Title" type="Label" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer"]
+[node name="TutorialButton" type="Button" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Incoming Call"
-horizontal_alignment = 1
+text = "Tutorial"
 
 [node name="DialogText" type="Label" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -78,3 +76,7 @@ text = "Calling Enemy Summoner..."
 layout_mode = 2
 text = "Press E to end call"
 horizontal_alignment = 1
+
+[node name="TutorialDialog" type="AcceptDialog" parent="DialogLayer"]
+title = "Tutorial"
+dialog_text = "Survive each night by holding the house and clearing waves.\nBuild up during the day, then prepare for the next night."

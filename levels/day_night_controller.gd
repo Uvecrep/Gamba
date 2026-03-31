@@ -33,6 +33,8 @@ var _is_night_phase: bool = false
 var _night_index: int = 0
 var _waves_spawned_this_night: int = 0
 var _stopped: bool = false
+var _waiting_for_enemies_cleared: bool = false
+var _enemy_clear_poll_timer: Timer = null
 
 var soul_tower_packed_scene : PackedScene = preload("res://entities/crystal/soul_tower.tscn")
 var soul_tower : SoulTower
@@ -71,12 +73,38 @@ func is_night_time() -> bool:
 	return enable_day_night_cycle and _is_night_phase
 
 
+func get_current_night_number() -> int:
+	return _night_index
+
+
+func get_incoming_night_number() -> int:
+	if _is_night_phase:
+		return maxi(_night_index, 1)
+	return maxi(_night_index + 1, 1)
+
+
+func get_wave_sizes_for_night(night_number: int) -> Array[int]:
+	var total_waves: int = maxi(night_waves_per_cycle, 1)
+	var growth_steps: int = maxi(night_number - 1, 0)
+	var base_wave_size: int = maxi(night_wave_base_size + (growth_steps * night_wave_size_growth_per_night), 1)
+	var scaled_wave_size: int = int(round(float(base_wave_size) * maxf(night_wave_spawn_scale, 0.1)))
+	var resolved_wave_size: int = maxi(scaled_wave_size, 1)
+
+	var wave_sizes: Array[int] = []
+	for _i in total_waves:
+		wave_sizes.append(resolved_wave_size)
+	return wave_sizes
+
+
 func stop() -> void:
 	_stopped = true
+	_waiting_for_enemies_cleared = false
 	if is_instance_valid(_phase_timer):
 		_phase_timer.stop()
 	if is_instance_valid(_wave_timer):
 		_wave_timer.stop()
+	if is_instance_valid(_enemy_clear_poll_timer):
+		_enemy_clear_poll_timer.stop()
 	if is_instance_valid(_overlay_tween):
 		_overlay_tween.kill()
 
@@ -97,6 +125,14 @@ func _ensure_timers() -> void:
 		_wave_timer.one_shot = true
 		_wave_timer.timeout.connect(_on_wave_timer_timeout)
 		add_child(_wave_timer)
+
+	if _enemy_clear_poll_timer == null:
+		_enemy_clear_poll_timer = Timer.new()
+		_enemy_clear_poll_timer.name = "EnemyClearPollTimer"
+		_enemy_clear_poll_timer.one_shot = false
+		_enemy_clear_poll_timer.wait_time = 1.0
+		_enemy_clear_poll_timer.timeout.connect(_on_enemy_clear_poll)
+		add_child(_enemy_clear_poll_timer)
 
 	if _label != null:
 		_label.visible = true
@@ -193,9 +229,39 @@ func _on_phase_timer_timeout() -> void:
 		return
 
 	if _is_night_phase:
-		_start_day_phase()
+		_try_start_day_or_wait()
 	else:
 		_start_night_phase()
+
+
+func _try_start_day_or_wait() -> void:
+	if not _is_night_phase or _stopped:
+		return
+	var living_enemies := get_tree().get_nodes_in_group("enemies")
+	if living_enemies.is_empty():
+		_waiting_for_enemies_cleared = false
+		if is_instance_valid(_enemy_clear_poll_timer):
+			_enemy_clear_poll_timer.stop()
+		_start_day_phase()
+		return
+	# Enemies still alive — wait for them.
+	_waiting_for_enemies_cleared = true
+	_update_label("Night %d  —  Clear the enemies!" % _night_index)
+	if is_instance_valid(_enemy_clear_poll_timer) and _enemy_clear_poll_timer.is_stopped():
+		_enemy_clear_poll_timer.start()
+
+
+func _on_enemy_clear_poll() -> void:
+	if not _waiting_for_enemies_cleared or _stopped or not _is_night_phase:
+		if is_instance_valid(_enemy_clear_poll_timer):
+			_enemy_clear_poll_timer.stop()
+		return
+	var living_enemies := get_tree().get_nodes_in_group("enemies")
+	if living_enemies.is_empty():
+		_waiting_for_enemies_cleared = false
+		if is_instance_valid(_enemy_clear_poll_timer):
+			_enemy_clear_poll_timer.stop()
+		_start_day_phase()
 
 
 func _on_wave_timer_timeout() -> void:
