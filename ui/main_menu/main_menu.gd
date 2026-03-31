@@ -119,6 +119,7 @@ func _on_quit_pressed() -> void:
 
 func _start_new_game() -> void:
 	Audio.play_ui(&"ui_button_click")
+	Audio.stop_music()
 	get_tree().change_scene_to_file("res://levels/main.tscn")
 
 

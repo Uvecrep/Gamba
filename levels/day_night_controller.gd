@@ -175,10 +175,14 @@ func _start_day_phase() -> void:
 	_apply_visual_state(false, false)
 	_update_label("Day")
 	Audio.play_sfx(&"world_day_start", -3.0)
-	Audio.play_music(&"music_day", -8.0)
 	Audio.play_ambience(&"ambience_day", -13.0)
 	day_started.emit(maxi(_night_index + 1, 1))
 	_start_phase_timer(day_duration_seconds)
+	var sfx_length: float = Audio.get_stream_length(&"world_day_start")
+	if sfx_length > 0.0:
+		await get_tree().create_timer(sfx_length).timeout
+	if not _stopped and not _is_night_phase:
+		Audio.play_music(&"music_day", -8.0)
 
 
 func _start_night_phase() -> void:
