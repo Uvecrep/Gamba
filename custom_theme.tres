@@ -1,0 +1,96 @@
+[gd_resource type="Theme" format=3 uid="uid://ltv7nuarv7ll"]
+
+[ext_resource type="Texture2D" uid="uid://bisfwiqd4taje" path="res://tilemap_packed.png" id="1_ch0qm"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ch0qm"]
+texture = ExtResource("1_ch0qm")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+region_rect = Rect2(32, 0, 32, 32)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_q4dgs"]
+load_path = "res://.godot/imported/tilemap_packed.png-7b301e6705a57389d2cd02d385b33920.ctex"
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ti7bp"]
+texture = SubResource("CompressedTexture2D_q4dgs")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+region_rect = Rect2(64, 64, 32, 32)
+modulate_color = Color(0.26, 0.26, 0.26, 1)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_8doij"]
+load_path = "res://.godot/imported/tilemap_packed.png-7b301e6705a57389d2cd02d385b33920.ctex"
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rxd6o"]
+texture = SubResource("CompressedTexture2D_8doij")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+region_rect = Rect2(64, 64, 32, 32)
+modulate_color = Color(0.5686275, 1, 1, 1)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_bvjg5"]
+load_path = "res://.godot/imported/tilemap_packed.png-7b301e6705a57389d2cd02d385b33920.ctex"
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3uauj"]
+texture = SubResource("CompressedTexture2D_bvjg5")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+region_rect = Rect2(64, 64, 32, 32)
+modulate_color = Color(0.72, 0.72, 0.72, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gmoxo"]
+texture = ExtResource("1_ch0qm")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+region_rect = Rect2(64, 64, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_55n7m"]
+texture = ExtResource("1_ch0qm")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+region_rect = Rect2(64, 64, 32, 32)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_vwmmr"]
+load_path = "res://.godot/imported/tilemap_packed.png-7b301e6705a57389d2cd02d385b33920.ctex"
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_aswuo"]
+texture = SubResource("CompressedTexture2D_vwmmr")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+region_rect = Rect2(64, 64, 32, 32)
+modulate_color = Color(0.34, 0.34, 0.34, 1)
+
+[resource]
+AcceptDialog/colors/title_color = Color(0, 0, 0, 1)
+AcceptDialog/colors/title_outline_modulate = Color(0, 0, 0, 1)
+AcceptDialog/styles/panel = SubResource("StyleBoxTexture_ch0qm")
+Button/colors/font_color = Color(0, 0, 0, 1)
+Button/colors/font_focus_color = Color(0, 0, 0, 1)
+Button/colors/font_hover_color = Color(0, 0, 0, 1)
+Button/colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+Button/colors/font_pressed_color = Color(0, 0, 0, 1)
+Button/colors/icon_focus_color = Color(0, 0, 0, 1)
+Button/styles/disabled = SubResource("StyleBoxTexture_ti7bp")
+Button/styles/focus = SubResource("StyleBoxTexture_rxd6o")
+Button/styles/hover = SubResource("StyleBoxTexture_3uauj")
+Button/styles/hover_pressed = SubResource("StyleBoxTexture_gmoxo")
+Button/styles/normal = SubResource("StyleBoxTexture_55n7m")
+Button/styles/pressed = SubResource("StyleBoxTexture_aswuo")
+Label/colors/font_color = Color(0, 0, 0, 1)
+Label/colors/font_outline_color = Color(0, 0, 0, 1)
+Panel/styles/panel = SubResource("StyleBoxTexture_ch0qm")
+PanelContainer/styles/panel = SubResource("StyleBoxTexture_ch0qm")

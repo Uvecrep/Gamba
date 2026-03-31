@@ -1,33 +1,33 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://buahpli86sb1u"]
 
-[ext_resource type="Script" path="res://entities/phone/phone.gd" id="1_qdu2r"]
-[ext_resource type="Script" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
-[ext_resource type="Texture2D" path="res://assets/objects/phone.png" id="2_w5l8d"]
-[ext_resource type="Texture2D" path="res://assets/vfx/entity_shadow.svg" id="3_shadow"]
+[ext_resource type="Script" uid="uid://b05xjmpe2m5rq" path="res://entities/phone/phone.gd" id="1_qdu2r"]
+[ext_resource type="Script" uid="uid://t1h8mquafo7v" path="res://entities/shared/ground_shadow.gd" id="1_shadow_script"]
+[ext_resource type="Texture2D" uid="uid://b2bw5wiwdl7b8" path="res://assets/objects/phone.png" id="2_w5l8d"]
+[ext_resource type="Texture2D" uid="uid://dpphushft12hj" path="res://assets/vfx/entity_shadow.svg" id="3_shadow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xf8k9"]
 size = Vector2(30, 48)
 
-[node name="phone" type="StaticBody2D"]
+[node name="phone" type="StaticBody2D" unique_id=1181586752]
 script = ExtResource("1_qdu2r")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2087329699]
 position = Vector2(0, 16)
 shape = SubResource("RectangleShape2D_xf8k9")
 
-[node name="GroundShadow" type="Sprite2D" parent="."]
+[node name="GroundShadow" type="Sprite2D" parent="." unique_id=1123405810]
 scale = Vector2(0.5, 0.4)
 texture = ExtResource("3_shadow")
 script = ExtResource("1_shadow_script")
 target_sprite_path = NodePath("../Sprite2D")
 y_offset = -4.0
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=472432233]
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_w5l8d")
 
-[node name="InteractPrompt" type="Label" parent="."]
+[node name="InteractPrompt" type="Label" parent="." unique_id=1929701663]
 visible = false
 z_index = 20
 offset_left = -92.0
@@ -37,11 +37,11 @@ offset_bottom = 82.0
 text = "Press E to use phone"
 horizontal_alignment = 1
 
-[node name="DialogLayer" type="CanvasLayer" parent="."]
-visible = false
+[node name="DialogLayer" type="CanvasLayer" parent="." unique_id=1451506623]
 layer = 5
+visible = false
 
-[node name="PhoneDialog" type="PanelContainer" parent="DialogLayer"]
+[node name="PhoneDialog" type="PanelContainer" parent="DialogLayer" unique_id=1533669625]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -52,31 +52,32 @@ offset_top = -92.0
 offset_right = 240.0
 offset_bottom = 92.0
 
-[node name="MarginContainer" type="MarginContainer" parent="DialogLayer/PhoneDialog"]
+[node name="MarginContainer" type="MarginContainer" parent="DialogLayer/PhoneDialog" unique_id=1533417520]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 14
 
-[node name="VBoxContainer" type="VBoxContainer" parent="DialogLayer/PhoneDialog/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogLayer/PhoneDialog/MarginContainer" unique_id=1556292716]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TutorialButton" type="Button" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer"]
+[node name="TutorialButton" type="Button" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer" unique_id=826718350]
 layout_mode = 2
 text = "Tutorial"
 
-[node name="DialogText" type="Label" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer"]
+[node name="DialogText" type="Label" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer" unique_id=1780695971]
 layout_mode = 2
-autowrap_mode = 2
 text = "Calling Enemy Summoner..."
+autowrap_mode = 2
 
-[node name="CloseHint" type="Label" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer"]
+[node name="CloseHint" type="Label" parent="DialogLayer/PhoneDialog/MarginContainer/VBoxContainer" unique_id=542342324]
 layout_mode = 2
 text = "Press E to end call"
 horizontal_alignment = 1
 
-[node name="TutorialDialog" type="AcceptDialog" parent="DialogLayer"]
+[node name="TutorialDialog" type="AcceptDialog" parent="DialogLayer" unique_id=1195400408]
 title = "Tutorial"
-dialog_text = "Survive each night by holding the house and clearing waves.\nBuild up during the day, then prepare for the next night."
+dialog_text = "Survive each night by holding the house and clearing waves.
+Build up during the day, then prepare for the next night."

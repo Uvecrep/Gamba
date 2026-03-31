@@ -34,7 +34,11 @@ window/size/viewport_height=1080
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/script-ide/plugin.cfg")
+enabled=PackedStringArray()
+
+[gui]
+
+theme/custom="uid://ltv7nuarv7ll"
 
 [input]
 
