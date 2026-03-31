@@ -176,9 +176,6 @@ func _on_tutorial_controls_pressed() -> void:
 
 
 func _on_tutorial_summons_pressed() -> void:
-	var hold_hint: String = INPUT_HINT_UTIL.resolve_action_hint(&"summon_command_hold")
-	var follow_hint: String = INPUT_HINT_UTIL.resolve_action_hint(&"summon_command_follow")
-	var auto_hint: String = INPUT_HINT_UTIL.resolve_action_hint(&"summon_command_auto")
 	_show_tutorial_topic(
 		"Summon Commands",
 		"Select summons by holding middle mouse and dragging.\n\nUse 'H'' to toggle Hold, 'F' to command Follow, and 'R' to return selected summons to Auto behavior. Mix these modes to coordinate your defense and adapt to incoming waves.\n\nCheck the Bestiary with 'B' to see tips on maximizing each summons' effectiveness."

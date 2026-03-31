@@ -4,6 +4,7 @@ class_name ShopInteractable
 const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
 const PROXIMITY_PROMPT_UTIL: GDScript = preload("res://scripts/proximity_prompt_util.gd")
 const PLANTABLE_AREA_SCENE: PackedScene = preload("res://entities/plantable_area/plantable_area.tscn")
+const REWARD_DATA_SCRIPT: GDScript = preload("res://entities/lootbox/reward_data.gd")
 
 const CARD_COUNT: int = 3
 const GREED_LOOTBOX_ITEM_ID: StringName = &"lootbox_greed"
@@ -19,9 +20,12 @@ const SAPLING_ITEM_ID: StringName = &"sapling"
 @export var max_saplings_purchasable: int = 4
 @export var card_base_cost: int = 25
 @export var card_cost_growth_per_purchase: int = 12
+@export var card_cost_growth_multiplier: float = 0.5
+@export var upgrade_cost_multiplier: float = 0.6666667
 @export var weight_upgrade_multiplier: float = 1.18
 @export var summon_damage_bonus: float = 0.18
 @export var summon_health_bonus: float = 0.22
+@export var summon_move_speed_bonus: float = 0.16
 @export var planter_adjacent_spacing: float = 192.0
 @export var max_total_planters: int = 6
 
@@ -504,7 +508,14 @@ func _reroll_offers(day_number: int = -1) -> void:
 	else:
 		_last_offer_day = _get_current_day_number()
 
-	var effect_ids: Array[StringName] = [&"weight_all", &"summon_damage", &"summon_health"]
+	var effect_ids: Array[StringName] = [
+		&"weight_rare",
+		&"weight_epic",
+		&"weight_legendary",
+		&"summon_damage",
+		&"summon_health",
+		&"summon_move_speed",
+	]
 	effect_ids.shuffle()
 
 	for index: int in range(CARD_COUNT):
@@ -529,23 +540,31 @@ func _pick_random_lootbox_id() -> StringName:
 	return lootbox_ids[randi_range(0, lootbox_ids.size() - 1)]
 
 func _build_offer(effect_id: StringName, target_lootbox_id: StringName, card_index: int) -> Dictionary:
-	var scaled_cost: int = card_base_cost + (_shop_purchase_count * card_cost_growth_per_purchase) + (card_index * 8)
+	var growth_cost: float = float(_shop_purchase_count * card_cost_growth_per_purchase) * maxf(card_cost_growth_multiplier, 0.0)
+	var base_cost: float = float(card_base_cost) + growth_cost + float(card_index * 8)
 	var lootbox_name: String = _get_lootbox_display_name(target_lootbox_id)
+	var effect_cost: float = base_cost
+
+	if effect_id == &"summon_damage" or effect_id == &"summon_health" or effect_id == &"summon_move_speed":
+		effect_cost += 6.0
+
+	var final_cost: int = maxi(int(round(effect_cost * maxf(upgrade_cost_multiplier, 0.0))), 1)
 
 	match effect_id:
-		&"weight_all":
+		&"weight_rare", &"weight_epic", &"weight_legendary":
+			var rarity_label: String = _get_weight_target_rarity_label(effect_id)
 			return {
 				"effect_id": effect_id,
 				"target_lootbox_id": target_lootbox_id,
-				"cost": scaled_cost,
-				"title": "%s Odds Boost" % lootbox_name,
-				"description": "Increase all %s drop weights by %d%%." % [lootbox_name, int((weight_upgrade_multiplier - 1.0) * 100.0)],
+				"cost": final_cost,
+				"title": "%s %s Odds Boost" % [lootbox_name, rarity_label],
+				"description": "Increase %s drop weights in %s by %d%%." % [rarity_label, lootbox_name, int((weight_upgrade_multiplier - 1.0) * 100.0)],
 			}
 		&"summon_damage":
 			return {
 				"effect_id": effect_id,
 				"target_lootbox_id": target_lootbox_id,
-				"cost": scaled_cost + 6,
+				"cost": final_cost,
 				"title": "%s Damage Forge" % lootbox_name,
 				"description": "Summons from %s deal +%d%% damage." % [lootbox_name, int(summon_damage_bonus * 100.0)],
 			}
@@ -553,18 +572,72 @@ func _build_offer(effect_id: StringName, target_lootbox_id: StringName, card_ind
 			return {
 				"effect_id": effect_id,
 				"target_lootbox_id": target_lootbox_id,
-				"cost": scaled_cost + 6,
+				"cost": final_cost,
 				"title": "%s Vitality Seal" % lootbox_name,
 				"description": "Summons from %s gain +%d%% max health." % [lootbox_name, int(summon_health_bonus * 100.0)],
+			}
+		&"summon_move_speed":
+			return {
+				"effect_id": effect_id,
+				"target_lootbox_id": target_lootbox_id,
+				"cost": final_cost,
+				"title": "%s Rapid Deployment" % lootbox_name,
+				"description": "Summons from %s gain +%d%% move speed." % [lootbox_name, int(summon_move_speed_bonus * 100.0)],
 			}
 		_:
 			return {
 				"effect_id": effect_id,
 				"target_lootbox_id": target_lootbox_id,
-				"cost": scaled_cost,
+				"cost": final_cost,
 				"title": "Unknown Upgrade",
 				"description": "No description.",
 			}
+
+func _get_weight_target_rarity_label(effect_id: StringName) -> String:
+	match effect_id:
+		&"weight_rare":
+			return "Rare"
+		&"weight_epic":
+			return "Epic"
+		&"weight_legendary":
+			return "Legendary"
+		_:
+			return "Unknown"
+
+func _get_weight_target_rarity_value(effect_id: StringName) -> int:
+	match effect_id:
+		&"weight_rare":
+			return REWARD_DATA_SCRIPT.Rarity.RARE
+		&"weight_epic":
+			return REWARD_DATA_SCRIPT.Rarity.EPIC
+		&"weight_legendary":
+			return REWARD_DATA_SCRIPT.Rarity.LEGENDARY
+		_:
+			return -1
+
+func _resolve_entry_base_rarity(entry: LootEntry) -> int:
+	if entry == null:
+		return REWARD_DATA_SCRIPT.Rarity.COMMON
+
+	if entry.rarity_override >= 0:
+		return clampi(entry.rarity_override, REWARD_DATA_SCRIPT.Rarity.COMMON, REWARD_DATA_SCRIPT.Rarity.LEGENDARY)
+
+	var configured_data: RewardData = entry.reward_data as RewardData
+	if configured_data != null:
+		var base_rarity_value: int = int(configured_data.base_rarity)
+		if base_rarity_value == REWARD_DATA_SCRIPT.Rarity.COMMON and int(configured_data.rarity) > REWARD_DATA_SCRIPT.Rarity.COMMON:
+			base_rarity_value = int(configured_data.rarity)
+		return clampi(base_rarity_value, REWARD_DATA_SCRIPT.Rarity.COMMON, REWARD_DATA_SCRIPT.Rarity.LEGENDARY)
+
+	if entry.weight <= 0.2:
+		return REWARD_DATA_SCRIPT.Rarity.LEGENDARY
+	if entry.weight <= 0.45:
+		return REWARD_DATA_SCRIPT.Rarity.EPIC
+	if entry.weight <= 0.75:
+		return REWARD_DATA_SCRIPT.Rarity.RARE
+	if entry.weight < 1.0:
+		return REWARD_DATA_SCRIPT.Rarity.UNCOMMON
+	return REWARD_DATA_SCRIPT.Rarity.COMMON
 
 func _get_lootbox_display_name(lootbox_id: StringName) -> String:
 	if LootboxGlobals != null and LootboxGlobals.lootboxes.has(lootbox_id):
@@ -590,10 +663,16 @@ func _apply_offer(offer: Dictionary) -> bool:
 		return false
 
 	match effect_id:
-		&"weight_all":
+		&"weight_rare", &"weight_epic", &"weight_legendary":
+			var target_rarity: int = _get_weight_target_rarity_value(effect_id)
+			if target_rarity < 0:
+				return false
+
 			var modified_weights: int = 0
 			for entry in target_lootbox.lootTable:
 				if entry == null:
+					continue
+				if _resolve_entry_base_rarity(entry) != target_rarity:
 					continue
 				entry.weight = maxf(entry.weight * weight_upgrade_multiplier, 0.01)
 				modified_weights += 1
@@ -618,6 +697,16 @@ func _apply_offer(offer: Dictionary) -> bool:
 					summon_outcome.max_health_multiplier += summon_health_bonus
 					modified_health_entries += 1
 			return modified_health_entries > 0
+		&"summon_move_speed":
+			var modified_move_speed_entries: int = 0
+			for entry in target_lootbox.lootTable:
+				if entry == null:
+					continue
+				if entry.outcome is LootboxOutcomeSpawnSummon:
+					var summon_outcome: LootboxOutcomeSpawnSummon = entry.outcome as LootboxOutcomeSpawnSummon
+					summon_outcome.move_speed_multiplier += summon_move_speed_bonus
+					modified_move_speed_entries += 1
+			return modified_move_speed_entries > 0
 
 	return false
 

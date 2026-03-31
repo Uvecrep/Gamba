@@ -6,6 +6,7 @@ signal inventory_became_full()
 signal selected_index_changed(new_index : int)
 signal slot_contents_changed(index : int, item_id : StringName, count : int)
 signal gold_count_changed(current: int, previous: int)
+@warning_ignore("unused_signal")
 signal blood_count_changed(current: int, previous: int)
 
 const GOLD_ITEM_IDS: Array[StringName] = [&"gold_coin", &"gold"]
