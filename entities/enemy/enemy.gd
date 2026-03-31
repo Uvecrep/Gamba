@@ -821,9 +821,14 @@ func _die() -> void:
 	if enemy_archetype == ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
 		_spawn_split_goblins()
 	# should feed bloodlust resource
-	var blood_confluence: BloodConfluence = _find_closest_target_in_group(&"blood_confluence") as BloodConfluence
-	if is_instance_valid(blood_confluence):
-		blood_confluence._set_blood(blood_confluence.blood + 2) # TODO: BALANCE TIME BABY, leaving a note so this is searchable
+	var player_target: Node2D = _find_closest_target_in_group(&"players")
+	if player_target == null: return
+	var player_ref: Player = player_target as Player
+	if player_ref == null: return
+	
+	var previous_blood = player_ref.player_inventory.blood_count
+	player_ref.player_inventory.blood_count += 2
+	player_ref.player_inventory.blood_count_changed.emit(player_ref.player_inventory.blood_count, previous_blood)
 
 	queue_free()
 

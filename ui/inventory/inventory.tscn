@@ -4,8 +4,9 @@
 [ext_resource type="Texture2D" uid="uid://dh1jj6uvf68bk" path="res://icon.png" id="2_qrt2q"]
 [ext_resource type="PackedScene" uid="uid://xtfj7565v6v4" path="res://ui/inventory/inventory_slot.tscn" id="2_s83yu"]
 [ext_resource type="Texture2D" uid="uid://t4b160m3svwb" path="res://assets/objects/gold.png" id="3_gold"]
+[ext_resource type="Texture2D" uid="uid://cr76nc2fivill" path="res://assets/characters/enemy.png" id="5_ucnnj"]
 
-[node name="Inventory" type="Control" unique_id=1753442306 node_paths=PackedStringArray("slot_0", "slot_1", "slot_2", "slot_3", "slot_4", "gold_count_label")]
+[node name="Inventory" type="Control" unique_id=1753442306 node_paths=PackedStringArray("slot_0", "slot_1", "slot_2", "slot_3", "slot_4", "gold_count_label", "blood_count_label")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,6 +21,7 @@ slot_2 = NodePath("MarginContainer/PanelContainer/InventorySlot_2")
 slot_3 = NodePath("MarginContainer/PanelContainer/InventorySlot_3")
 slot_4 = NodePath("MarginContainer/PanelContainer/InventorySlot_4")
 gold_count_label = NodePath("MarginContainer/PanelContainer/GoldTrackerPanel/GoldCountLabel")
+blood_count_label = NodePath("MarginContainer/PanelContainer/BloodTrackerPanel/BloodCountLabel")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=264400365]
 layout_mode = 1
@@ -85,6 +87,40 @@ text = "Gold"
 horizontal_alignment = 1
 
 [node name="GoldCountLabel" type="Label" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=804720975]
+layout_mode = 0
+offset_left = 59.0
+offset_top = 32.0
+offset_right = 99.0
+offset_bottom = 60.0
+text = "0"
+horizontal_alignment = 1
+
+[node name="BloodTrackerPanel" type="Panel" parent="MarginContainer/PanelContainer" unique_id=2098556748]
+layout_mode = 0
+offset_left = 1123.0
+offset_top = 67.73
+offset_right = 1234.0
+offset_bottom = 130.72992
+
+[node name="BloodIcon" type="TextureRect" parent="MarginContainer/PanelContainer/BloodTrackerPanel" unique_id=586598384]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 54.0
+offset_bottom = 54.0
+texture = ExtResource("5_ucnnj")
+expand_mode = 1
+
+[node name="BloodLabel" type="Label" parent="MarginContainer/PanelContainer/BloodTrackerPanel" unique_id=1762974613]
+layout_mode = 0
+offset_left = 55.0
+offset_top = 9.0
+offset_right = 101.0
+offset_bottom = 37.0
+text = "Blood"
+horizontal_alignment = 1
+
+[node name="BloodCountLabel" type="Label" parent="MarginContainer/PanelContainer/BloodTrackerPanel" unique_id=2123573882]
 layout_mode = 0
 offset_left = 59.0
 offset_top = 32.0

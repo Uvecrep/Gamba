@@ -6,12 +6,14 @@ signal inventory_became_full()
 signal selected_index_changed(new_index : int)
 signal slot_contents_changed(index : int, item_id : StringName, count : int)
 signal gold_count_changed(current: int, previous: int)
+signal blood_count_changed(current: int, previous: int)
 
 const GOLD_ITEM_IDS: Array[StringName] = [&"gold_coin", &"gold"]
 
 var selected_index : int = 2
 var num_slots : int = 5 # TODO implement changing number of slots? Static rn | Ian: Static seems fine, honestly 5 is a really comfortable number with how many items we have, if we started adjusting more we'd probably need to add chests and stuff too
-var gold_count: int = 0
+var gold_count: int
+var blood_count: int = 10
 
 var inventory_items : Array[StringName] = []
 var inventory_item_counts : Array[int] = [] # A slot where count is zero is treated as empty

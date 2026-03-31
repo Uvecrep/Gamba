@@ -1,6 +1,7 @@
 extends HarvestNode
 class_name BloodConfluence
 
+@export var player_ref: Player
 
 @export var _lootbox_sprite: Sprite2D
 @export var _blood_count_label: Label
@@ -8,7 +9,7 @@ class_name BloodConfluence
 
 @export var lootbox_cost_in_blood: int = 5
 
-var blood: float:
+var blood: float: # UNUSED NOW
 	get:
 		return float(get_harvest_count())
 	set(value):
@@ -32,11 +33,16 @@ func _ready() -> void:
 	_update_visuals()
 
 func try_purchase_lootbox(_player : Player) -> bool:
-	if not can_harvest():
+	if _player.player_inventory.blood_count < lootbox_cost_in_blood:
 		return false
 
 	_spawn_lootbox_pickups(1)
-	_set_harvest_count(get_harvest_count() - lootbox_cost_in_blood)
+	
+	var previous_blood = _player.player_inventory.blood_count
+	_player.player_inventory.blood_count -= lootbox_cost_in_blood
+	_player.player_inventory.blood_count_changed.emit(_player.player_inventory.blood_count, previous_blood)
+	
+	_update_visuals()
 	return true
 
 func can_interact_with_player(player: Node2D) -> bool:
@@ -48,9 +54,6 @@ func can_interact_with_player(player: Node2D) -> bool:
 		interact_range = maxf(interact_range, float(player.get("harvest_range")))
 
 	return global_position.distance_squared_to(player.global_position) <= interact_range * interact_range
-
-func can_harvest() -> bool:
-	return get_harvest_count() >= lootbox_cost_in_blood
 
 func harvest_fruit(_amount: int = 1) -> int:
 	if not can_harvest():
@@ -67,19 +70,20 @@ func _on_harvest_count_changed(_previous_count: int, _current_count: int) -> voi
 	_update_visuals()
 
 func _update_visuals() -> void:
+	
 	if _lootbox_sprite != null:
-		_lootbox_sprite.visible = can_harvest()
+		_lootbox_sprite.visible = player_ref.player_inventory.blood_count >= lootbox_cost_in_blood
 
 	if _blood_count_label != null:
 		_blood_count_label.text = "blood: " + str(get_harvest_count())
 	if _box_cost_label != null:
-		_box_cost_label.text = "box cost: " + str(lootbox_cost_in_blood)
+		_box_cost_label.text = "box cost in blood: " + str(lootbox_cost_in_blood)
 
 func _update_harvest_prompt() -> void:
 	if _harvest_prompt_label == null:
 		return
 
-	var should_show: bool = can_harvest() and _is_any_player_in_harvest_range()
+	var should_show: bool = player_ref.player_inventory.blood_count >= lootbox_cost_in_blood and _is_any_player_in_harvest_range()
 	_harvest_prompt_label.visible = should_show
 	if not should_show:
 		return
