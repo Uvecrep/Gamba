@@ -14,7 +14,7 @@
 [ext_resource type="Script" uid="uid://b7fjvdi8rvejq" path="res://scripts/fps_counter.gd" id="12_fps"]
 [ext_resource type="PackedScene" uid="uid://jyurkxlawu41" path="res://entities/pickups/pickup.tscn" id="13_1fput"]
 [ext_resource type="PackedScene" uid="uid://bm5cvj0m3deey" path="res://ui/lootbox_preview/lootbox_preview_ui.tscn" id="14_21ko3"]
-[ext_resource type="PackedScene" path="res://entities/boulder/boulder.tscn" id="14_boulder"]
+[ext_resource type="PackedScene" uid="uid://t0mta2tnljhf" path="res://entities/boulder/boulder.tscn" id="14_boulder"]
 [ext_resource type="PackedScene" uid="uid://bdokkhkbr35d2" path="res://entities/crystal/blood_confluence.tscn" id="15_4fc0e"]
 [ext_resource type="PackedScene" uid="uid://be8r57shygwgm" path="res://entities/plantable_area/plantable_area.tscn" id="15_s07ge"]
 [ext_resource type="PackedScene" uid="uid://cr76phtlmlcqt" path="res://ui/bestiary/bestiary_panel.tscn" id="16_bestiary"]

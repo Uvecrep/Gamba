@@ -30,7 +30,7 @@ const AUDIO_SETTINGS_SECTION: String = "audio"
 const MAIN_MENU_SETTINGS_SECTION: String = "main_menu"
 const GAMBLE_MODE_KEY: String = "gamble_mode"
 
-const GAMBLE_BUTTON_TEXT: String = "Gamble"
+const GAMBLE_BUTTON_TEXT: String = "I'm Feeling Lucky"
 const GAMBLE_SETTINGS_LABEL_TEXT: String = "Gamble Mode"
 const ROULETTE_BASE_TICK_DELAY: float = 0.05
 const ROULETTE_END_DELAY_STEP: float = 0.02

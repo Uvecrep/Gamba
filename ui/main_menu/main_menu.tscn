@@ -1,8 +1,9 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://c086nu032ffsy"]
 
-[ext_resource type="Script" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://cwrf65whm1pv6" path="res://ui/main_menu/main_menu.gd" id="1_menu"]
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=941868204]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -10,16 +11,16 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
 
-[node name="Background" type="ColorRect" parent="."]
-anchors_preset = 15
+[node name="Background" type="ColorRect" parent="." unique_id=1753444037]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.08, 0.10, 0.16, 1.0)
+color = Color(0.08, 0.1, 0.16, 1)
 
-[node name="MainMenuPanel" type="PanelContainer" parent="."]
-anchors_preset = 8
+[node name="MainMenuPanel" type="PanelContainer" parent="." unique_id=1165103872]
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -31,42 +32,42 @@ offset_bottom = 130.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="MainMenuPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="MainMenuPanel" unique_id=2046757486]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 16
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MainMenuPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MainMenuPanel/MarginContainer" unique_id=265510391]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="MainMenuPanel/MarginContainer/VBoxContainer" unique_id=746151054]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 text = "Gamba"
 horizontal_alignment = 1
 
-[node name="PlayButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
+[node name="PlayButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer" unique_id=472088941]
 layout_mode = 2
 text = "New Game"
 
-[node name="SettingsButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
+[node name="SettingsButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer" unique_id=853918120]
 layout_mode = 2
 text = "Settings"
 
-[node name="CreditsButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
+[node name="CreditsButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer" unique_id=1617078113]
 layout_mode = 2
 text = "Credits"
 
-[node name="QuitButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer"]
+[node name="QuitButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer" unique_id=2002650318]
 layout_mode = 2
 text = "Quit"
 
-[node name="SettingsPanel" type="PanelContainer" parent="."]
+[node name="SettingsPanel" type="PanelContainer" parent="." unique_id=1447067417]
 visible = false
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -78,30 +79,30 @@ offset_bottom = 170.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="SettingsPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="SettingsPanel" unique_id=578732259]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 16
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel/MarginContainer" unique_id=973535459]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="SettingsPanel/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="SettingsPanel/MarginContainer/VBoxContainer" unique_id=610492165]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Settings"
 horizontal_alignment = 1
 
-[node name="BackButton" type="Button" parent="SettingsPanel/MarginContainer/VBoxContainer"]
+[node name="BackButton" type="Button" parent="SettingsPanel/MarginContainer/VBoxContainer" unique_id=631928340]
 layout_mode = 2
 text = "Back"
 
-[node name="CreditsPanel" type="PanelContainer" parent="."]
+[node name="CreditsPanel" type="PanelContainer" parent="." unique_id=2120370455]
 visible = false
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -113,24 +114,24 @@ offset_bottom = 120.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CreditsPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="CreditsPanel" unique_id=703396620]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 16
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CreditsPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CreditsPanel/MarginContainer" unique_id=1449940640]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="CreditsPanel/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="CreditsPanel/MarginContainer/VBoxContainer" unique_id=1454752118]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Credits"
 horizontal_alignment = 1
 
-[node name="NamesLabel" type="Label" parent="CreditsPanel/MarginContainer/VBoxContainer"]
+[node name="NamesLabel" type="Label" parent="CreditsPanel/MarginContainer/VBoxContainer" unique_id=2079295127]
 layout_mode = 2
 text = "Ian P.
 Kyle N.
@@ -138,6 +139,6 @@ David D.
 Vasa L."
 horizontal_alignment = 1
 
-[node name="BackButton" type="Button" parent="CreditsPanel/MarginContainer/VBoxContainer"]
+[node name="BackButton" type="Button" parent="CreditsPanel/MarginContainer/VBoxContainer" unique_id=834311978]
 layout_mode = 2
 text = "Back"
