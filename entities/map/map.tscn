@@ -39,10 +39,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -360.0
-offset_top = -284.5
-offset_right = 360.0
-offset_bottom = 280.5
+offset_left = -430.0
+offset_top = -380.0
+offset_right = 430.0
+offset_bottom = 380.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -64,17 +64,12 @@ text = "World Map"
 horizontal_alignment = 1
 
 [node name="WorldMinimap" type="Control" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=1104800583]
-custom_minimum_size = Vector2(640, 320)
+custom_minimum_size = Vector2(780, 560)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 1
 script = ExtResource("3_tsfpf")
-
-[node name="InstructionLabel" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=1848920314]
-layout_mode = 2
-text = "Left-click summons to select. Drag with left-click to box-select. Shift/Ctrl adds to selection. Right-click map to move selected. Use Hold/Follow/Auto to command selection."
-autowrap_mode = 2
 
 [node name="SelectionLabel" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=798396771]
 layout_mode = 2
@@ -82,39 +77,50 @@ text = "Selected summons: 0 | Hold Toggled: 0 | Auto: 0"
 
 [node name="StatusLabel" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=1849203119]
 layout_mode = 2
-text = "Left-click or drag to select. Right-click the map to move selected summons."
+text = "LMB select/drag | Shift/Ctrl add | RMB move"
 autowrap_mode = 2
 
-[node name="ButtonRow" type="HBoxContainer" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=101560302]
+[node name="ButtonStack" type="VBoxContainer" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=101560302]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HoldSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=359282170]
+[node name="TopButtonRow" type="HBoxContainer" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack" unique_id=406101351]
 layout_mode = 2
-size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="HoldSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/TopButtonRow" unique_id=359282170]
+layout_mode = 2
 text = "Toggle Hold"
 
-[node name="FollowSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=873920145]
+[node name="FollowSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/TopButtonRow" unique_id=873920145]
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Follow"
 
-[node name="AutoSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=892021346]
+[node name="AutoSelectedButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/TopButtonRow" unique_id=892021346]
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Auto"
 
-[node name="ClearSelectionButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=585255620]
+[node name="BottomButtonRow" type="HBoxContainer" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack" unique_id=674216887]
 layout_mode = 2
-size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="ClearSelectionButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/BottomButtonRow" unique_id=585255620]
+layout_mode = 2
 text = "Clear Selection"
 
-[node name="CloseButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonRow" unique_id=1384501708]
+[node name="HelpButton" type="Button" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer/ButtonStack/BottomButtonRow" unique_id=833905261]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Close"
+text = "Help"
 
 [node name="CloseHint" type="Label" parent="MapLayer/MapWindow/MarginContainer/VBoxContainer" unique_id=213420270]
 layout_mode = 2
 text = "Press E to close map"
 horizontal_alignment = 1
+
+[node name="MapHelpDialog" type="AcceptDialog" parent="MapLayer" unique_id=803638655]
+visible = false
+title = "Map Controls"
+dialog_text = "Left-click summon: Select one\nLeft-click drag: Box select\nShift/Ctrl + left-click: Add to selection\nRight-click map: Move selected summons\n\nButtons:\nToggle Hold: Toggle hold position for selected summons\nFollow: Make selected summons follow players\nAuto: Return selected summons to auto behavior\nClear Selection: Deselect all summons"
+ok_button_text = "Close"
