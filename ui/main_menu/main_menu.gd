@@ -356,7 +356,7 @@ func _setup_gamble_mode_controls() -> void:
 		_gamble_button.visible = false
 		_gamble_button.pressed.connect(_on_gamble_pressed)
 		_main_menu_vbox.add_child(_gamble_button)
-		_main_menu_vbox.move_child(_gamble_button, 1)
+		_main_menu_vbox.move_child(_gamble_button, 0)
 
 	if _settings_vbox != null:
 		var row := HBoxContainer.new()
