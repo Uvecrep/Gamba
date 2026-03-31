@@ -181,6 +181,18 @@ grow_horizontal = 0
 text = "Day"
 horizontal_alignment = 2
 
+[node name="PhoneObjectiveLabel" type="Label" parent="UI" unique_id=181818181]
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 16.0
+offset_right = 300.0
+offset_bottom = 46.0
+grow_horizontal = 2
+text = "Objective: Go to the phone and press E for tutorial + wave intel"
+horizontal_alignment = 1
+
 [node name="LootboxPreviewUi" parent="UI" unique_id=64380995 instance=ExtResource("14_21ko3")]
 visible = false
 

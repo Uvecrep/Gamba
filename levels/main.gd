@@ -1,6 +1,8 @@
 extends Node2D
 class_name MainScene
 
+const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
+
 # Navigation config — serialized here for scene backwards-compat; passed to NavigationBuildService.
 @export var navigation_obstacle_padding: float = 10.0
 @export var navigation_rebuild_delay_seconds: float = 0.15
@@ -37,10 +39,13 @@ class_name MainScene
 @onready var _quit_button: Button = get_node_or_null("GameOverLayer/GameOverPanel/MarginContainer/VBoxContainer/QuitButton") as Button
 @onready var _day_night_label: Label = get_node_or_null("UI/DayNightLabel") as Label
 @onready var _day_night_overlay: ColorRect = get_node_or_null("UI/DayNightOverlay") as ColorRect
+@onready var _phone: PhoneInteractable = get_node_or_null("phone") as PhoneInteractable
+@onready var _phone_objective_label: Label = get_node_or_null("UI/PhoneObjectiveLabel") as Label
 
 var _day_night_controller: DayNightController
 var _nav_build_service: NavigationBuildService
 var _game_over_controller: GameOverController
+var _interact_hint_text: String = "E"
 
 
 func _ready() -> void:
@@ -109,6 +114,9 @@ func _ready() -> void:
 	if is_instance_valid(_house) and _house.has_signal("destroyed"):
 		_house.connect("destroyed", _game_over_controller.on_house_destroyed)
 
+	_interact_hint_text = INPUT_HINT_UTIL.resolve_action_hint(&"interact")
+	_setup_phone_objective()
+
 
 func _exit_tree() -> void:
 	pass
@@ -118,6 +126,25 @@ func is_night_time() -> bool:
 	if _day_night_controller == null:
 		return false
 	return _day_night_controller.is_night_time()
+
+
+func _setup_phone_objective() -> void:
+	if _phone_objective_label == null:
+		return
+
+	_phone_objective_label.text = "Objective: Go to the phone and press %s for tutorial + wave intel" % _interact_hint_text
+	_phone_objective_label.visible = true
+
+	if _phone != null and _phone.has_signal("first_phone_interaction_completed"):
+		if _phone.has_completed_intro_interaction():
+			_phone_objective_label.visible = false
+		elif not _phone.first_phone_interaction_completed.is_connected(_on_first_phone_interaction_completed):
+			_phone.first_phone_interaction_completed.connect(_on_first_phone_interaction_completed)
+
+
+func _on_first_phone_interaction_completed() -> void:
+	if _phone_objective_label != null:
+		_phone_objective_label.visible = false
 
 
 func _randomize_ground_tile_variations() -> void:
