@@ -124,7 +124,7 @@ func _build_wave_report_text() -> String:
 
 	# Add time remaining
 	var time_remaining: float = day_night_controller.get_time_remaining_seconds()
-	var minutes: int = int(time_remaining) / 60
+	var minutes: int = int(time_remaining / 60.0)
 	var seconds: int = int(time_remaining) % 60
 	
 	if day_night_controller.is_night_time():

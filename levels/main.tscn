@@ -384,10 +384,10 @@ item_id = &"sapling"
 position = Vector2(-480, 672)
 
 [node name="PlantableArea" parent="." unique_id=1816183555 instance=ExtResource("15_s07ge")]
-position = Vector2(928, -224)
+position = Vector2(600, -224)
 
 [node name="PlantableArea2" parent="." unique_id=1890768339 instance=ExtResource("15_s07ge")]
-position = Vector2(-864, -224)
+position = Vector2(-600, -224)
 
 [node name="EnemyWaveSpawnPointWest" parent="." unique_id=52541839 instance=ExtResource("20_fd7wu")]
 position = Vector2(-5536, -32)
@@ -401,15 +401,3 @@ position = Vector2(32, -6752)
 [node name="Pickup4" parent="." unique_id=971572308 instance=ExtResource("13_1fput")]
 position = Vector2(928, -32)
 item_id = &"sapling"
-
-[node name="PlantableArea3" parent="." unique_id=1878166150 instance=ExtResource("15_s07ge")]
-position = Vector2(-2080, 160)
-
-[node name="PlantableArea4" parent="." unique_id=1011748721 instance=ExtResource("15_s07ge")]
-position = Vector2(224, -1312)
-
-[node name="PlantableArea5" parent="." unique_id=2060978970 instance=ExtResource("15_s07ge")]
-position = Vector2(-160, -1312)
-
-[node name="PlantableArea6" parent="." unique_id=1484901381 instance=ExtResource("15_s07ge")]
-position = Vector2(2080, 160)

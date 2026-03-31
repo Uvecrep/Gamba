@@ -22,7 +22,7 @@ const SAPLING_ITEM_ID: StringName = &"sapling"
 @export var weight_upgrade_multiplier: float = 1.18
 @export var summon_damage_bonus: float = 0.18
 @export var summon_health_bonus: float = 0.22
-@export var planter_adjacent_spacing: float = 128.0
+@export var planter_adjacent_spacing: float = 192.0
 @export var max_total_planters: int = 6
 
 var _action_hint_text: String = "E"
