@@ -46,7 +46,7 @@ theme_override_constants/separation = 8
 [node name="TitleLabel" type="Label" parent="MainMenuPanel/MarginContainer/VBoxContainer" unique_id=746151054]
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
-text = "Gamba"
+text = "Lootbox Legends"
 horizontal_alignment = 1
 
 [node name="PlayButton" type="Button" parent="MainMenuPanel/MarginContainer/VBoxContainer" unique_id=472088941]
