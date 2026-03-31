@@ -54,7 +54,7 @@ func _spawn_lootbox_pickups(amount: int) -> void:
 		new_box.global_position = global_position
 		new_box.apply_central_impulse(pickup_impulse)
 
-func _set_pickup_position_before_spawn(pickup: Pickup, pickup_parent: Node, world_position: Vector2) -> void:
+func _set_pickup_position_before_spawn(pickup: Pickup, _pickup_parent: Node, world_position: Vector2) -> void:
 
 	pickup.position = world_position
 
