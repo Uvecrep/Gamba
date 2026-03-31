@@ -6,6 +6,12 @@
 [ext_resource type="Texture2D" uid="uid://t4b160m3svwb" path="res://assets/objects/gold.png" id="3_gold"]
 [ext_resource type="Texture2D" uid="uid://cr76nc2fivill" path="res://assets/characters/enemy.png" id="5_ucnnj"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ucnnj"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+
 [node name="Inventory" type="Control" unique_id=1753442306 node_paths=PackedStringArray("slot_0", "slot_1", "slot_2", "slot_3", "slot_4", "gold_count_label", "blood_count_label")]
 layout_mode = 3
 anchors_preset = 15
@@ -38,6 +44,7 @@ theme_override_constants/margin_right = 400
 
 [node name="PanelContainer" type="Panel" parent="MarginContainer" unique_id=554923517]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_ucnnj")
 
 [node name="InventorySlot_0" parent="MarginContainer/PanelContainer" unique_id=1493361272 instance=ExtResource("2_s83yu")]
 layout_mode = 1
@@ -69,8 +76,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -63.0
-offset_right = 111.0
+offset_left = -120.0
+offset_top = -107.91
+offset_right = -9.0
+offset_bottom = -44.910065
 grow_vertical = 0
 
 [node name="GoldIcon" type="TextureRect" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=707810599]
@@ -102,10 +111,10 @@ horizontal_alignment = 1
 
 [node name="BloodTrackerPanel" type="Panel" parent="MarginContainer/PanelContainer" unique_id=2098556748]
 layout_mode = 0
-offset_left = 1123.0
-offset_top = 67.73
-offset_right = 1234.0
-offset_bottom = 130.72992
+offset_left = 1000.0
+offset_top = 19.595
+offset_right = 1111.0
+offset_bottom = 82.5949
 
 [node name="BloodIcon" type="TextureRect" parent="MarginContainer/PanelContainer/BloodTrackerPanel" unique_id=586598384]
 layout_mode = 0
