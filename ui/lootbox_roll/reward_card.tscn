@@ -1,23 +1,50 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b06xecyry8miv"]
 
-[ext_resource type="Script" path="res://ui/lootbox_roll/reward_card.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://b7j1hi8ydtfql" path="res://ui/lootbox_roll/reward_card.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bisfwiqd4taje" path="res://tilemap_packed.png" id="2_clmv8"]
 
-[node name="RewardCard" type="Control"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sovjd"]
+texture = ExtResource("2_clmv8")
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 10.0
+texture_margin_bottom = 10.0
+region_rect = Rect2(288, 0, 32, 32)
+
+[node name="RewardCard" type="Control" unique_id=1125971569]
 custom_minimum_size = Vector2(102, 120)
+layout_mode = 3
+anchors_preset = 0
 offset_right = 102.0
 offset_bottom = 120.0
 mouse_filter = 2
 script = ExtResource("1_script")
 
-[node name="Panel" type="Panel" parent="."]
-anchors_preset = 15
+[node name="Panel" type="Panel" parent="." unique_id=1897875367]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Panel"]
-anchors_preset = 15
+[node name="ColorRect" type="ColorRect" parent="Panel" unique_id=555145029]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 75.0
+offset_right = 90.0
+offset_bottom = 109.0
+color = Color(0.43199998, 0.4584, 0.48, 1)
+
+[node name="Panel" type="Panel" parent="Panel" unique_id=727796648]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 70.54
+offset_right = 94.0
+offset_bottom = 112.54
+theme_override_styles/panel = SubResource("StyleBoxTexture_sovjd")
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel" unique_id=1817539749]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -27,22 +54,18 @@ theme_override_constants/margin_top = 9
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer" unique_id=1760223001]
+layout_mode = 2
 theme_override_constants/separation = 3
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="Panel/MarginContainer/VBoxContainer"]
+[node name="Icon" type="TextureRect" parent="Panel/MarginContainer/VBoxContainer" unique_id=2012705082]
 custom_minimum_size = Vector2(0, 62)
 layout_mode = 2
-stretch_mode = 5
 expand_mode = 1
+stretch_mode = 5
 
-[node name="NameLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+[node name="NameLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer" unique_id=803246982]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 text = "Reward"
@@ -50,18 +73,17 @@ horizontal_alignment = 1
 autowrap_mode = 2
 max_lines_visible = 2
 
-[node name="RarityLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+[node name="RarityLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer" unique_id=1846604051]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 text = "Common"
 horizontal_alignment = 1
 
-[node name="Flash" type="ColorRect" parent="."]
+[node name="Flash" type="ColorRect" parent="." unique_id=1202797594]
 visible = false
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.45)

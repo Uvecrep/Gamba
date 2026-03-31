@@ -7,8 +7,8 @@ signal first_phone_interaction_completed
 @export var interact_range: float = 96.0
 @export_multiline var tutorial_text: String = "Survive each night by holding the house and clearing waves.\nBuild up during the day, then prepare for the next night."
 @export var prompt_refresh_interval: float = 0.2
-@export var indicator_bob_amplitude: float = 6.0
-@export var indicator_bob_speed: float = 2.4
+@export var indicator_bob_amplitude: float = 9.0
+@export var indicator_bob_speed: float = 2.8
 @export var reopen_block_seconds: float = 0.18
 const INPUT_HINT_UTIL: GDScript = preload("res://scripts/input_hint.gd")
 const PROXIMITY_PROMPT_UTIL: GDScript = preload("res://scripts/proximity_prompt_util.gd")
@@ -164,7 +164,7 @@ func _on_tutorial_back_pressed() -> void:
 func _on_tutorial_lootboxes_pressed() -> void:
 	_show_tutorial_topic(
 		"Lootboxes",
-		"Get lootboxes by harvesting around your base and from objectives. Pick them up, then use them to roll new summons.\n\nSee your boxes on the hotbar and drag them onto the screen to throw them.\n\nMake sure you have some summmons out before night comes, as they are your only defense against ict ncoming waves.\n\nFor more information on the lootboxes and how to get them open the Bestiary with 'B'"
+			"Get lootboxes by harvesting around your base and from objectives. Pick them up, then use them to roll new summons.\n\nSee your boxes on the hotbar and drag them onto the screen to throw them.\n\nMake sure you have some summmons out before night comes, as they are your only defense against waves of attacking monsters.\n\nFor more information on the lootboxes and how to get them open the Bestiary with 'B'"
 	)
 
 
@@ -218,7 +218,7 @@ func _update_tutorial_indicator(delta: float) -> void:
 
 	_indicator_time += delta * indicator_bob_speed
 	var bob_offset: float = sin(_indicator_time) * indicator_bob_amplitude
-	_tutorial_indicator.position = _indicator_base_position + Vector2(0.0, bob_offset)
+	_tutorial_indicator.position = _indicator_base_position + Vector2(bob_offset, 0)
 
 
 func _update_indicator_visibility() -> void:
@@ -239,7 +239,7 @@ func _build_wave_report_text() -> String:
 	var target_night_number: int = maxi(day_night_controller.get_incoming_night_number(), 1)
 	var wave_sizes: Array[int] = day_night_controller.get_wave_sizes_for_night(target_night_number)
 	var line_items: PackedStringArray = PackedStringArray()
-	line_items.append("Night %d forecast" % target_night_number)
+	line_items.append("Day %d siege forecast" % target_night_number)
 	line_items.append("Waves tonight: %d" % wave_sizes.size())
 	for wave_index in wave_sizes.size():
 		line_items.append("Wave %d: %d enemies" % [wave_index + 1, wave_sizes[wave_index]])
@@ -251,10 +251,10 @@ func _build_wave_report_text() -> String:
 	
 	if day_night_controller.is_night_time():
 		line_items.append("---")
-		line_items.append("Night time remaining: %d:%02d" % [minutes, seconds])
+		line_items.append("Night has fallen! The monster onslaught has begun." % [minutes, seconds])
 	else:
 		line_items.append("---")
-		line_items.append("Until night: %d:%02d" % [minutes, seconds])
+		line_items.append("Time until the horde arrives: %d:%02d" % [minutes, seconds])
 
 	return "\n".join(line_items)
 

@@ -8,6 +8,12 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xf8k9"]
 size = Vector2(30, 48)
 
+[sub_resource type="LabelSettings" id="LabelSettings_apcos"]
+font_size = 20
+font_color = Color(0, 0, 0, 1)
+outline_size = 3
+outline_color = Color(0.34, 0.34, 0.34, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tutorial_menu_bg"]
 bg_color = Color(0.09, 0.1, 0.12, 1)
 border_width_left = 2
@@ -19,6 +25,7 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
 [node name="phone" type="StaticBody2D" unique_id=1181586752]
 script = ExtResource("1_qdu2r")
 
@@ -38,24 +45,29 @@ texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("2_w5l8d")
 
-[node name="TutorialIndicator" type="Node2D" parent="."]
+[node name="TutorialIndicator" type="Node2D" parent="." unique_id=1256602093]
 position = Vector2(0, -76)
 
-[node name="ArrowLabel" type="Label" parent="TutorialIndicator"]
-offset_left = -24.0
-offset_top = 10.0
-offset_right = 24.0
-offset_bottom = 38.0
-text = "v"
+[node name="ArrowLabel" type="Label" parent="TutorialIndicator" unique_id=462906485]
+offset_left = -138.0
+offset_top = 61.0
+offset_right = -66.0
+offset_bottom = 89.0
+text = ">>>>>"
+label_settings = SubResource("LabelSettings_apcos")
 horizontal_alignment = 1
 
-[node name="HintLabel" type="Label" parent="TutorialIndicator"]
-offset_left = -120.0
-offset_top = -14.0
-offset_right = 120.0
-offset_bottom = 14.0
-text = "Start Here: Phone"
+[node name="HintLabel" type="Label" parent="TutorialIndicator" unique_id=625861558]
+offset_left = -176.0
+offset_top = -8.0
+offset_right = -30.0
+offset_bottom = 82.0
+text = "Pick up the
+tutorial phone!
+"
+label_settings = SubResource("LabelSettings_apcos")
 horizontal_alignment = 1
+
 [node name="InteractPrompt" type="Label" parent="." unique_id=1929701663]
 visible = false
 z_index = 20
@@ -108,9 +120,10 @@ horizontal_alignment = 1
 
 [node name="TutorialDialog" type="AcceptDialog" parent="DialogLayer" unique_id=1195400408]
 title = "Tutorial"
-dialog_text = "Survive each night by holding the house and clearing waves.\nBuild up during the day, then prepare for the next night."
+dialog_text = "Survive each night by holding the house and clearing waves.
+Build up during the day, then prepare for the next night."
 
-[node name="TutorialMenuPanel" type="PanelContainer" parent="DialogLayer"]
+[node name="TutorialMenuPanel" type="PanelContainer" parent="DialogLayer" unique_id=606417608]
 visible = false
 anchors_preset = 8
 anchor_left = 0.5
@@ -123,38 +136,38 @@ offset_right = 250.0
 offset_bottom = 146.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_tutorial_menu_bg")
 
-[node name="MarginContainer" type="MarginContainer" parent="DialogLayer/TutorialMenuPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="DialogLayer/TutorialMenuPanel" unique_id=141782640]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 14
 
-[node name="VBoxContainer" type="VBoxContainer" parent="DialogLayer/TutorialMenuPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogLayer/TutorialMenuPanel/MarginContainer" unique_id=154682933]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer" unique_id=1773192858]
 layout_mode = 2
 text = "Tutorial Topics"
 horizontal_alignment = 1
 
-[node name="LootboxesButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer"]
+[node name="LootboxesButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer" unique_id=800112530]
 layout_mode = 2
 text = "1) Lootboxes"
 
-[node name="ControlsButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer"]
+[node name="ControlsButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer" unique_id=243993342]
 layout_mode = 2
 text = "2) Controls + Throwing"
 
-[node name="SummonsButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer"]
+[node name="SummonsButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer" unique_id=1558603159]
 layout_mode = 2
 text = "3) Summon Commands"
 
-[node name="DayNightButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer"]
+[node name="DayNightButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer" unique_id=168849231]
 layout_mode = 2
 text = "4) Day/Night"
 
-[node name="BackButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer"]
+[node name="BackButton" type="Button" parent="DialogLayer/TutorialMenuPanel/MarginContainer/VBoxContainer" unique_id=1576637628]
 layout_mode = 2
 text = "Back"

@@ -26,19 +26,19 @@ func handle_interaction_input(player: Player) -> void:
 
 	var nearest_harvest_distance_sq: float = INF
 	if nearest_harvest_node != null:
-		nearest_harvest_distance_sq = player.global_position.distance_squared_to(nearest_harvest_node.global_position)
+		nearest_harvest_distance_sq = player.global_position.distance_to(nearest_harvest_node.global_position)
 
 	var nearest_phone_distance_sq: float = INF
 	if nearest_phone != null:
-		nearest_phone_distance_sq = player.global_position.distance_squared_to(nearest_phone.global_position)
+		nearest_phone_distance_sq = player.global_position.distance_to(nearest_phone.global_position)
 
 	var nearest_map_distance_sq: float = INF
 	if nearest_map != null:
-		nearest_map_distance_sq = player.global_position.distance_squared_to(nearest_map.global_position)
+		nearest_map_distance_sq = player.global_position.distance_to(nearest_map.global_position)
 
 	var nearest_shop_distance_sq: float = INF
 	if nearest_shop != null:
-		nearest_shop_distance_sq = player.global_position.distance_squared_to(nearest_shop.global_position)
+		nearest_shop_distance_sq = player.global_position.distance_to(nearest_shop.global_position)
 
 	var nearest_interactable: Node = null
 	var nearest_distance_sq: float = INF
@@ -59,15 +59,15 @@ func handle_interaction_input(player: Player) -> void:
 		nearest_interactable = nearest_shop
 		nearest_distance_sq = nearest_shop_distance_sq
 
-	if nearest_blood != null and player.global_position.distance_squared_to(nearest_blood.global_position) < nearest_distance_sq:
+	if nearest_blood != null and player.global_position.distance_to(nearest_blood.global_position) < nearest_distance_sq:
 		nearest_interactable = nearest_blood
-		nearest_distance_sq = player.global_position.distance_squared_to(nearest_blood.global_position)
+		nearest_distance_sq = player.global_position.distance_to(nearest_blood.global_position)
 
-	if nearest_soul != null and player.global_position.distance_squared_to(nearest_soul.global_position) < nearest_distance_sq:
+	if nearest_soul != null and player.global_position.distance_to(nearest_soul.global_position) < nearest_distance_sq:
 		nearest_interactable = nearest_soul
-		nearest_distance_sq = player.global_position.distance_squared_to(nearest_soul.global_position)
+		nearest_distance_sq = player.global_position.distance_to(nearest_soul.global_position)
 
-	if nearest_harvest_node != null and nearest_interactable == nearest_harvest_node:
+	if nearest_harvest_node != null and nearest_interactable == nearest_harvest_node and nearest_distance_sq <= 100:
 		nearest_harvest_node.call("harvest_fruit", player.harvest_amount_per_interaction)
 		if nearest_harvest_node is BoulderResource:
 			Audio.play_sfx(&"world_boulder_harvest")
@@ -75,25 +75,27 @@ func handle_interaction_input(player: Player) -> void:
 			Audio.play_sfx(&"player_interact_tree")
 		return
 
-	if nearest_interactable is PhoneInteractable:
+	if nearest_interactable is PhoneInteractable and nearest_distance_sq <= 100:
 		Audio.play_sfx(&"player_interact_phone")
 		(nearest_interactable as PhoneInteractable).interact(player)
 		return
-	if nearest_interactable is MapInteractable:
+	if nearest_interactable is MapInteractable and nearest_distance_sq <= 100:
 		Audio.play_sfx(&"player_interact_map")
 		(nearest_interactable as MapInteractable).interact(player)
 		return
-	if nearest_interactable is ShopInteractable:
+	if nearest_interactable is ShopInteractable and nearest_distance_sq <= 100:
 		Audio.play_sfx(&"player_interact_shop")
 		(nearest_interactable as ShopInteractable).interact(player)
 		return
 	
-	if nearest_interactable is BloodConfluence:
+	print(nearest_interactable)
+	print(nearest_distance_sq)
+	if nearest_interactable is BloodConfluence and nearest_distance_sq <= 100:
 		Audio.play_sfx(&"world_blood_purchase")
 		(nearest_interactable as BloodConfluence).try_purchase_lootbox(player)
 		return
 
-	if nearest_interactable is SoulTower:
+	if nearest_interactable is SoulTower and nearest_distance_sq <= 100:
 		(nearest_interactable as SoulTower).interact(player)
 		return
 
