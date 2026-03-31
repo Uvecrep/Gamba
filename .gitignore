@@ -22,3 +22,6 @@
 
 # Local tooling downloads
 /.tools/
+
+# Local copy-edit worksheet
+/BLURB_REVIEW_SHEET.md

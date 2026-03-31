@@ -73,6 +73,4 @@ rarity_override = 2
 script = ExtResource("1_lootbox")
 id = &"greed"
 name = "Greed Box"
-color = "Yellow"
-description = "A risky investment box with wealth-scaling summons and economy effects."
 lootTable = Array[ExtResource("2_entry")]([SubResource("Entry_Greed_Mimic"), SubResource("Entry_Greed_CoinSprite"), SubResource("Entry_Greed_Prospector"), SubResource("Entry_Greed_GoldenGunner"), SubResource("Entry_Greed_TaxCollector")])

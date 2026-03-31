@@ -17,31 +17,47 @@ const ENEMY_ENTRY_IDS: PackedStringArray = [
 ]
 
 const SUMMON_BLURBS: Dictionary = {
-	&"baby_dragon": "Breathes hot bursts and bullies close packs with heavy hits.",
-	&"slime": "A reliable bruiser that waddles into range and keeps pressure up.",
-	&"ghost": "Phases through clutter and chips enemies from awkward angles.",
-	&"spark_goblin": "Rapid zaps make it ideal for cleaning up low-health targets.",
-	&"jack_in_the_box": "A chaotic striker that bursts damage in short windows.",
-	&"mushroom_knight": "Solid frontline summon with steady melee uptime.",
-	&"acorn_spitter": "Keeps distance and peppers lanes with ranged acorn shots.",
-	&"bush_boy": "Durable forest bodyguard that protects nearby allies.",
-	&"bee_swarm": "Fast swarm pressure that overwhelms isolated enemies.",
-	&"rooter": "Pins enemies in place so your team can focus fire safely.",
-	&"cinder_imp": "Applies burning pressure and keeps damage ticking over time.",
-	&"frost_wisp": "Slows threats and controls approach speed for safer fights.",
-	&"magma_beetle": "Tough elemental that trades speed for heavy impact.",
-	&"storm_totem": "Area lightning specialist that punishes clustered enemies.",
-	&"unstable_shard": "Volatile burst unit with high-risk, high-damage output.",
-	&"soul_lantern": "Sustains team momentum with utility-driven battlefield control.",
-	&"banshee": "Debilitates enemies with eerie pressure and disruption.",
-	&"grave_hound": "Aggressive hunter that sticks to targets until they fall.",
-	&"hex_doll": "Amplifies damage windows with curse-oriented support.",
-	&"possessor": "Skirmisher that excels at chaos and target disruption.",
-	&"mimic": "Greed summon that scales well with sustained combat uptime.",
-	&"coin_sprite": "Economy helper that turns pressure into extra value.",
-	&"prospector": "Specialist that hunts resources while still supporting combat.",
-	&"golden_gunner": "High-value marksman with dependable ranged damage.",
-	&"tax_collector": "Converts fights into profit while maintaining lane pressure.",
+	&"baby_dragon": "Park it near choke points where its combination of AOE and DOT punish tight packs of attackers.",
+	&"slime": "Use Slime as an early tank that soaks in damage and distracts allowing other units to get hits on preoccupied enemies.",
+	&"ghost": "Send Ghost through walls and fences to swiftly respond to immediate threats with high mobility but be careful about his relatively low attack and defense stats.",
+	&"spark_goblin": "Place Spark Goblin behind tanks to finish wounded enemies before they recover, but beware the potential for friendly fire from his shock attacks.",
+	&"jack_in_the_box": "Use Jack-In-The-Box to keep enemies at a distance and buy time for other summons to come to his aid.",
+	&"mushroom_knight": "Frontline with Mushroom Knight when you need consistent melee uptime and easy automatic positioning.",
+	&"acorn_spitter": "Keep Acorn Spitter protected in back lanes so constant shots soften incoming waves.",
+	&"bush_boy": "Pair Bush Boy with fragile carries to absorb pressure and stabilize messy fights, but be aware he has no offensive capabilities.",
+	&"bee_swarm": "Deploy Bee Swarm on isolated targets to utilize its fast mobility and attack speed.",
+	&"rooter": "Open fights with Rooter to lock faster runners in place for focused damage.",
+	&"cinder_imp": "Use Cinder Imp in longer fights with enemy tanks where burn damage keeps ticking between attacks.",
+	&"frost_wisp": "Position Frost Wisp near approaches to slow dives and buy your backline time.",
+	&"magma_beetle": "Use the Magma Beetle's unique trail to punish enemy aggression and defend areas with DOT.",
+	&"storm_totem": "Drop Storm Totem into crowded lanes where chain lightning gets maximum value.",
+	&"unstable_shard": "Keep the Unstable Shard in your back pocket for use in emergency situations or get maximum utility deploying into large groups of enemies.",
+	&"soul_lantern": "Keep Soul Lantern in the back line and ensure it supplies every unit on your battlefield with a shield to help all summons survivability.",
+	&"banshee": "Use Banshee to break up enemy swarms and keep your tanks from being dove.",
+	&"grave_hound": "Send Grave Hound after low health targets to force pressure and chase down retreaters.",
+	&"hex_doll": "Pair Hex Doll with burst units to amplify DPS and minimize time to kill.",
+	&"possessor": "Flank with Possessor to disrupt formations and open space for allied movement.",
+	&"mimic": "Keep Mimic on the front lines where it can deal large first-hit damage, and surprise attackers.",
+	&"coin_sprite": "Utilize Coin Sprite early in safer fights to boost your economy.",
+	&"prospector": "Keep your prospector safe in the coin mines unless needed for an emergency to boost your economy.",
+	&"golden_gunner": "Protect Golden Gunner and bring him out as the carry in fights when your economy is up to maximize damage potential.",
+	&"tax_collector": "Keep the Tax Collector safe and on the front lines so it can scale stats over time.",
+}
+
+const LOOTBOX_DESCRIPTION_HINTS: Dictionary = {
+	&"chaos": "High-variance box with explosive attackers that reward aggressive play and attacks.",
+	&"forest": "Stable box with durable lane control tools suited for steady, defensive setups.",
+	&"elemental": "Control-focused box built around status pressure, area denial, and swingy hail mary plays.",
+	&"greed": "Economy-centric box that trades some immediate value for long term scaling.",
+	&"soul": "Disruption-oriented box with utility summons that thrive in big multi-target fights.",
+}
+
+const LOOTBOX_SOURCE_HINTS: Dictionary = {
+	&"chaos": "Harvest your chaos crystal next to your base regularly to gather Chaos Boxes.",
+	&"forest": "Harvest from trees in your base's planters consistently to farm Forest Boxes during the day.",
+	&"elemental": "Buy Elemental Boxes with blood currency at the blood confluence in your base.",
+	&"greed": "Buy Greed Boxes from the shop with gold gathered from enemies.",
+	&"soul": "Claim Soul Boxes from the mysterious moving spirit crystal somewhere around your base each day.",
 }
 
 var ENEMY_DATA: Dictionary = {
@@ -49,49 +65,49 @@ var ENEMY_DATA: Dictionary = {
 		"archetype": &"basic_raider",
 		"display_name": "Raider",
 		"portrait_path": "res://assets/characters/raider.png",
-		"blurb": "Balanced melee attacker that defines the baseline enemy threat.",
+		"blurb": "Standard melee bruiser, so kite briefly and focus it before faster threats arrive.",
 		"stats": PackedStringArray(["HP: 100", "Move Speed: 90", "Melee Damage: 15", "Attack Cooldown: 1.0s"]),
 	},
 	&"enemy_fast_raider": {
 		"archetype": &"fast_raider",
 		"display_name": "Fast Raider",
 		"portrait_path": "res://assets/characters/fast_raider.png",
-		"blurb": "Quick flanker that reaches your backline before slower enemies.",
+		"blurb": "Fast flanker that slips past tanks, so body-block lanes and burst it early.",
 		"stats": PackedStringArray(["HP: 65", "Move Speed: 145", "Melee Damage: 14", "Attack Cooldown: 0.85s"]),
 	},
 	&"enemy_tank_raider": {
 		"archetype": &"tank_raider",
 		"display_name": "Tank Raider",
 		"portrait_path": "res://assets/characters/tank_raider.png",
-		"blurb": "Massive health pool that soaks damage and stalls your line.",
+		"blurb": "High-health wall that stalls pushes, so surround it and clear supports first.",
 		"stats": PackedStringArray(["HP: 240", "Move Speed: 58", "Melee Damage: 9", "Attack Cooldown: 1.1s"]),
 	},
 	&"enemy_ranged_raider": {
 		"archetype": &"ranged_raider",
 		"display_name": "Ranged Raider",
 		"portrait_path": "res://assets/characters/ranged_raider.png",
-		"blurb": "Shoots from distance and repositions to keep firing lanes open.",
+		"blurb": "Backline shooter that repositions often, so collapse angles and deny firing lanes.",
 		"stats": PackedStringArray(["HP: 70", "Move Speed: 84", "Ranged Damage: 13", "Ranged Cooldown: 1.35s", "Range: 360"]),
 	},
 	&"enemy_healing_raider": {
 		"archetype": &"healing_raider",
 		"display_name": "Healing Raider",
 		"portrait_path": "res://assets/characters/healing_raider.png",
-		"blurb": "Support raider that keeps nearby enemies alive with healing aura.",
+		"blurb": "Support raider with massive healing aura, so pick it first to stop sustain snowballs.",
 		"stats": PackedStringArray(["HP: 85", "Move Speed: 76", "Heal/s: 14", "Aura Radius: 230"]),
 	},
 	&"enemy_trenchcoat_goblin": {
 		"archetype": &"trenchcoat_goblin",
 		"display_name": "Trenchcoat Goblin",
 		"portrait_path": "res://assets/characters/trenchcoat_goblins.png",
-		"blurb": "Elite bruiser that splits into goblins on death.",
+		"blurb": "Elite brawler that splits on death, so save area damage for the spawn.",
 		"stats": PackedStringArray(["HP: 260", "Move Speed: 95", "Melee Damage: 20", "Attack Cooldown: 0.9s", "On Death: Splits into goblins"]),
 	},
 	&"enemy_goblin": {
 		"archetype": &"goblin",
 		"display_name": "Goblin",
 		"portrait_path": "res://assets/characters/goblin.png",
-		"blurb": "Small but persistent attacker that appears in split waves.",
+		"blurb": "Light split-wave pest, so clear it quickly before it chips your backline.",
 		"stats": PackedStringArray(["HP: 95", "Move Speed: 102", "Melee Damage: 13", "Attack Cooldown: 0.9s"]),
 	},
 }
@@ -102,6 +118,14 @@ var _entries: Dictionary = {}
 var _unlocked_entries: Dictionary = {}
 var _new_entries: Dictionary = {}
 var _seen_summon_quality_tiers: Dictionary = {}
+
+
+func get_lootbox_description_hint(box_id: StringName) -> String:
+	return String(LOOTBOX_DESCRIPTION_HINTS.get(box_id, "Open this lootbox to unlock summons tied to its combat theme."))
+
+
+func get_lootbox_source_hint(box_id: StringName) -> String:
+	return String(LOOTBOX_SOURCE_HINTS.get(box_id, "Acquire this lootbox from combat and progression rewards."))
 
 
 func _ready() -> void:
@@ -273,7 +297,7 @@ func _register_summon_entry_if_missing(entry_id: StringName, summon_identity: St
 func _build_summon_entry(entry_id: StringName, summon_identity: StringName, loot_entry: LootEntry, spawn_outcome: LootboxOutcomeSpawnSummon) -> Dictionary:
 	var profile: SummonIdentityProfile = SummonProfileCatalog.get_profile(summon_identity)
 	var display_name: String = loot_entry.name if not loot_entry.name.is_empty() else _humanize_identity(summon_identity)
-	var blurb: String = String(SUMMON_BLURBS.get(summon_identity, "A mysterious summon with unknown battlefield behavior."))
+	var blurb: String = String(SUMMON_BLURBS.get(summon_identity, "A versatile summon that supports your lineup once unlocked."))
 
 	var stats_lines: PackedStringArray = []
 	if profile != null:

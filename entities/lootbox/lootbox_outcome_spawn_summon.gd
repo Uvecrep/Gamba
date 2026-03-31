@@ -7,6 +7,7 @@ const RewardDataScript = preload("res://entities/lootbox/reward_data.gd")
 @export var spawn_distance: float = 48.0
 @export var damage_multiplier: float = 1.0
 @export var max_health_multiplier: float = 1.0
+@export var move_speed_multiplier: float = 1.0
 @export var summon_texture_override: Texture2D
 @export var summon_identity: StringName
 
@@ -91,6 +92,10 @@ func _apply_stat_modifiers(summon_node: Node, context: Dictionary) -> void:
 	if _has_property(summon_node, "max_health"):
 		var current_health := float(summon_node.get("max_health"))
 		summon_node.set("max_health", current_health * maxf(max_health_multiplier, 0.01) * quality_multiplier)
+
+	if _has_property(summon_node, "move_speed"):
+		var current_move_speed := float(summon_node.get("move_speed"))
+		summon_node.set("move_speed", current_move_speed * maxf(move_speed_multiplier, 0.01))
 
 
 func _resolve_quality_multiplier(context: Dictionary) -> float:
