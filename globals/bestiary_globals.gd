@@ -53,11 +53,11 @@ const LOOTBOX_DESCRIPTION_HINTS: Dictionary = {
 }
 
 const LOOTBOX_SOURCE_HINTS: Dictionary = {
-	&"chaos": "Harvest your chaos crystal next to your base regularly to gather Chaos Boxes.",
-	&"forest": "Harvest from trees in your base's planters consistently to farm Forest Boxes during the day.",
-	&"elemental": "Buy Elemental Boxes with blood currency at the blood confluence in your base.",
-	&"greed": "Buy Greed Boxes from the shop with gold gathered from enemies.",
-	&"soul": "Claim Soul Boxes from the mysterious moving spirit crystal somewhere around your base each day.",
+	&"chaos": "The Chaos Crystal in the middle of your base generates these boxes, but only holds one at a time.",
+	&"forest": "They literally grow on trees! Put saplings into the planter boxes in your base to ensure a steady production of these boxes.",
+	&"elemental": "Killing enemy units grants you blood, and the evil crystal in your base will reward your bloodshed by exchanging blood for boxes.",
+	&"greed": "Buy Greed Boxes from the shop with gold, which you can get from enemies or by mining the rocks below your base.",
+	&"soul": "Claim Soul Boxes from the mysterious moving spirit crystal somewhere around the world each day.",
 }
 
 var ENEMY_DATA: Dictionary = {
