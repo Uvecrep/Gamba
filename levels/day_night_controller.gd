@@ -96,6 +96,16 @@ func get_wave_sizes_for_night(night_number: int) -> Array[int]:
 	return wave_sizes
 
 
+func get_time_remaining_seconds() -> float:
+	if _phase_timer == null or not is_instance_valid(_phase_timer):
+		return 0.0
+	
+	if _phase_timer.is_stopped():
+		return 0.0
+	
+	return _phase_timer.time_left
+
+
 func stop() -> void:
 	_stopped = true
 	_waiting_for_enemies_cleared = false

@@ -122,6 +122,18 @@ func _build_wave_report_text() -> String:
 	for wave_index in wave_sizes.size():
 		line_items.append("Wave %d: %d enemies" % [wave_index + 1, wave_sizes[wave_index]])
 
+	# Add time remaining
+	var time_remaining: float = day_night_controller.get_time_remaining_seconds()
+	var minutes: int = int(time_remaining) / 60
+	var seconds: int = int(time_remaining) % 60
+	
+	if day_night_controller.is_night_time():
+		line_items.append("---")
+		line_items.append("Night time remaining: %d:%02d" % [minutes, seconds])
+	else:
+		line_items.append("---")
+		line_items.append("Until night: %d:%02d" % [minutes, seconds])
+
 	return "\n".join(line_items)
 
 
