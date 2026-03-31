@@ -715,9 +715,9 @@ func _populate_single_stats_column(container: HBoxContainer, header: String, bod
 
 func _populate_locked_stats_columns(container: HBoxContainer) -> void:
 	_clear_stats_columns(container)
-	container.add_child(_create_stats_column("Base", "???"))
-	container.add_child(_create_stats_column("+", "???"))
-	container.add_child(_create_stats_column("++", "???"))
+	container.add_child(_create_stats_column("Base Tier Stats", "???"))
+	container.add_child(_create_stats_column("'+' Tier Stats", "???"))
+	container.add_child(_create_stats_column("'++' Tier Stats", "???"))
 
 
 func _populate_summon_stats_columns(container: HBoxContainer, entry: Dictionary) -> void:
@@ -731,11 +731,11 @@ func _populate_summon_stats_columns(container: HBoxContainer, entry: Dictionary)
 	var quality_stats: Dictionary = entry.get("quality_stats_by_tier", {})
 
 	for tier in [0, 1, 2]:
-		var heading: String = "Base"
+		var heading: String = "Base Tier Stats"
 		if tier == 1:
-			heading = "+"
+			heading = "'+' Tier Stats"
 		elif tier == 2:
-			heading = "++"
+			heading = "'++' Tier Stats"
 
 		var body: String = "???"
 		if bool(seen.get(tier, false)):
