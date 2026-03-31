@@ -164,14 +164,16 @@ func _on_tutorial_back_pressed() -> void:
 func _on_tutorial_lootboxes_pressed() -> void:
 	_show_tutorial_topic(
 		"Lootboxes",
-			"Get lootboxes by harvesting around your base and from objectives. Pick them up, then use them to roll new summons.\n\nSee your boxes on the hotbar and drag them onto the screen to throw them.\n\nMake sure you have some summmons out before night comes, as they are your only defense against waves of attacking monsters.\n\nFor more information on the lootboxes and how to get them open the Bestiary with 'B'"
+			"These boxes contain the summons you need to defend your home.\nIf you fail to collect enough you will surely be doomed!\n\n After acquiring one, left click it in your inventory and drag it out onto the battlefield to roll a random summon.\n\nThere ara many different box types to experiment with.\nOpen the Bestiary with 'B' to learn more about each type of box and how to obtain them."
+			#"Get lootboxes by harvesting around your base and from objectives. Pick them up, then use them to roll new summons.\n\nSee your boxes on the hotbar and drag them onto the screen to throw them.\n\nMake sure you have some summmons out before night comes, as they are your only defense against waves of attacking monsters.\n\nFor more information on the lootboxes and how to get them open the Bestiary with 'B'"
 	)
 
 
 func _on_tutorial_controls_pressed() -> void:
 	_show_tutorial_topic(
-		"Controls + Throwing",
-		"Movement is through WASD, and you can interact with things in the world by pressing 'E'. Use your mouse on your hotbar to select a lootbox, then drag from the hotbar toward the world to throw it where you want.\n\nThrowing lets you place summons quickly during combat, and also lets you plant saplings in the planters near your house.\n\nTry picking up and planting the provided saplings now."
+		"Controls",
+		"Movement: WASD\nInteract: 'E'\nThrow Item: Click on the item in your hotbar and drag to where you want to throw it.\nDrop Item: Right click on an item in your inventory.\n\nYou need to throw lootboxes to open them, and saplings must be thrown in a planter to grow into a tree."
+		#"Movement is through WASD, and you can interact with things in the world by pressing 'E'. Use your mouse on your hotbar to select a lootbox, then drag from the hotbar toward the world to throw it where you want.\n\nThrowing lets you place summons quickly during combat, and also lets you plant saplings in the planters near your house.\n\nTry picking up and planting the provided saplings now."
 	)
 
 

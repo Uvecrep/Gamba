@@ -1,12 +1,13 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cftad3ccsrgjf"]
 
-[ext_resource type="Script" path="res://ui/lootbox_roll/lootbox_roll_overlay.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cvo3nw4xd17ui" path="res://ui/lootbox_roll/lootbox_roll_overlay.gd" id="1_script"]
 
-[node name="LootboxRollOverlay" type="CanvasLayer"]
+[node name="LootboxRollOverlay" type="CanvasLayer" unique_id=1649011547]
 layer = 5
 script = ExtResource("1_script")
 
-[node name="VisualRoot" type="Control" parent="."]
+[node name="VisualRoot" type="Control" parent="." unique_id=769571398]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
