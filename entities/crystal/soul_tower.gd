@@ -18,6 +18,7 @@ func _ready() -> void:
 
 func interact(player : Player) -> void:
 	if has_interacted: return
+	Audio.play_sfx(&"world_crystal_interaction")
 	has_interacted = true
 	
 	_update_visuals()

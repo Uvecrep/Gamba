@@ -816,6 +816,7 @@ func _die() -> void:
 	if bestiary_globals != null:
 		bestiary_globals.call("unlock_enemy_entry", enemy_archetype)
 	_apply_hex_spread_on_death()
+	_try_drop_base_gold()
 	_drop_coin_pickups(_coin_mark_count)
 	_broadcast_enemy_death()
 	if enemy_archetype == ENEMY_ARCHETYPE_TRENCHCOAT_GOBLIN:
@@ -891,6 +892,30 @@ func _drop_coin_pickups(mark_count: int) -> void:
 		pickup.set_data(GOLD_ITEM_ID)
 		var angle: float = TAU * float(index) / float(maxi(drop_count, 1))
 		pickup.global_position = global_position + (Vector2.RIGHT.rotated(angle) * randf_range(8.0, 20.0))
+
+func _try_drop_base_gold() -> void:
+	if randf() >= 0.2:
+		return
+	if PICKUP_SCENE == null:
+		return
+
+	var parent_node: Node = get_tree().current_scene
+	if parent_node == null:
+		parent_node = get_parent()
+	if parent_node == null:
+		return
+
+	var pickup_node: Node = PICKUP_SCENE.instantiate()
+	if not (pickup_node is Pickup):
+		if is_instance_valid(pickup_node):
+			pickup_node.queue_free()
+		return
+
+	var pickup: Pickup = pickup_node as Pickup
+	parent_node.add_child(pickup)
+	pickup.set_data(GOLD_ITEM_ID)
+	var angle: float = randf() * TAU
+	pickup.global_position = global_position + (Vector2.RIGHT.rotated(angle) * randf_range(8.0, 20.0))
 
 func _spawn_split_goblins() -> void:
 	var spawn_count: int = maxi(split_spawn_count, 0)

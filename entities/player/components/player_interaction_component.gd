@@ -94,7 +94,6 @@ func handle_interaction_input(player: Player) -> void:
 		return
 
 	if nearest_interactable is SoulTower:
-		Audio.play_sfx(&"world_crystal_interaction")
 		(nearest_interactable as SoulTower).interact(player)
 		return
 

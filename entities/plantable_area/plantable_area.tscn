@@ -3,6 +3,12 @@
 [ext_resource type="Script" uid="uid://duv5uge3jml1y" path="res://entities/plantable_area/plantable_area.gd" id="1_lwboy"]
 [ext_resource type="Texture2D" uid="uid://3cq6yq5uoxxi" path="res://assets/objects/planter_box.png" id="2_c0251"]
 
+[sub_resource type="LabelSettings" id="LabelSettings_t0v3e"]
+font_size = 9
+font_color = Color(1, 1, 1, 1)
+outline_size = 2
+outline_color = Color(0.188235, 0.109804, 0.0627451, 1)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lwboy"]
 size = Vector2(17.812498, 17.499998)
 
@@ -16,6 +22,16 @@ shape = SubResource("RectangleShape2D_lwboy")
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=336881428]
 scale = Vector2(2, 2)
 texture = ExtResource("2_c0251")
+
+[node name="PlantHintLabel" type="Label" parent="." unique_id=2071056648]
+visible = false
+offset_left = -72.0
+offset_top = -92.0
+offset_right = 72.0
+offset_bottom = -30.0
+text = "Throw sapling here\nto plant tree"
+label_settings = SubResource("LabelSettings_t0v3e")
+horizontal_alignment = 1
 
 [node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=1235541126]
 

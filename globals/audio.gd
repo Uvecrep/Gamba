@@ -420,6 +420,13 @@ func play_ui_tick_throttled(min_interval_msec: int = 40) -> void:
 	play_ui(&"ui_lootbox_tick", -8.0)
 
 
+func get_stream_length(key: StringName) -> float:
+	var stream: AudioStream = _get_stream(key)
+	if stream == null:
+		return 0.0
+	return stream.get_length()
+
+
 func _get_stream(key: StringName) -> AudioStream:
 	if _stream_cache.has(key):
 		return _stream_cache[key] as AudioStream
