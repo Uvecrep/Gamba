@@ -13,7 +13,7 @@ const GOLD_ITEM_IDS: Array[StringName] = [&"gold_coin", &"gold"]
 var selected_index : int = 2
 var num_slots : int = 5 # TODO implement changing number of slots? Static rn | Ian: Static seems fine, honestly 5 is a really comfortable number with how many items we have, if we started adjusting more we'd probably need to add chests and stuff too
 var gold_count: int
-var blood_count: int = 10
+var blood_count: int
 
 var inventory_items : Array[StringName] = []
 var inventory_item_counts : Array[int] = [] # A slot where count is zero is treated as empty
