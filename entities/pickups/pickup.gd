@@ -53,8 +53,9 @@ func _physics_process(_delta: float) -> void:
 	apply_force(-linear_velocity * .2) # Apply drag
 	
 	if floating_towards != null:
-		var float_force = pow(floating_towards.position.distance_to(position),2)
-		apply_central_force(float_force * position.direction_to(floating_towards.position))
+		var target_global_position: Vector2 = floating_towards.global_position
+		var float_force: float = pow(global_position.distance_to(target_global_position), 2)
+		apply_central_force(float_force * global_position.direction_to(target_global_position))
 
 func _refresh_visuals() -> void:
 	if not ItemGlobals.items.has(item_id):

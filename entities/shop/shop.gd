@@ -177,6 +177,13 @@ func _on_buy_card_pressed(card_index: int) -> void:
 		return
 
 	var offer: Dictionary = _offers[card_index]
+	if not _is_offer_applicable(offer):
+		Audio.play_ui(&"ui_inventory_invalid")
+		_set_status("That upgrade is no longer available.")
+		_reroll_offers(_get_current_day_number())
+		_refresh_shop_ui()
+		return
+
 	var card_cost: int = int(offer.get("cost", 0))
 	if not _try_spend_gold(card_cost):
 		Audio.play_ui(&"ui_inventory_invalid")
@@ -483,7 +490,7 @@ func _schedule_navigation_rebuild() -> void:
 
 func _ensure_daily_offers() -> void:
 	var current_day: int = _get_current_day_number()
-	if _offers.is_empty() or _last_offer_day != current_day:
+	if _offers.is_empty() or _last_offer_day != current_day or _offers_need_reroll():
 		_reroll_offers(current_day)
 
 func _get_current_day_number() -> int:
@@ -516,14 +523,28 @@ func _reroll_offers(day_number: int = -1) -> void:
 		&"summon_health",
 		&"summon_move_speed",
 	]
-	effect_ids.shuffle()
+	var candidate_pairs: Array[Dictionary] = []
+	for lootbox_key in LootboxGlobals.lootboxes.keys():
+		var lootbox_id: StringName = StringName(lootbox_key)
+		for effect_id in effect_ids:
+			if not _can_apply_effect_to_lootbox_id(effect_id, lootbox_id):
+				continue
+			candidate_pairs.append({
+				"effect_id": effect_id,
+				"target_lootbox_id": lootbox_id,
+			})
 
-	for index: int in range(CARD_COUNT):
-		var lootbox_id: StringName = _pick_random_lootbox_id()
-		if lootbox_id == StringName():
-			continue
+	candidate_pairs.shuffle()
 
-		_offers.append(_build_offer(effect_ids[index % effect_ids.size()], lootbox_id, index))
+	for index: int in range(mini(CARD_COUNT, candidate_pairs.size())):
+		var candidate: Dictionary = candidate_pairs[index]
+		_offers.append(
+			_build_offer(
+				candidate.get("effect_id", StringName()) as StringName,
+				candidate.get("target_lootbox_id", StringName()) as StringName,
+				index
+			)
+		)
 
 func _pick_random_lootbox_id() -> StringName:
 	if LootboxGlobals == null:
@@ -538,6 +559,16 @@ func _pick_random_lootbox_id() -> StringName:
 		return StringName()
 
 	return lootbox_ids[randi_range(0, lootbox_ids.size() - 1)]
+
+func _offers_need_reroll() -> bool:
+	if _offers.size() < CARD_COUNT:
+		return true
+
+	for offer in _offers:
+		if not _is_offer_applicable(offer):
+			return true
+
+	return false
 
 func _build_offer(effect_id: StringName, target_lootbox_id: StringName, card_index: int) -> Dictionary:
 	var growth_cost: float = float(_shop_purchase_count * card_cost_growth_per_purchase) * maxf(card_cost_growth_multiplier, 0.0)
@@ -647,6 +678,47 @@ func _get_lootbox_display_name(lootbox_id: StringName) -> String:
 
 	return String(lootbox_id).capitalize()
 
+func _is_offer_applicable(offer: Dictionary) -> bool:
+	var effect_id: StringName = offer.get("effect_id", StringName()) as StringName
+	var target_lootbox_id: StringName = offer.get("target_lootbox_id", StringName()) as StringName
+	return _can_apply_effect_to_lootbox_id(effect_id, target_lootbox_id)
+
+func _can_apply_effect_to_lootbox_id(effect_id: StringName, lootbox_id: StringName) -> bool:
+	if LootboxGlobals == null:
+		return false
+	if lootbox_id == StringName():
+		return false
+	if not LootboxGlobals.lootboxes.has(lootbox_id):
+		return false
+
+	var target_lootbox: Lootbox = LootboxGlobals.lootboxes[lootbox_id] as Lootbox
+	return _can_apply_effect_to_lootbox(effect_id, target_lootbox)
+
+func _can_apply_effect_to_lootbox(effect_id: StringName, target_lootbox: Lootbox) -> bool:
+	if target_lootbox == null:
+		return false
+
+	match effect_id:
+		&"weight_rare", &"weight_epic", &"weight_legendary":
+			var target_rarity: int = _get_weight_target_rarity_value(effect_id)
+			if target_rarity < 0:
+				return false
+			for entry in target_lootbox.lootTable:
+				if entry == null:
+					continue
+				if _resolve_entry_base_rarity(entry) == target_rarity:
+					return true
+			return false
+		&"summon_damage", &"summon_health", &"summon_move_speed":
+			for entry in target_lootbox.lootTable:
+				if entry == null:
+					continue
+				if entry.outcome is LootboxOutcomeSpawnSummon:
+					return true
+			return false
+		_:
+			return false
+
 func _apply_offer(offer: Dictionary) -> bool:
 	if LootboxGlobals == null:
 		return false
@@ -660,6 +732,8 @@ func _apply_offer(offer: Dictionary) -> bool:
 
 	var target_lootbox: Lootbox = LootboxGlobals.lootboxes[target_lootbox_id] as Lootbox
 	if target_lootbox == null:
+		return false
+	if not _can_apply_effect_to_lootbox(effect_id, target_lootbox):
 		return false
 
 	match effect_id:

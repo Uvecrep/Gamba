@@ -58,7 +58,7 @@ func handle_follow_command() -> void:
 	update_follow_navigation_target(unit._player_target.global_position)
 
 	if unit._follow_snapshot_target == Vector2.INF:
-		unit._follow_snapshot_target = get_follow_formation_target(unit._player_target.global_position)
+		unit._follow_snapshot_target = get_follow_navigation_target(unit._player_target.global_position)
 		unit._set_navigation_target(unit._follow_snapshot_target)
 		unit._last_follow_nav_target = unit._follow_snapshot_target
 		unit._time_to_follow_nav_refresh = unit._get_follow_nav_refresh_wait(unit._follow_snapshot_target)
@@ -123,7 +123,7 @@ func update_follow_navigation_target(player_position: Vector2) -> void:
 		})
 		return
 
-	var follow_target: Vector2 = get_follow_formation_target(player_position)
+	var follow_target: Vector2 = get_follow_navigation_target(player_position)
 	if unit._time_to_follow_nav_refresh > 0.0:
 		unit._perf_mark_scope(&"summon.update_follow_nav_target", update_start_us, {
 			"status": "refresh_wait",
@@ -136,6 +136,30 @@ func update_follow_navigation_target(player_position: Vector2) -> void:
 	unit._time_to_follow_nav_refresh = unit._get_follow_nav_refresh_wait(follow_target)
 	unit._perf_inc(&"summon.follow_nav_target_updates")
 	unit._perf_mark_scope(&"summon.update_follow_nav_target", update_start_us)
+
+func get_follow_navigation_target(player_position: Vector2) -> Vector2:
+	var preferred_target: Vector2 = get_follow_formation_target(player_position)
+	if not unit._uses_navigation_agent():
+		return preferred_target
+	if unit._navigation_agent == null:
+		return preferred_target
+
+	var nav_map: RID = unit._navigation_agent.get_navigation_map()
+	if nav_map == RID():
+		return preferred_target
+
+	var projected_preferred_target: Vector2 = NavigationServer2D.map_get_closest_point(nav_map, preferred_target)
+	if projected_preferred_target.distance_to(preferred_target) <= maxf(unit.target_reach_distance, 12.0):
+		return projected_preferred_target
+	if unit._is_far_from_player():
+		return projected_preferred_target
+	if not unit._try_consume_nav_probe_budget():
+		return projected_preferred_target
+
+	var desired_follow_distance: float = maxf(unit.follow_formation_radius, 16.0)
+	desired_follow_distance = maxf(desired_follow_distance, unit.command_follow_distance * 0.5)
+	desired_follow_distance = maxf(desired_follow_distance, unit.nav_target_desired_distance)
+	return unit._choose_best_navigation_target(player_position, desired_follow_distance, true)
 
 func get_follow_formation_target(player_position: Vector2) -> Vector2:
 	var radius: float = maxf(unit.follow_formation_radius, 0.0)
@@ -177,10 +201,54 @@ func update_stuck_recovery(delta: float, pre_move_position: Vector2) -> void:
 		unit._stuck_check_time_left = maxf(unit.stuck_check_window_seconds, 0.05)
 		return
 	if unit._command_mode == unit.CommandMode.FOLLOW:
-		# Follow mode should keep snapping toward player updates rather than detouring to recovery waypoints.
-		unit._stuck_window_failures = 0
-		unit._stuck_window_distance_accum = 0.0
+		if not is_instance_valid(unit._player_target):
+			unit._stuck_window_failures = 0
+			unit._stuck_window_distance_accum = 0.0
+			unit._stuck_check_time_left = maxf(unit.stuck_check_window_seconds, 0.05)
+			return
+
+		var follow_goal: Vector2 = unit._get_current_navigation_goal()
+		var follow_min_goal_distance: float = maxf(unit.command_follow_distance * 0.5, 24.0)
+		if follow_goal == Vector2.INF or unit.global_position.distance_to(follow_goal) <= follow_min_goal_distance:
+			unit._stuck_window_failures = 0
+			unit._stuck_window_distance_accum = 0.0
+			unit._stuck_check_time_left = maxf(unit.stuck_check_window_seconds, 0.05)
+			return
+
+		unit._stuck_check_time_left = maxf(unit._stuck_check_time_left - delta, 0.0)
+		unit._stuck_window_distance_accum += pre_move_position.distance_to(unit.global_position)
+		if unit._stuck_check_time_left > 0.0:
+			return
+
+		var follow_moved_enough: bool = unit._stuck_window_distance_accum >= maxf(unit.stuck_min_distance_per_window, 0.5)
+		if follow_moved_enough:
+			unit._stuck_window_failures = 0
+		else:
+			unit._stuck_window_failures += 1
+
 		unit._stuck_check_time_left = maxf(unit.stuck_check_window_seconds, 0.05)
+		unit._stuck_window_distance_accum = 0.0
+
+		if unit._stuck_window_failures < maxi(unit.stuck_required_windows, 1):
+			return
+		if unit._stuck_recovery_cooldown_time_left > 0.0:
+			return
+
+		var follow_recovery_start_us: int = Time.get_ticks_usec()
+		var refreshed_follow_target: Vector2 = get_follow_navigation_target(unit._player_target.global_position)
+		unit._follow_snapshot_target = refreshed_follow_target
+		unit._last_follow_nav_target = refreshed_follow_target
+		unit._set_navigation_target(refreshed_follow_target)
+		unit._time_to_follow_nav_refresh = unit._get_follow_nav_refresh_wait(refreshed_follow_target)
+		unit._time_to_nav_goal_refresh = 0.0
+		unit._time_to_nav_velocity_refresh = 0.0
+		unit._stuck_window_failures = 0
+		unit._stuck_recovery_cooldown_time_left = maxf(unit.stuck_recovery_cooldown_seconds, 0.25)
+		unit._perf_inc(&"summon.stuck_recoveries")
+		unit._perf_mark_scope(&"summon.stuck_recovery", follow_recovery_start_us, {
+			"mode": unit.get_command_mode_name(),
+			"kind": "follow_refresh",
+		})
 		return
 
 	var current_goal: Vector2 = unit._get_current_navigation_goal()
