@@ -10,6 +10,8 @@ class_name EnemyIndicatorLayer
 @export var arrow_size: float = 18.0
 ## Fill colour of each arrow.
 @export var indicator_color: Color = Color(1.0, 0.25, 0.2, 0.9)
+@export var tower_color: Color
+@export var summon_color: Color
 ## Outline colour drawn around each arrow for legibility.
 @export var outline_color: Color = Color(0.0, 0.0, 0.0, 0.65)
 ## Width of the outline stroke in pixels.
@@ -49,7 +51,45 @@ func _draw() -> void:
 		dir = dir.normalized()
 
 		var indicator_pos := _clamp_to_rect_border(center, dir, margin_rect)
-		_draw_arrow_at(indicator_pos, dir)
+		_draw_arrow_at(indicator_pos, dir, indicator_color)
+	
+	for tower: Node in get_tree().get_nodes_in_group("soul_tower"):
+		if not is_instance_valid(tower):
+			continue
+		var enemy_node := tower as Node2D
+		if enemy_node == null:
+			continue
+
+		var screen_pos: Vector2 = canvas_xform * enemy_node.global_position
+		if screen_rect.has_point(screen_pos):
+			continue  # Enemy is already visible — no indicator needed.
+
+		var dir := screen_pos - center
+		if dir.length_squared() < 1.0:
+			continue
+		dir = dir.normalized()
+
+		var indicator_pos := _clamp_to_rect_border(center, dir, margin_rect)
+		_draw_arrow_at(indicator_pos, dir, tower_color)
+	
+	for summon: Node in get_tree().get_nodes_in_group("summons"):
+		if not is_instance_valid(summon):
+			continue
+		var enemy_node := summon as Node2D
+		if enemy_node == null:
+			continue
+
+		var screen_pos: Vector2 = canvas_xform * enemy_node.global_position
+		if screen_rect.has_point(screen_pos):
+			continue  # Enemy is already visible — no indicator needed.
+
+		var dir := screen_pos - center
+		if dir.length_squared() < 1.0:
+			continue
+		dir = dir.normalized()
+
+		var indicator_pos := _clamp_to_rect_border(center, dir, margin_rect)
+		_draw_arrow_at(indicator_pos, dir, summon_color)
 
 
 ## Returns the point where a ray from `origin` along `dir` first hits the border of `rect`.
@@ -78,7 +118,7 @@ func _clamp_to_rect_border(origin: Vector2, dir: Vector2, rect: Rect2) -> Vector
 
 
 ## Draws a filled triangle arrow centred on `pos` pointing along `dir`.
-func _draw_arrow_at(pos: Vector2, dir: Vector2) -> void:
+func _draw_arrow_at(pos: Vector2, dir: Vector2, color: Color) -> void:
 	var half := arrow_size * 0.5
 	var tip := pos + dir * half
 	var back := pos - dir * half
@@ -89,5 +129,5 @@ func _draw_arrow_at(pos: Vector2, dir: Vector2) -> void:
 	var points := PackedVector2Array([tip, left, right])
 	var loop := PackedVector2Array([tip, left, right, tip])
 
-	draw_colored_polygon(points, indicator_color)
+	draw_colored_polygon(points, color)
 	draw_polyline(loop, outline_color, outline_width, true)
