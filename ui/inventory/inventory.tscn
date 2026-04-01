@@ -71,15 +71,16 @@ offset_right = 320.0
 
 [node name="GoldTrackerPanel" type="Panel" parent="MarginContainer/PanelContainer" unique_id=1398279003]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 1.0
+anchors_preset = 7
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -107.91
-offset_right = -9.0
-offset_bottom = -44.910065
+offset_left = 440.0
+offset_top = -112.0
+offset_right = 551.0
+offset_bottom = -49.00006
+grow_horizontal = 2
 grow_vertical = 0
 
 [node name="GoldIcon" type="TextureRect" parent="MarginContainer/PanelContainer/GoldTrackerPanel" unique_id=707810599]
@@ -110,11 +111,18 @@ text = "0"
 horizontal_alignment = 1
 
 [node name="BloodTrackerPanel" type="Panel" parent="MarginContainer/PanelContainer" unique_id=2098556748]
-layout_mode = 0
-offset_left = 1000.0
-offset_top = 19.595
-offset_right = 1111.0
-offset_bottom = 82.5949
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 442.0
+offset_top = -183.00003
+offset_right = 553.0
+offset_bottom = -120.00012
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="BloodIcon" type="TextureRect" parent="MarginContainer/PanelContainer/BloodTrackerPanel" unique_id=586598384]
 layout_mode = 0
