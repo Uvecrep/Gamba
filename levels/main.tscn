@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://d34vqfagsgpkm" path="res://levels/world.tscn" id="2_wdj6m"]
 [ext_resource type="PackedScene" uid="uid://domyo1x6j4x7w" path="res://entities/enemy/enemy_spawner.tscn" id="5_u7xt2"]
 [ext_resource type="PackedScene" uid="uid://b6u051drnvexw" path="res://entities/house/house.tscn" id="6_7hmax"]
-[ext_resource type="PackedScene" path="res://entities/phone/phone.tscn" id="8_2v8j6"]
+[ext_resource type="PackedScene" uid="uid://buahpli86sb1u" path="res://entities/phone/phone.tscn" id="8_2v8j6"]
 [ext_resource type="Script" uid="uid://crktasjdq5d76" path="res://scripts/hud.gd" id="8_hud"]
 [ext_resource type="Script" uid="uid://rhfo0sb0yvxy" path="res://levels/main.gd" id="9_main"]
 [ext_resource type="PackedScene" uid="uid://ctw78p1ceaxjy" path="res://entities/map/map.tscn" id="9_pm7y4"]
@@ -275,6 +275,7 @@ layout_mode = 2
 text = "Quit to Menu"
 
 [node name="QuitButton" type="Button" parent="EscapeMenuLayer/EscapeMenuPanel/MarginContainer/VBoxContainer" unique_id=1703199327]
+visible = false
 layout_mode = 2
 text = "Quit"
 
