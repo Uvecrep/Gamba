@@ -43,7 +43,6 @@ summon_identity = &"bush_boy"
 [sub_resource type="Resource" id="Entry_Forest_BushBoy"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_BushBoy")
-weight = 1.0
 name = "Bush Boy"
 rarity_override = 1
 
@@ -55,7 +54,6 @@ summon_identity = &"mushroom_knight"
 [sub_resource type="Resource" id="Entry_Forest_MushroomKnight"]
 script = ExtResource("1_20gbc")
 outcome = SubResource("Outcome_Forest_MushroomKnight")
-weight = 1.0
 name = "Mushroom Knight"
 rarity_override = 1
 

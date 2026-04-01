@@ -43,7 +43,6 @@ summon_identity = &"magma_beetle"
 [sub_resource type="Resource" id="Entry_Elemental_MagmaBeetle"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Elemental_MagmaBeetle")
-weight = 1.0
 name = "Magma Beetle"
 rarity_override = 1
 
@@ -55,7 +54,6 @@ summon_identity = &"storm_totem"
 [sub_resource type="Resource" id="Entry_Elemental_StormTotem"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Elemental_StormTotem")
-weight = 1.0
 name = "Storm Totem"
 rarity_override = 1
 

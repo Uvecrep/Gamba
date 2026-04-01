@@ -43,7 +43,6 @@ summon_identity = &"jack_in_the_box"
 [sub_resource type="Resource" id="Entry_Chaos_JackInTheBox"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Chaos_JackInTheBox")
-weight = 1.0
 name = "Jack-in-the-box"
 rarity_override = 1
 
@@ -55,7 +54,6 @@ summon_identity = &"slime"
 [sub_resource type="Resource" id="Entry_Chaos_Slime"]
 script = ExtResource("2_entry")
 outcome = SubResource("Outcome_Chaos_Slime")
-weight = 1.0
 name = "Slime"
 rarity_override = 1
 
